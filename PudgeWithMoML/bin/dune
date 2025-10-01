@@ -1,0 +1,22 @@
+(library
+ (name LL)
+ (public_name PudgeWithMoML.LL)
+ (modules LL)
+ (wrapped false)
+ (libraries
+  llvm
+  llvm.analysis
+  llvm.executionengine
+  ;
+  ))
+
+(executable
+ (public_name PudgeWithMoML)
+ (name main)
+ (modules main)
+ (libraries LL)
+ (instrumentation
+  (backend bisect_ppx)))
+
+(cram
+ (deps ./main.exe runtime.c))
