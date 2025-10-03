@@ -1,0 +1,7 @@
+(library
+ (name tests)
+ (inline_tests)
+ (libraries PudgeWithMoML)
+ (modules :standard)
+ (preprocess
+  (pps ppx_expect)))

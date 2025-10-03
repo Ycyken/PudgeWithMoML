@@ -1,11 +1,11 @@
 (library
- (name frontend)
+ (name PudgeWithMoML)
  (public_name PudgeWithMoML)
- (modules Ast TypedTree KeywordChecker)
+ (modules :standard)
  (libraries base angstrom)
  (preprocess
   (pps ppx_deriving.show))
  (instrumentation
   (backend bisect_ppx)))
 
-(include_subdirs unqualified)
+(include_subdirs qualified)
