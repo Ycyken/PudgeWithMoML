@@ -1,11 +1,11 @@
 open TypedTree
 
-type ident = string (** identifier *) [@@deriving show { with_path = false }]
+type ident = string [@@deriving show { with_path = false }]
 
 type literal =
-  | Int_lt of int (** [0], [1], [30] *)
-  | Bool_lt of bool (** [false], [true] *)
-  | Unit_lt (** [()] *)
+  | Int_lt of int
+  | Bool_lt of bool
+  | Unit_lt
 [@@deriving show { with_path = false }]
 
 type pattern =
@@ -20,8 +20,8 @@ type pattern =
 [@@deriving show { with_path = false }]
 
 type is_recursive =
-  | Nonrec (** let factorial n = ... *)
-  | Rec (** let rec factorial n = ... *)
+  | Nonrec
+  | Rec
 [@@deriving show { with_path = false }]
 
 and expr =
@@ -45,22 +45,25 @@ and case = pattern * expr [@@deriving show { with_path = false }]
 type structure_item = is_recursive * binding list [@@deriving show { with_path = false }]
 type structure = structure_item list [@@deriving show { with_path = false }]
 
+let eapp func args =
+  Base.List.fold_left args ~init:func ~f:(fun acc arg -> Apply (acc, arg))
+;;
 
-let eapp func args = Base.List.fold_left args ~init:func ~f:(fun acc arg -> Apply (acc, arg))
-let elambda func args = Base.List.fold_right args ~init:func ~f:(fun arg acc -> Lambda (arg, acc))
+let elambda func args =
+  Base.List.fold_right args ~init:func ~f:(fun arg acc -> Lambda (arg, acc))
+;;
 
-let eeq a b = eapp (Variable ("=")) [ a; b ]
-let eneq a b = eapp (Variable ("<>")) [ a; b ]
-let elt a b = eapp (Variable ("<")) [ a; b ]
-let elte a b = eapp (Variable ("<=")) [ a; b ]
-let egt a b = eapp (Variable (">")) [ a; b ]
-let egte a b = eapp (Variable (">=")) [ a; b ]
-let eadd a b = eapp (Variable ("+")) [ a; b ]
-let esub a b = eapp (Variable ("-")) [ a; b ]
-let emul a b = eapp (Variable ("*")) [ a; b ]
-let ediv a b = eapp (Variable ("/")) [ a; b ]
-let eland a b = eapp (Variable ("&&")) [ a; b ]
-let elor a b = eapp (Variable ("||")) [ a; b ]
-let econs a b = eapp (Variable ("::")) [ a; b ]
-
-let euminus a = eapp (Variable ("-")) [ a ]
+let eeq a b = eapp (Variable "=") [ a; b ]
+let eneq a b = eapp (Variable "<>") [ a; b ]
+let elt a b = eapp (Variable "<") [ a; b ]
+let elte a b = eapp (Variable "<=") [ a; b ]
+let egt a b = eapp (Variable ">") [ a; b ]
+let egte a b = eapp (Variable ">=") [ a; b ]
+let eadd a b = eapp (Variable "+") [ a; b ]
+let esub a b = eapp (Variable "-") [ a; b ]
+let emul a b = eapp (Variable "*") [ a; b ]
+let ediv a b = eapp (Variable "/") [ a; b ]
+let eland a b = eapp (Variable "&&") [ a; b ]
+let elor a b = eapp (Variable "||") [ a; b ]
+let econs a b = eapp (Variable "::") [ a; b ]
+let euminus a = eapp (Variable "-") [ a ]
