@@ -1,12 +1,5 @@
-(library
- (name LL)
- (public_name PudgeWithMoML.LL)
- (modules)
- (wrapped false)
- (libraries))
-
 (executable
- (public_name PudgeWithMoML)
+ (public_name compiler)
  (name compiler)
  (modules compiler)
  (libraries PudgeWithMoML stdio)
