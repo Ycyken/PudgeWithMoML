@@ -1,10 +1,6 @@
-[@@@ocaml.text "/*"]
-
-(** Copyright 2023-2025, Kakadu and contributors *)
+(** Copyright 2025-2026, Gleb Nasretdinov, Ilhom Kombaev *)
 
 (** SPDX-License-Identifier: LGPL-3.0-or-later *)
-
-[@@@ocaml.text "/*"]
 
 open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Riscv.Codegen

@@ -1,3 +1,7 @@
+(** Copyright 2025-2026, Gleb Nasretdinov, Ilhom Kombaev *)
+
+(** SPDX-License-Identifier: LGPL-3.0-or-later *)
+
 type binder = int [@@deriving show { with_path = false }]
 
 type typ =
