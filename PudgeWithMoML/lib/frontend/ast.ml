@@ -28,7 +28,7 @@ type is_recursive =
   | Rec
 [@@deriving show { with_path = false }]
 
-and expr =
+type expr =
   | Const of literal
   | Tuple of expr * expr * expr list
   | List of expr list

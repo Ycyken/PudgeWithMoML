@@ -21,8 +21,7 @@ let skip_ws = skip_while is_ws
 
 let peek_sep1 =
   peek_char
-  >>= fun c ->
-  match c with
+  >>= function
   | None -> return None
   | Some c ->
     (match c with

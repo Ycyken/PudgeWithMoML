@@ -73,8 +73,7 @@ let imm_of_literal = function
   | Unit_lt -> 1
 ;;
 
-let rec gen_expr dst e : instr list M.t =
-  match e with
+let rec gen_expr dst : expr -> instr list M.t = function
   | Const lt ->
     let imm = imm_of_literal lt in
     M.return [ li dst imm ]
@@ -120,8 +119,7 @@ let rec gen_expr dst e : instr list M.t =
   | _ -> failwith "gen_expr: not implemented"
 ;;
 
-let gen_structure_item str_item : instr list M.t =
-  match str_item with
+let gen_structure_item : structure_item -> instr list M.t = function
   | Rec, [ (PVar f, Lambda (PVar x, body)) ] ->
     let* saved_off = M.get_stack_offset in
     let* () = M.set_stack_offset 0 in
@@ -141,8 +139,7 @@ let gen_structure_item str_item : instr list M.t =
   | _ -> failwith "unsupported structure item"
 ;;
 
-let rec gather pr : instr list M.t =
-  match pr with
+let rec gather : program -> instr list M.t = function
   | [] -> M.return []
   | item :: rest ->
     let* code1 = gen_structure_item item in
