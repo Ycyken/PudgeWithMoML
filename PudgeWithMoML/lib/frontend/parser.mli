@@ -1,3 +1,3 @@
 open Ast
 
-val parse : string -> (structure, string) result
+val parse : string -> (program, string) result

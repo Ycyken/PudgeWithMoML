@@ -43,7 +43,7 @@ and binding = pattern * expr [@@deriving show { with_path = false }]
 and case = pattern * expr [@@deriving show { with_path = false }]
 
 type structure_item = is_recursive * binding list [@@deriving show { with_path = false }]
-type structure = structure_item list [@@deriving show { with_path = false }]
+type program = structure_item list [@@deriving show { with_path = false }]
 
 let eapp func args =
   Base.List.fold_left args ~init:func ~f:(fun acc arg -> Apply (acc, arg))

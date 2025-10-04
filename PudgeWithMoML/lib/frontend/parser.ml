@@ -362,5 +362,5 @@ let str_item : structure_item t =
   return (rec_flag, bind1 :: binds_rest)
 ;;
 
-let program : structure t = many1 str_item <* skip_ws
+let program : program t = many1 str_item <* skip_ws
 let parse (str : string) = parse_string ~consume:All program str

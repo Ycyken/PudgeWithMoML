@@ -16,7 +16,7 @@ let main = fac 4 |}
   let () =
     match result with
     | Error e -> print_endline e
-    | Ok s -> pp_structure Format.std_formatter s
+    | Ok s -> pp_program Format.std_formatter s
   in
   [%expect
     {|
