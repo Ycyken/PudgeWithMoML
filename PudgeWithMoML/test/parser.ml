@@ -25,27 +25,28 @@ let main = fac 4 |}
   [%expect
     {|
       [(Rec,
-        [((PVar "fac"),
-          (Lambda ((PVar "n"),
-             (If_then_else (
-                (Apply ((Apply ((Variable "<="), (Variable "n"))),
-                   (Const (Int_lt 1)))),
-                (Const (Int_lt 1)),
-                (Some (LetIn (Nonrec,
-                         [((PVar "n1"),
-                           (Apply ((Apply ((Variable "-"), (Variable "n"))),
-                              (Const (Int_lt 1)))))
-                           ],
-                         (LetIn (Nonrec,
-                            [((PVar "m"),
-                              (Apply ((Variable "fac"), (Variable "n1"))))],
-                            (Apply ((Apply ((Variable "*"), (Variable "n"))),
-                               (Variable "m")))
-                            ))
-                         )))
-                ))
-             )))
-          ]);
-        (Nonrec, [((PVar "main"), (Apply ((Variable "fac"), (Const (Int_lt 4)))))])
+        ((PVar "fac"),
+         (Lambda ((PVar "n"),
+            (If_then_else (
+               (Apply ((Apply ((Variable "<="), (Variable "n"))),
+                  (Const (Int_lt 1)))),
+               (Const (Int_lt 1)),
+               (Some (LetIn (Nonrec,
+                        ((PVar "n1"),
+                         (Apply ((Apply ((Variable "-"), (Variable "n"))),
+                            (Const (Int_lt 1))))),
+                        [],
+                        (LetIn (Nonrec,
+                           ((PVar "m"), (Apply ((Variable "fac"), (Variable "n1")))),
+                           [],
+                           (Apply ((Apply ((Variable "*"), (Variable "n"))),
+                              (Variable "m")))
+                           ))
+                        )))
+               ))
+            ))),
+        []);
+        (Nonrec, ((PVar "main"), (Apply ((Variable "fac"), (Const (Int_lt 4))))),
+         [])
         ] |}]
 ;;

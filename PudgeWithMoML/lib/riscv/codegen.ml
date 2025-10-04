@@ -110,7 +110,7 @@ let rec gen_expr dst : expr -> instr list M.t = function
     let* arg_code = gen_expr (A 0) arg in
     let instrs = arg_code @ [ Call f ] @ if dst = A 0 then [] else [ Mv (dst, A 0) ] in
     M.return instrs
-  | LetIn (Nonrec, [ (PVar x, expr) ], inner_expr) ->
+  | LetIn (Nonrec, (PVar x, expr), [], inner_expr) ->
     let* code1 = gen_expr (T 0) expr in
     let* off = alloc_stack_slot in
     let* () = M.add_binding x (Stack off) in
@@ -120,7 +120,7 @@ let rec gen_expr dst : expr -> instr list M.t = function
 ;;
 
 let gen_structure_item : structure_item -> instr list M.t = function
-  | Rec, [ (PVar f, Lambda (PVar x, body)) ] ->
+  | Rec, (PVar f, Lambda (PVar x, body)), [] ->
     let* saved_off = M.get_stack_offset in
     let* () = M.set_stack_offset 0 in
     let* x_off = alloc_stack_slot in
@@ -133,7 +133,7 @@ let gen_structure_item : structure_item -> instr list M.t = function
     let prologue = [ addi Sp Sp (-frame); sd Ra 0 Sp; sd (A 0) x_off Sp ] in
     let epilogue = [ ld Ra 0 Sp; addi Sp Sp frame; ret ] in
     M.return ([ label f ] @ prologue @ body_code @ epilogue)
-  | Nonrec, [ (PVar "main", e) ] ->
+  | Nonrec, (PVar "main", e), [] ->
     let* body_code = gen_expr (A 0) e in
     M.return ([ label "_start" ] @ body_code @ [ li (A 7) 94; ecall ])
   | _ -> failwith "unsupported structure item"

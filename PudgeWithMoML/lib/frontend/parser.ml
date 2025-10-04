@@ -97,31 +97,10 @@ let p_bool_pat = pat_const_factory p_bool
 let p_unit = skip_ws *> string "(" *> skip_ws *> string ")" *> return Unit_lt
 let p_unit_expr = expr_const_factory p_unit
 let p_unit_pat = pat_const_factory p_unit
+let op_chars = "+-*/<>|!$%&.:=?@^~"
 
 let p_oper =
-  let* oper =
-    skip_ws
-    *> take_while1 (function
-      | '+'
-      | '-'
-      | '<'
-      | '>'
-      | '*'
-      | '|'
-      | '!'
-      | '$'
-      | '%'
-      | '&'
-      | '.'
-      | '/'
-      | ':'
-      | '='
-      | '?'
-      | '@'
-      | '^'
-      | '~' -> true
-      | _ -> false)
-  in
+  let* oper = skip_ws *> take_while1 (String.contains op_chars) in
   if is_keyword oper
   then fail "keywords are not allowed as variable names"
   else return (PVar oper)
@@ -250,10 +229,10 @@ let p_letin p_expr =
   *> skip_ws_sep1
   *>
   let* rec_flag = string "rec" *> peek_sep1 *> return Rec <|> return Nonrec in
-  let* bind1 = p_binding p_expr in
+  let* bind = p_binding p_expr in
   let* binds_rest = many (skip_ws *> string "and" *> peek_sep1 *> p_binding p_expr) in
   let* inner_expr = skip_ws *> string "in" *> peek_sep1 *> p_expr in
-  return (LetIn (rec_flag, bind1 :: binds_rest, inner_expr))
+  return (LetIn (rec_flag, bind, binds_rest, inner_expr))
 ;;
 
 let p_apply p_expr =
@@ -360,9 +339,9 @@ let str_item : structure_item t =
   *> skip_ws_sep1
   *>
   let* rec_flag = string "rec" *> peek_sep1 *> return Rec <|> return Nonrec in
-  let* bind1 = p_binding p_expr in
+  let* bind = p_binding p_expr in
   let* binds_rest = many (skip_ws *> string "and" *> peek_sep1 *> p_binding p_expr) in
-  return (rec_flag, bind1 :: binds_rest)
+  return (rec_flag, bind, binds_rest)
 ;;
 
 let program : program t = many1 str_item <* skip_ws

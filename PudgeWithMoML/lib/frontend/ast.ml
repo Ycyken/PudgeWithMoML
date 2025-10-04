@@ -40,13 +40,15 @@ type expr =
   | Match of expr * case * case list (** [match x with | p1 -> e1 | p2 -> e2 | ...] *)
   | Option of expr option
   | EConstraint of expr * typ
-  | LetIn of is_recursive * binding list * expr
+  | LetIn of is_recursive * binding * binding list * expr
 [@@deriving show { with_path = false }]
 
 and binding = pattern * expr [@@deriving show { with_path = false }]
 and case = pattern * expr [@@deriving show { with_path = false }]
 
-type structure_item = is_recursive * binding list [@@deriving show { with_path = false }]
+type structure_item = is_recursive * binding * binding list
+[@@deriving show { with_path = false }]
+
 type program = structure_item list [@@deriving show { with_path = false }]
 
 let eapp func args =
