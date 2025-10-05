@@ -164,7 +164,7 @@ let%expect_test "types" =
 ;;
 
 let%expect_test "nested types" =
-  let input = {|let a (b: '3 list list option) (c: int option option list)= 0|} in
+  let input = {|let a (b: '3 list list option) (c: int option option list) = 0|} in
   let result = parse input in
   let () = print_result result in
   [%expect

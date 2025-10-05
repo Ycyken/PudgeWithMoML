@@ -16,13 +16,16 @@ let rec pp_typ fmt = function
     (match fst with
      | Arrow _ -> fprintf fmt "(%a) -> %a" pp_typ fst pp_typ snd
      | _ -> fprintf fmt "%a -> %a" pp_typ fst pp_typ snd)
-  | Type_list typ -> fprintf fmt "%a list" pp_typ typ
+  | Type_list t ->
+    (match t with
+     | Arrow _ | Type_tuple _ -> fprintf fmt "(%a) list" pp_typ t
+     | _ -> fprintf fmt "%a list" pp_typ t)
   | Type_tuple (first, second, rest) ->
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> fprintf fmt " * ")
       (fun fmt typ ->
          match typ with
-         | Arrow _ -> fprintf fmt "(%a)" pp_typ typ
+         | Type_tuple _ | Arrow _ -> fprintf fmt "(%a)" pp_typ typ
          | _ -> pp_typ fmt typ)
       fmt
       (first :: second :: rest)
