@@ -1,4 +1,4 @@
-  $ ./run_qcheck.exe -seed 6 -gen 1
-  random seed: 6
+  $ ./run_qcheck.exe -seed 24 -gen 1 -pp
+  random seed: 24
   ================================================================================
   success (ran 1 tests)

@@ -100,7 +100,7 @@ and shrink_pattern = function
   | POption (Some p) -> return p
   | POption None -> empty
   | Wild -> empty
-  | PVar s -> QCheck.Shrink.string s >|= fun s' -> PVar s'
+  | PVar _ -> empty
   | PConstraint (p, _) -> return p
 ;;
 

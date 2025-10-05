@@ -20,9 +20,12 @@ let gen_varname =
 ;;
 
 let gen_operator =
-  let gen_char = oneofl (String.to_seq op_chars |> List.of_seq) in
-  let len = int_range 1 3 in
-  string_size ~gen:gen_char len
+  let gen_op =
+    let gen_char = oneofl (String.to_seq op_chars |> List.of_seq) in
+    let len = int_range 1 3 in
+    string_size ~gen:gen_char len
+  in
+  gen_op >>= fun op -> if is_keyword op then gen_op else return op
 ;;
 
 let gen_ident = oneof [ gen_varname; gen_operator ]
