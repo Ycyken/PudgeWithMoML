@@ -6,14 +6,19 @@
 
 [@@@ocaml.text "/*"]
 
+open Generate
+
 type binder = int [@@deriving show { with_path = false }, qcheck]
 
 type typ =
-  | Primitive of string
-  | Type_var of binder
+  | Primitive of (string[@gen gen_varname])
+  | Type_var of (binder[@gen QCheck.Gen.small_int])
   | Arrow of typ * typ
   | Type_list of typ
-  | Type_tuple of typ * typ * typ list
+  | Type_tuple of
+      typ
+      * typ
+      * (typ list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_typ_sized (n / 20)))])
   | TOption of typ
 [@@deriving show { with_path = false }, qcheck]
 

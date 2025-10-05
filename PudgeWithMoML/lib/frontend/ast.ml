@@ -20,7 +20,7 @@ type literal =
 type pattern =
   | Wild
   | PList of
-      (pattern list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_pattern_sized (n / 20)))])
+      (pattern list[@gen QCheck.Gen.(list_size (0 -- 3) (gen_pattern_sized (n / 20)))])
   | PCons of pattern * pattern
   | PTuple of
       pattern
@@ -40,31 +40,38 @@ type is_recursive =
 type expr =
   | Const of literal
   | Tuple of
-      expr
-      * expr
+      (expr[@gen gen_expr_sized (n / 4)])
+      * (expr[@gen gen_expr_sized (n / 4)])
       * (expr list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_expr_sized (n / 20)))])
-  | List of (expr list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_expr_sized (n / 20)))])
+  | List of (expr list[@gen QCheck.Gen.(list_size (0 -- 3) (gen_expr_sized (n / 20)))])
   | Variable of ident
-  | If_then_else of expr * expr * expr option
-  | Lambda of pattern * expr
-  | Apply of expr * expr
+  | If_then_else of
+      (expr[@gen gen_expr_sized (n / 4)])
+      * (expr[@gen gen_expr_sized (n / 4)])
+      * (expr option[@gen QCheck.Gen.option (gen_expr_sized (n / 4))])
+  | Lambda of (pattern[@gen gen_pattern_sized (n / 2)]) * expr
+  | Apply of (expr[@gen gen_expr_sized (n / 4)]) * (expr[@gen gen_expr_sized (n / 4)])
   | Function of
       case * (case list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_case_sized (n / 20)))])
   | Match of
-      expr
-      * case
+      (expr[@gen gen_expr_sized (n / 4)])
+      * (case[@gen gen_case_sized (n / 4)])
       * (case list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_case_sized (n / 20)))])
-  | Option of expr option
-  | EConstraint of expr * typ
+  | Option of (expr option[@gen QCheck.Gen.option (gen_expr_sized (n / 4))])
+  | EConstraint of (expr[@gen gen_expr_sized (n / 4)]) * typ
   | LetIn of
       is_recursive
-      * binding
+      * (binding[@gen gen_binding_sized (n / 4)])
       * (binding list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_binding_sized (n / 20)))])
       * expr
 [@@deriving show { with_path = false }, qcheck]
 
-and binding = pattern * expr [@@deriving show { with_path = false }, qcheck]
-and case = pattern * expr [@@deriving show { with_path = false }, qcheck]
+and binding =
+  (pattern[@gen gen_pattern_sized (n / 4)]) * (expr[@gen gen_expr_sized (n / 4)])
+[@@deriving show { with_path = false }, qcheck]
+
+and case = (pattern[@gen gen_pattern_sized (n / 4)]) * (expr[@gen gen_expr_sized (n / 4)])
+[@@deriving show { with_path = false }, qcheck]
 
 type structure_item =
   is_recursive
