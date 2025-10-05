@@ -60,7 +60,8 @@ let%expect_test "custom infix operator" =
   let input = "let _ = 1 %$*&+^~ y" in
   let result = parse input in
   let () = print_result result in
-  [%expect {|
+  [%expect
+    {|
     [(Nonrec,
       (Wild,
        (Apply ((Apply ((Variable "%$*&+^~"), (Const (Int_lt 1)))), (Variable "y")
@@ -83,8 +84,29 @@ let%expect_test "operator as pattern" =
   in
   let result = parse input in
   let () = print_result result in
-  [%expect {|
+  [%expect
+    {|
     [(Nonrec,
       (Wild, (Match ((Const (Int_lt 4)), ((PVar "+"), (Const (Int_lt 5))), []))),
+      [])] |}]
+;;
+
+let%expect_test "nested tuples" =
+  let input =
+    {|let _ = (1,2,3), t, (), (4), true, f
+|}
+  in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Tuple (
+          (Tuple ((Const (Int_lt 1)), (Const (Int_lt 2)), [(Const (Int_lt 3))])),
+          (Variable "t"),
+          [(Const Unit_lt); (Const (Int_lt 4)); (Const (Bool_lt true));
+            (Variable "f")]
+          ))),
       [])] |}]
 ;;

@@ -146,12 +146,12 @@ let uminus = skip_ws *> string "-" *> return euminus
 
 let p_tuple make p =
   let tuple =
-    let* fst = p <* skip_ws <* string "," in
-    let* snd = p in
+    let* fst = p in
+    let* snd = skip_ws *> string "," *> p in
     let* rest = many (skip_ws *> string "," *> p) in
     return (make fst snd rest)
   in
-  p_parens tuple <|> tuple
+  tuple <|> p_parens tuple
 ;;
 
 let p_tuple_expr p_expr = p_tuple (fun e1 e2 rest -> Tuple (e1, e2, rest)) p_expr
