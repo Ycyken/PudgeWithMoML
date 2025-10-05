@@ -6,4 +6,4 @@
 
 [@@@ocaml.text "/*"]
 
-val pp_program : Format.formatter -> Frontend.Ast.program -> unit
+val pp_program : Format.formatter -> Ast.program -> unit

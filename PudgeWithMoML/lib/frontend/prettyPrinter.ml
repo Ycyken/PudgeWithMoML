@@ -62,7 +62,7 @@ and pp_expr fmt = function
      | None -> ())
   | Lambda (arg, body) -> fprintf fmt "fun (%a) -> %a" pp_pattern arg pp_expr body
   | Apply (Apply (Variable op, left), right)
-    when String.for_all (fun c -> String.contains Frontend.Parser.op_chars c) op ->
+    when String.for_all (fun c -> String.contains Parser.op_chars c) op ->
     fprintf fmt "(%a) %s (%a)" pp_expr left op pp_expr right
   | Apply (func, arg) -> fprintf fmt "(%a) %a" pp_expr func pp_expr arg
   | Function ((pat1, expr1), cases) ->
