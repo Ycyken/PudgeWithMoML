@@ -80,6 +80,8 @@ let eapp func args =
   Base.List.fold_left args ~init:func ~f:(fun acc arg -> Apply (acc, arg))
 ;;
 
+let eapp2 func a b = eapp func [ a; b ]
+
 let elambda func args =
   Base.List.fold_right args ~init:func ~f:(fun arg acc -> Lambda (arg, acc))
 ;;

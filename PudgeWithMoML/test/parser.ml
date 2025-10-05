@@ -56,9 +56,35 @@ let main = fac 4 |}
         ] |}]
 ;;
 
-let%expect_test "infix operators" =
-  let input = "let _ = (=)" in
+let%expect_test "custom infix operator" =
+  let input = "let _ = 1 %$*&+^~ y" in
   let result = parse input in
   let () = print_result result in
-  [%expect {| |}]
+  [%expect {|
+    [(Nonrec,
+      (Wild,
+       (Apply ((Apply ((Variable "%$*&+^~"), (Const (Int_lt 1)))), (Variable "y")
+          ))),
+      [])] |}]
+;;
+
+let%expect_test "operator as variable expr" =
+  let input = "let _ = (+) 4" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {| [(Nonrec, (Wild, (Apply ((Variable "+"), (Const (Int_lt 4))))), [])] |}]
+;;
+
+let%expect_test "operator as pattern" =
+  let input =
+    {|let _ = match 4 with
+| (+) -> 5
+|}
+  in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {|
+    [(Nonrec,
+      (Wild, (Match ((Const (Int_lt 4)), ((PVar "+"), (Const (Int_lt 5))), []))),
+      [])] |}]
 ;;

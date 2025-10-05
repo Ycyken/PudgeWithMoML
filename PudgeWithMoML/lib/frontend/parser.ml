@@ -23,6 +23,7 @@ let is_ws = function
 ;;
 
 let skip_ws = skip_while is_ws
+let p_parens p = skip_ws *> char '(' *> skip_ws *> p <* skip_ws <* char ')'
 
 let peek_sep1 =
   peek_char
@@ -83,10 +84,10 @@ let p_oper =
   let* oper = skip_ws *> take_while1 (String.contains op_chars) in
   if is_keyword oper
   then fail "keywords are not allowed as variable names"
-  else return (PVar oper)
+  else return oper
 ;;
 
-let p_ident =
+let p_varname =
   let p_fst_letter =
     take_while1 (function
       | 'a' .. 'z' | '_' -> true
@@ -106,9 +107,11 @@ let p_ident =
   else return name
 ;;
 
-let p_type = skip_ws *> char ':' *> skip_ws *> p_ident >>| fun s -> Primitive s
-let p_var_expr = p_ident >>| fun ident -> Variable ident
-let p_var_pat = p_ident >>| fun ident -> PVar ident
+let p_var_expr = p_varname >>| fun ident -> Variable ident
+let p_var_pat = p_varname >>| fun ident -> PVar ident
+let p_type = skip_ws *> char ':' *> skip_ws *> p_varname >>| fun s -> Primitive s
+let p_oper_expr = p_parens p_oper >>| fun s -> Variable s
+let p_oper_pat = p_parens p_oper >>| fun s -> PVar s
 
 let p_semicolon_list p_elem =
   skip_ws
@@ -136,7 +139,6 @@ let p_cons_list_pat p_pat =
 ;;
 
 (* EXPR PARSERS *)
-let p_parens p = skip_ws *> char '(' *> skip_ws *> p <* skip_ws <* char ')'
 let uminus = skip_ws *> string "-" *> return euminus
 
 let p_tuple make p =
@@ -186,8 +188,7 @@ let p_pat =
   skip_ws
   *> fix (fun self ->
     let atom =
-      choice
-        [ p_pat_const; p_parens p_oper; p_parens self; p_parens (p_constraint_pat self) ]
+      choice [ p_pat_const; p_oper_pat; p_parens self; p_parens (p_constraint_pat self) ]
     in
     let semicolon_list = p_semicolon_list_pat (self <|> atom) <|> atom in
     let opt = p_option semicolon_list make_option_pat <|> semicolon_list in
@@ -269,14 +270,18 @@ let p_constraint_expr p_expr =
 let infix_op (op, func) = skip_ws *> string op *> return func
 
 let infix_precedence_list =
-  [ [ "*", emul; "/", ediv ]
-  ; [ "+", eadd; "-", esub ]
-  ; [ "::", econs ]
-  ; [ "=", eeq; ">=", egte; ">", egt; "<=", elte; "<", elt; "<>", eneq ]
-  ; [ "&&", eland ]
-  ; [ "||", elor ]
-  ]
-  |> List.map ~f:(List.map ~f:infix_op)
+  let default =
+    [ [ "*", emul; "/", ediv ]
+    ; [ "+", eadd; "-", esub ]
+    ; [ "::", econs ]
+    ; [ "=", eeq; ">=", egte; ">", egt; "<=", elte; "<", elt; "<>", eneq ]
+    ; [ "&&", eland ]
+    ; [ "||", elor ]
+    ]
+    |> List.map ~f:(List.map ~f:infix_op)
+  in
+  let custom = [ (p_oper >>| fun s -> eapp2 (Variable s)) ] in
+  default @ [ custom ]
 ;;
 
 let p_infix_expr p_expr =
@@ -292,6 +297,7 @@ let p_expr =
     let atom =
       choice
         [ p_var_expr
+        ; p_oper_expr
         ; p_int_expr
         ; p_unit_expr
         ; p_bool_expr
