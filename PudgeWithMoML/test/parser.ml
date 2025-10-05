@@ -129,3 +129,55 @@ let%expect_test "nested tuples" =
           ))),
       [])] |}]
 ;;
+
+let%expect_test "types" =
+  let input =
+    {|let a (b: int) (c:'7) (d: '2 -> unit) (e: '3 list ) (f: '4 -> (f) * '1) (g: '2 -> sss option) = 0|}
+  in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      ((PVar "a"),
+       (Lambda ((PConstraint ((PVar "b"), (Primitive "int"))),
+          (Lambda ((PConstraint ((PVar "c"), (Type_var 7))),
+             (Lambda (
+                (PConstraint ((PVar "d"),
+                   (Arrow ((Type_var 2), (Primitive "unit"))))),
+                (Lambda ((PConstraint ((PVar "e"), (Type_list (Type_var 3)))),
+                   (Lambda (
+                      (PConstraint ((PVar "f"),
+                         (Arrow ((Type_var 4),
+                            (Type_tuple ((Primitive "f"), (Type_var 1), []))))
+                         )),
+                      (Lambda (
+                         (PConstraint ((PVar "g"),
+                            (Arrow ((Type_var 2), (TOption (Primitive "sss")))))),
+                         (Const (Int_lt 0))))
+                      ))
+                   ))
+                ))
+             ))
+          ))),
+      [])] |}]
+;;
+
+let%expect_test "nested types" =
+  let input = {|let a (b: '3 list list option) (c: int option option list)= 0|} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      ((PVar "a"),
+       (Lambda (
+          (PConstraint ((PVar "b"),
+             (TOption (Type_list (Type_list (Type_var 3)))))),
+          (Lambda (
+             (PConstraint ((PVar "c"),
+                (Type_list (TOption (TOption (Primitive "int")))))),
+             (Const (Int_lt 0))))
+          ))),
+      [])] |}]
+;;

@@ -117,7 +117,46 @@ let p_expr_atom = choice [ p_var_expr; p_oper_expr; p_int_expr; p_unit_expr; p_b
 
 (* COMPLEX PARSERS *)
 
-let p_type = skip_ws *> char ':' *> skip_ws *> p_varname >>| fun s -> Primitive s
+let p_type_primitive = skip_ws *> p_varname >>| fun s -> Primitive s
+
+let p_type_var =
+  skip_ws
+  *> char '\''
+  *> let* n = p_int in
+     return (Type_var n)
+;;
+
+let p_suffix_type =
+  choice
+    [ skip_ws *> string "list" *> return (fun t -> Type_list t)
+    ; skip_ws *> string "option" *> return (fun t -> TOption t)
+    ]
+;;
+
+let chain_postfix term suffix =
+  term
+  >>= fun t0 -> many suffix >>| fun sl -> List.fold sl ~init:t0 ~f:(fun acc f -> f acc)
+;;
+
+let p_type =
+  skip_ws
+  *> string ":"
+  *> fix (fun self ->
+    let atom = choice [ p_type_primitive; p_type_var; p_parens self ] in
+    let list_option = chain_postfix atom p_suffix_type in
+    let tuple =
+      list_option
+      >>= fun fst ->
+      many (skip_ws *> string "*" *> list_option)
+      >>| function
+      | [] -> fst
+      | snd :: rest -> Type_tuple (fst, snd, rest)
+    in
+    let arrow =
+      chainr1 tuple (skip_ws *> string "->" *> return (fun t1 t2 -> Arrow (t1, t2)))
+    in
+    arrow)
+;;
 
 let p_semicolon_list p_elem =
   skip_ws
