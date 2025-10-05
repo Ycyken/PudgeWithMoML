@@ -46,10 +46,6 @@ module M = struct
     fun st -> "L" ^ Int.to_string st.fresh, { st with fresh = st.fresh + 1 }
   ;;
 
-  let get_env : env t = fun st -> st.env, st
-  let put_env env : unit t = fun st -> (), { st with env }
-  let modify_env f : unit t = fun st -> (), { st with env = f st.env }
-
   let alloc_stack_slot : int t =
     fun st ->
     let off = st.stack_offset + word_size in
@@ -60,10 +56,9 @@ module M = struct
   let set_stack_offset (off : int) : unit t = fun st -> (), { st with stack_offset = off }
 
   let add_binding name loc : unit t =
-    modify_env (fun env -> Map.set env ~key:name ~data:loc)
+    fun st -> (), { st with env = Map.set st.env ~key:name ~data:loc }
   ;;
 
-  let put_on_stack name offset : unit t = add_binding name (Stack offset)
   let lookup name : location option t = fun st -> Map.find st.env name, st
 end
 

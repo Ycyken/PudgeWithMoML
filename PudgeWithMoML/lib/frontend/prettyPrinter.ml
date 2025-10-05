@@ -90,14 +90,6 @@ and pp_expr fmt = function
     fprintf fmt "in\n";
     fprintf fmt "%a " pp_expr in_expr
 
-and pp_args fmt args =
-  let open Format in
-  pp_print_list
-    ~pp_sep:pp_print_space
-    (fun fmt arg -> fprintf fmt "%a" pp_pattern arg)
-    fmt
-    args
-
 and pp_bind fmt : binding -> unit = function
   | pat, body -> fprintf fmt "%a = %a " pp_pattern pat pp_expr body
 
