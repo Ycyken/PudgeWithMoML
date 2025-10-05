@@ -9,6 +9,11 @@
 open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Frontend.Ast
 
+let print_result = function
+  | Ok pr -> pp_program Format.std_formatter pr
+  | Error e -> Format.fprintf Format.std_formatter "Parse error: %s" e
+;;
+
 let%expect_test "fac" =
   let input =
     {| let rec fac n =
@@ -21,11 +26,7 @@ let%expect_test "fac" =
 let main = fac 4 |}
   in
   let result = parse input in
-  let () =
-    match result with
-    | Error e -> print_endline e
-    | Ok s -> pp_program Format.std_formatter s
-  in
+  let () = print_result result in
   [%expect
     {|
       [(Rec,
@@ -53,4 +54,11 @@ let main = fac 4 |}
         (Nonrec, ((PVar "main"), (Apply ((Variable "fac"), (Const (Int_lt 4))))),
          [])
         ] |}]
+;;
+
+let%expect_test "infix operators" =
+  let input = "let _ = (=)" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {| |}]
 ;;

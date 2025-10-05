@@ -10,6 +10,7 @@ open Angstrom
 open Ast
 open Base
 open TypedTree
+open Keywords
 
 (* TECHNICAL FUNCTIONS *)
 
@@ -52,30 +53,6 @@ let rec unary_chain op e =
   op >>= (fun unexpr -> unary_chain op e >>= fun expr -> return (unexpr expr)) <|> e
 ;;
 
-let is_keyword = function
-  | "if"
-  | "then"
-  | "else"
-  | "let"
-  | "in"
-  | "not"
-  | "true"
-  | "false"
-  | "fun"
-  | "match"
-  | "with"
-  | "and"
-  | "Some"
-  | "None"
-  | "function"
-  | "->"
-  | "|"
-  | ":"
-  | "::"
-  | "_" -> true
-  | _ -> false
-;;
-
 (* SIMPLE PARSERS *)
 let expr_const_factory parser = parser >>| fun lit -> Const lit
 let pat_const_factory parser = parser >>| fun lit -> PConst lit
@@ -101,7 +78,6 @@ let p_bool_pat = pat_const_factory p_bool
 let p_unit = skip_ws *> string "(" *> skip_ws *> string ")" *> return Unit_lt
 let p_unit_expr = expr_const_factory p_unit
 let p_unit_pat = pat_const_factory p_unit
-let op_chars = "+-*/<>|!$%&.:=?@^~"
 
 let p_oper =
   let* oper = skip_ws *> take_while1 (String.contains op_chars) in

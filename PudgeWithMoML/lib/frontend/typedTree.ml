@@ -6,7 +6,7 @@
 
 [@@@ocaml.text "/*"]
 
-type binder = int [@@deriving show { with_path = false }]
+type binder = int [@@deriving show { with_path = false }, qcheck]
 
 type typ =
   | Primitive of string
@@ -15,7 +15,7 @@ type typ =
   | Type_list of typ
   | Type_tuple of typ * typ * typ list
   | TOption of typ
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, qcheck]
 
 let arrow_of_types first_types last_type =
   let open Base in

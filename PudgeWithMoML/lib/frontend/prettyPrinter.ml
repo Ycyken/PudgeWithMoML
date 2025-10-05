@@ -9,10 +9,17 @@
 open Ast
 open Format
 open TypesPp
+open Keywords
 
 let pp_rec_flag fmt = function
   | Rec -> fprintf fmt "rec"
   | Nonrec -> ()
+;;
+
+let pp_varname fmt name =
+  if String.for_all (String.contains op_chars) name
+  then fprintf fmt "(%s)" name
+  else fprintf fmt "%s " name
 ;;
 
 let rec pp_pattern fmt = function
@@ -31,7 +38,7 @@ let rec pp_pattern fmt = function
       (p1 :: p2 :: rest);
     fprintf fmt ")"
   | PConst literal -> fprintf fmt "%a " pp_expr (Const literal)
-  | PVar name -> fprintf fmt "%s " name
+  | PVar name -> fprintf fmt "%a " pp_varname name
   | POption p ->
     (match p with
      | None -> fprintf fmt "None "
@@ -54,7 +61,7 @@ and pp_expr fmt = function
     fprintf fmt "[";
     pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "; ") pp_expr fmt l;
     fprintf fmt "]"
-  | Variable name -> fprintf fmt "%s " name
+  | Variable name -> fprintf fmt "%a " pp_varname name
   | If_then_else (cond, then_body, else_body) ->
     fprintf fmt "if (%a) then (%a) " pp_expr cond pp_expr then_body;
     (match else_body with
@@ -62,7 +69,7 @@ and pp_expr fmt = function
      | None -> ())
   | Lambda (arg, body) -> fprintf fmt "fun (%a) -> %a" pp_pattern arg pp_expr body
   | Apply (Apply (Variable op, left), right)
-    when String.for_all (fun c -> String.contains Parser.op_chars c) op ->
+    when String.for_all (String.contains op_chars) op ->
     fprintf fmt "(%a) %s (%a)" pp_expr left op pp_expr right
   | Apply (func, arg) -> fprintf fmt "(%a) %a" pp_expr func pp_expr arg
   | Function ((pat1, expr1), cases) ->

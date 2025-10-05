@@ -7,53 +7,74 @@
 [@@@ocaml.text "/*"]
 
 open TypedTree
+open Generate
 
 type ident = string [@@deriving show { with_path = false }]
 
 type literal =
-  | Int_lt of int
+  | Int_lt of (int[@gen QCheck.Gen.small_int])
   | Bool_lt of bool
   | Unit_lt
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, qcheck]
 
 type pattern =
-  | Wild (** [_] *)
-  | PList of pattern list (**[ [], [1;2;3] ] *)
-  | PCons of pattern * pattern (**[ hd :: tl ] *)
-  | PTuple of pattern * pattern * pattern list (** | [(a, b)] -> *)
-  | PConst of literal (** | [4] -> *)
-  | PVar of ident (** | [x] -> *)
+  | Wild
+  | PList of
+      (pattern list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_pattern_sized (n / 20)))])
+  | PCons of pattern * pattern
+  | PTuple of
+      pattern
+      * pattern
+      * (pattern list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_pattern_sized (n / 20)))])
+  | PConst of literal
+  | PVar of ident
   | POption of pattern option
   | PConstraint of pattern * typ
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, qcheck]
 
 type is_recursive =
   | Nonrec
   | Rec
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, qcheck]
 
 type expr =
   | Const of literal
-  | Tuple of expr * expr * expr list
-  | List of expr list
+  | Tuple of
+      expr
+      * expr
+      * (expr list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_expr_sized (n / 20)))])
+  | List of (expr list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_expr_sized (n / 20)))])
   | Variable of ident
   | If_then_else of expr * expr * expr option
   | Lambda of pattern * expr
   | Apply of expr * expr
-  | Function of case * case list (** [function | p1 -> e1 | p2 -> e2 | ... |]*)
-  | Match of expr * case * case list (** [match x with | p1 -> e1 | p2 -> e2 | ...] *)
+  | Function of
+      case * (case list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_case_sized (n / 20)))])
+  | Match of
+      expr
+      * case
+      * (case list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_case_sized (n / 20)))])
   | Option of expr option
   | EConstraint of expr * typ
-  | LetIn of is_recursive * binding * binding list * expr
-[@@deriving show { with_path = false }]
+  | LetIn of
+      is_recursive
+      * binding
+      * (binding list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_binding_sized (n / 20)))])
+      * expr
+[@@deriving show { with_path = false }, qcheck]
 
-and binding = pattern * expr [@@deriving show { with_path = false }]
-and case = pattern * expr [@@deriving show { with_path = false }]
+and binding = pattern * expr [@@deriving show { with_path = false }, qcheck]
+and case = pattern * expr [@@deriving show { with_path = false }, qcheck]
 
-type structure_item = is_recursive * binding * binding list
-[@@deriving show { with_path = false }]
+type structure_item =
+  is_recursive
+  * binding
+  * (binding list[@gen QCheck.Gen.(list_size (0 -- 1) gen_binding)])
+[@@deriving show { with_path = false }, qcheck]
 
-type program = structure_item list [@@deriving show { with_path = false }]
+type program =
+  (structure_item list[@gen QCheck.Gen.(list_size (1 -- 2) gen_structure_item)])
+[@@deriving show { with_path = false }, qcheck]
 
 let eapp func args =
   Base.List.fold_left args ~init:func ~f:(fun acc arg -> Apply (acc, arg))

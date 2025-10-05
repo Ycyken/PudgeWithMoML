@@ -2,6 +2,15 @@
  (name tests)
  (inline_tests)
  (libraries PudgeWithMoML)
- (modules :standard)
+ (modules Parser)
  (preprocess
   (pps ppx_expect)))
+
+(executable
+ (name run_qcheck)
+ (modules run_qcheck)
+ (libraries PudgeWithMoML qcheck-core.runner))
+
+(cram
+ (applies_to qcheck)
+ (deps ./run_qcheck.exe))
