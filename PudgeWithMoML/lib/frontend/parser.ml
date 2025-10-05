@@ -62,11 +62,11 @@ let p_int =
   skip_ws
   *> let* sign = string "+" <|> string "-" <|> string "" in
      let* number = take_while1 Char.is_digit in
-     return (Int_lt (Int.of_string (sign ^ number)))
+     return (Int.of_string (sign ^ number))
 ;;
 
-let p_int_expr = expr_const p_int
-let p_int_pat = pat_const p_int
+let p_int_expr = expr_const (p_int >>| fun x -> Int_lt x)
+let p_int_pat = pat_const (p_int >>| fun x -> Int_lt x)
 
 let p_bool =
   skip_ws *> string "true"
@@ -109,12 +109,15 @@ let p_varname =
 
 let p_var_expr = p_varname >>| fun ident -> Variable ident
 let p_var_pat = p_varname >>| fun ident -> PVar ident
-let p_type = skip_ws *> char ':' *> skip_ws *> p_varname >>| fun s -> Primitive s
 let p_oper_expr = p_parens p_oper >>| fun s -> Variable s
 let p_oper_pat = p_parens p_oper >>| fun s -> PVar s
 let p_wild_pat = skip_ws *> string "_" *> return Wild
 let p_pat_atom = choice [ p_int_pat; p_bool_pat; p_unit_pat; p_var_pat; p_wild_pat ]
 let p_expr_atom = choice [ p_var_expr; p_oper_expr; p_int_expr; p_unit_expr; p_bool_expr ]
+
+(* COMPLEX PARSERS *)
+
+let p_type = skip_ws *> char ':' *> skip_ws *> p_varname >>| fun s -> Primitive s
 
 let p_semicolon_list p_elem =
   skip_ws
@@ -141,7 +144,6 @@ let p_cons_list_pat p_pat =
   chainr1 p_pat (skip_ws *> string "::" *> return (fun l r -> PCons (l, r)))
 ;;
 
-(* EXPR PARSERS *)
 let uminus = skip_ws *> string "-" *> return euminus
 
 let p_tuple make p =
@@ -269,26 +271,33 @@ let p_constraint_expr p_expr =
 
 let infix_op (op, func) = skip_ws *> string op *> return func
 
+type associativity =
+  | L
+  | R
+[@@deriving eq]
+
 let infix_precedence_list =
   let default =
-    [ [ "*", emul; "/", ediv ]
-    ; [ "+", eadd; "-", esub ]
-    ; [ "::", econs ]
-    ; [ "=", eeq; ">=", egte; ">", egt; "<=", elte; "<", elt; "<>", eneq ]
-    ; [ "&&", eland ]
-    ; [ "||", elor ]
+    [ [ "*", emul; "/", ediv ], L
+    ; [ "+", eadd; "-", esub ], L
+    ; [ "::", econs ], R
+    ; [ "=", eeq; ">=", egte; ">", egt; "<=", elte; "<", elt; "<>", eneq ], L
+    ; [ "&&", eland ], L
+    ; [ "||", elor ], L
     ]
-    |> List.map ~f:(List.map ~f:infix_op)
+    |> List.map ~f:(fun (l, assoc) -> List.map l ~f:infix_op, assoc)
   in
-  let custom = [ (p_oper >>| fun s -> eapp2 (Variable s)) ] in
-  default @ [ custom ]
+  let custom = [ [ (p_oper >>| fun s -> eapp2 (Variable s)) ], L ] in
+  default @ custom
 ;;
 
 let p_infix_expr p_expr =
   fix (fun self ->
     let atom = p_expr <|> p_parens self in
-    List.fold_left infix_precedence_list ~init:atom ~f:(fun acc ops ->
-      chainl1 acc (choice ops)))
+    List.fold_left infix_precedence_list ~init:atom ~f:(fun acc (ops, assoc) ->
+      match assoc with
+      | L -> chainl1 acc (choice ops)
+      | R -> chainr1 acc (choice ops)))
 ;;
 
 let p_expr =

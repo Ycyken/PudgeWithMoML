@@ -76,6 +76,25 @@ let%expect_test "operator as variable expr" =
   [%expect {| [(Nonrec, (Wild, (Apply ((Variable "+"), (Const (Int_lt 4))))), [])] |}]
 ;;
 
+let%expect_test "operators precedence and associativity" =
+  let input = "let _ = a || b :: c :: d * e" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply ((Apply ((Variable "||"), (Variable "a"))),
+          (Apply ((Apply ((Variable "::"), (Variable "b"))),
+             (Apply ((Apply ((Variable "::"), (Variable "c"))),
+                (Apply ((Apply ((Variable "*"), (Variable "d"))), (Variable "e")
+                   ))
+                ))
+             ))
+          ))),
+      [])] |}]
+;;
+
 let%expect_test "operator as pattern" =
   let input =
     {|let _ = match 4 with
