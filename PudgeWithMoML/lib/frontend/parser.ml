@@ -55,8 +55,8 @@ let rec unary_chain op e =
 ;;
 
 (* SIMPLE PARSERS *)
-let expr_const_factory parser = parser >>| fun lit -> Const lit
-let pat_const_factory parser = parser >>| fun lit -> PConst lit
+let expr_const p = p >>| fun lit -> Const lit
+let pat_const p = p >>| fun lit -> PConst lit
 
 let p_int =
   skip_ws
@@ -65,8 +65,8 @@ let p_int =
      return (Int_lt (Int.of_string (sign ^ number)))
 ;;
 
-let p_int_expr = expr_const_factory p_int
-let p_int_pat = pat_const_factory p_int
+let p_int_expr = expr_const p_int
+let p_int_pat = pat_const p_int
 
 let p_bool =
   skip_ws *> string "true"
@@ -74,11 +74,11 @@ let p_bool =
   >>| fun s -> Bool_lt (Bool.of_string s)
 ;;
 
-let p_bool_expr = expr_const_factory p_bool
-let p_bool_pat = pat_const_factory p_bool
+let p_bool_expr = expr_const p_bool
+let p_bool_pat = pat_const p_bool
 let p_unit = skip_ws *> string "(" *> skip_ws *> string ")" *> return Unit_lt
-let p_unit_expr = expr_const_factory p_unit
-let p_unit_pat = pat_const_factory p_unit
+let p_unit_expr = expr_const p_unit
+let p_unit_pat = pat_const p_unit
 
 let p_oper =
   let* oper = skip_ws *> take_while1 (String.contains op_chars) in
@@ -112,6 +112,9 @@ let p_var_pat = p_varname >>| fun ident -> PVar ident
 let p_type = skip_ws *> char ':' *> skip_ws *> p_varname >>| fun s -> Primitive s
 let p_oper_expr = p_parens p_oper >>| fun s -> Variable s
 let p_oper_pat = p_parens p_oper >>| fun s -> PVar s
+let p_wild_pat = skip_ws *> string "_" *> return Wild
+let p_pat_atom = choice [ p_int_pat; p_bool_pat; p_unit_pat; p_var_pat; p_wild_pat ]
+let p_expr_atom = choice [ p_var_expr; p_oper_expr; p_int_expr; p_unit_expr; p_bool_expr ]
 
 let p_semicolon_list p_elem =
   skip_ws
@@ -151,9 +154,8 @@ let p_tuple make p =
   p_parens tuple <|> tuple
 ;;
 
-let make_tuple_expr e1 e2 rest = Tuple (e1, e2, rest)
-let make_tuple_pat p1 p2 rest = PTuple (p1, p2, rest)
-let p_tuple_pat p_pat = p_tuple make_tuple_pat p_pat
+let p_tuple_expr p_expr = p_tuple (fun e1 e2 rest -> Tuple (e1, e2, rest)) p_expr
+let p_tuple_pat p_pat = p_tuple (fun p1 p2 rest -> PTuple (p1, p2, rest)) p_pat
 
 let p_if p_expr =
   lift3
@@ -173,10 +175,8 @@ let p_option p make_option =
       make_option (Some inner)
 ;;
 
-let make_option_expr expr = Option expr
-let make_option_pat pat = POption pat
-let p_wild_pat = skip_ws *> string "_" *> return Wild
-let p_pat_const = choice [ p_int_pat; p_bool_pat; p_unit_pat; p_var_pat; p_wild_pat ]
+let p_option_expr p = p_option p (fun e -> Option e)
+let p_option_pat p = p_option p (fun e -> POption e)
 
 let p_constraint_pat p_pat =
   let* pat = p_pat in
@@ -188,10 +188,10 @@ let p_pat =
   skip_ws
   *> fix (fun self ->
     let atom =
-      choice [ p_pat_const; p_oper_pat; p_parens self; p_parens (p_constraint_pat self) ]
+      choice [ p_pat_atom; p_oper_pat; p_parens self; p_parens (p_constraint_pat self) ]
     in
     let semicolon_list = p_semicolon_list_pat (self <|> atom) <|> atom in
-    let opt = p_option semicolon_list make_option_pat <|> semicolon_list in
+    let opt = p_option_pat semicolon_list <|> semicolon_list in
     let cons = p_cons_list_pat opt in
     let tuple = p_tuple_pat cons <|> cons in
     tuple)
@@ -296,11 +296,7 @@ let p_expr =
   *> fix (fun self ->
     let atom =
       choice
-        [ p_var_expr
-        ; p_oper_expr
-        ; p_int_expr
-        ; p_unit_expr
-        ; p_bool_expr
+        [ p_expr_atom
         ; p_parens self
         ; p_semicolon_list_expr self
         ; p_parens (p_constraint_expr self)
@@ -308,11 +304,11 @@ let p_expr =
     in
     let if_expr = p_if (self <|> atom) <|> atom in
     let letin_expr = p_letin (self <|> if_expr) <|> if_expr in
-    let option = p_option letin_expr make_option_expr <|> letin_expr in
+    let option = p_option_expr letin_expr <|> letin_expr in
     let apply = p_apply option <|> option in
     let unary = unary_chain uminus apply in
     let infix = p_infix_expr unary in
-    let tuple = p_tuple make_tuple_expr infix <|> infix in
+    let tuple = p_tuple_expr infix <|> infix in
     let p_function = p_function (self <|> tuple) <|> tuple in
     let ematch = p_match (self <|> p_function) <|> p_function in
     let efun = p_lambda (self <|> ematch) <|> ematch in
