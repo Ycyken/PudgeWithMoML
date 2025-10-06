@@ -13,25 +13,34 @@ open Stdio
 type opts =
   { mutable input_file : string
   ; mutable output_file : string
+  ; mutable dump_parsetree : bool
   }
 
-let compiler input_file output_file =
-  let input = In_channel.read_all input_file |> String.trim in
+let compiler opts =
+  let input = In_channel.read_all opts.input_file |> String.trim in
   let program = parse input in
   match program with
   | Error e -> eprintf "Parsing error: %s\n" e
   | Ok program ->
-    let oc = Out_channel.create output_file in
-    let fmt = Format.formatter_of_out_channel oc in
-    gen_program program fmt
+    if opts.dump_parsetree
+    then (
+      PudgeWithMoML.Frontend.Ast.pp_program Format.std_formatter program;
+      printf "\n")
+    else (
+      let oc = Out_channel.create opts.output_file in
+      let fmt = Format.formatter_of_out_channel oc in
+      gen_program program fmt)
 ;;
 
 let () =
-  let opts = { input_file = ""; output_file = "a.s" } in
+  let opts = { input_file = ""; output_file = "a.s"; dump_parsetree = false } in
   let open Stdlib.Arg in
   let speclist =
     [ "-fromfile", String (fun filename -> opts.input_file <- filename), "Input file name"
     ; "-o", String (fun filename -> opts.output_file <- filename), "Output file name"
+    ; ( "-dparsetree"
+      , Unit (fun _ -> opts.dump_parsetree <- true)
+      , "Dump parse tree, don't evaluate anything" )
     ]
   in
   let anon_func _ =
@@ -40,5 +49,5 @@ let () =
   in
   let usage_msg = "Mini-ml to riscv compiler" in
   let () = parse speclist anon_func usage_msg in
-  compiler opts.input_file opts.output_file
+  compiler opts
 ;;

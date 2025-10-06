@@ -20,9 +20,9 @@ let () =
     [ "-seed", Arg.Int QCheck_base_runner.set_seed, " Set seed"
     ; "-gen", Arg.Int (fun n -> opts.runs <- n), " Number of runs"
     ; "-pp", Arg.Unit (fun _ -> opts.pp <- true), " Pretty print ast in a failure case"
-    ; ( "-dparse"
+    ; ( "-onlygen"
       , Arg.Unit (fun _ -> opts.dparse <- true)
-      , " Don't parse, just generate Ast and print" )
+      , " Don't parse, only generate Ast and print" )
     ]
   in
   let () = Arg.parse speclist (fun _ -> assert false) "help" in
