@@ -60,7 +60,7 @@ let pat_const p = p >>| fun lit -> PConst lit
 
 let p_int =
   skip_ws
-  *> let* sign = string "+" <|> string "-" <|> string "" in
+  *> let* sign = option "" (string "+" <|> string "-") in
      let* number = take_while1 Char.is_digit in
      return (Int.of_string (sign ^ number))
 ;;
@@ -162,17 +162,7 @@ let p_semicolon_list p_elem =
   skip_ws
   *> string "["
   *> skip_ws
-  *> let+ list =
-       fix (fun p_semi_list ->
-         choice
-           [ (let* hd = p_elem <* skip_ws <* string ";" in
-              let* tl = p_semi_list in
-              return (hd :: tl))
-           ; (let* hd = p_elem <* skip_ws <* string "]" in
-              return [ hd ])
-           ; skip_ws *> string "]" *> return []
-           ])
-     in
+  *> let+ list = sep_by (skip_ws *> string ";") p_elem <* skip_ws <* string "]" in
      list
 ;;
 
@@ -350,16 +340,16 @@ let p_expr =
         ; p_parens (p_constraint_expr self)
         ]
     in
-    let if_expr = p_if (self <|> atom) <|> atom in
-    let letin_expr = p_letin (self <|> if_expr) <|> if_expr in
+    let if_expr = p_if self <|> atom in
+    let letin_expr = p_letin self <|> if_expr in
     let option = p_option_expr letin_expr <|> letin_expr in
     let apply = p_apply option <|> option in
     let unary = unary_chain uminus apply in
     let infix = p_infix_expr unary in
     let tuple = p_tuple_expr infix <|> infix in
-    let p_function = p_function (self <|> tuple) <|> tuple in
-    let ematch = p_match (self <|> p_function) <|> p_function in
-    let efun = p_lambda (self <|> ematch) <|> ematch in
+    let p_function = p_function self <|> tuple in
+    let ematch = p_match self <|> p_function in
+    let efun = p_lambda self <|> ematch in
     efun)
 ;;
 
