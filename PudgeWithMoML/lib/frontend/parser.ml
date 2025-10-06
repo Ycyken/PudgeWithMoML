@@ -371,6 +371,7 @@ let str_item : structure_item t =
   let* rec_flag = string "rec" *> peek_sep1 *> return Rec <|> return Nonrec in
   let* bind = p_binding p_expr in
   let* binds_rest = many (skip_ws *> string "and" *> peek_sep1 *> p_binding p_expr) in
+  let* () = option () (skip_ws <* string ";;") in
   return (rec_flag, bind, binds_rest)
 ;;
 
