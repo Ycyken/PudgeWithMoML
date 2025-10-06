@@ -181,3 +181,200 @@ let%expect_test "nested types" =
           ))),
       [])] |}]
 ;;
+
+let%expect_test "binary subtract" =
+  let input = {| let _ = a - 3|} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply ((Apply ((Variable "-"), (Variable "a"))), (Const (Int_lt 3))))),
+      [])] |}]
+;;
+
+let%expect_test "function apply of letIn" =
+  let input = {| let _ = f (let x = false in true) || x |} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (Apply ((Variable "||"),
+             (Apply ((Variable "f"),
+                (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt false))), [],
+                   (Const (Bool_lt true))))
+                ))
+             )),
+          (Variable "x")))),
+      [])] |}]
+;;
+
+let%expect_test "arithmetic with unary operations and variables" =
+  let input = {| let _ = - a - - b + 4|} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (Apply ((Variable "+"),
+             (Apply (
+                (Apply ((Variable "-"), (Apply ((Variable "-"), (Variable "a")))
+                   )),
+                (Apply ((Variable "-"), (Variable "b")))))
+             )),
+          (Const (Int_lt 4))))),
+      [])] |}]
+;;
+
+let%expect_test "sum of function applying" =
+  let input = {| let _ = f 4 + g 3|} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (Apply ((Variable "+"), (Apply ((Variable "f"), (Const (Int_lt 4)))))),
+          (Apply ((Variable "g"), (Const (Int_lt 3))))))),
+      [])] |}]
+;;
+
+let%expect_test "order of logical expressions and function applying" =
+  let input = {| let _ = let x = true in not x || true && f 12|} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {||}]
+;;
+
+let%expect_test "logical expression" =
+  let input = {| let _ = (3 + 5) >= 8 || true && (5 <> 4) |} in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (Apply ((Variable "||"),
+             (Apply (
+                (Apply ((Variable ">="),
+                   (Apply ((Apply ((Variable "+"), (Const (Int_lt 3)))),
+                      (Const (Int_lt 5))))
+                   )),
+                (Const (Int_lt 8))))
+             )),
+          (Apply ((Apply ((Variable "&&"), (Const (Bool_lt true)))),
+             (Apply ((Apply ((Variable "<>"), (Const (Int_lt 5)))),
+                (Const (Int_lt 4))))
+             ))
+          ))),
+      [])] |}]
+;;
+
+let%expect_test "unary chain" =
+  let input = "let _ = not not ( not true && false || 3 > 5)" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {| |}]
+;;
+
+let%expect_test "if with comparison" =
+  let input = "let _ = if 3 > 2 && false then 5 + 7 else 12" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (If_then_else (
+          (Apply (
+             (Apply ((Variable "&&"),
+                (Apply ((Apply ((Variable ">"), (Const (Int_lt 3)))),
+                   (Const (Int_lt 2))))
+                )),
+             (Const (Bool_lt false)))),
+          (Apply ((Apply ((Variable "+"), (Const (Int_lt 5)))),
+             (Const (Int_lt 7)))),
+          (Some (Const (Int_lt 12)))))),
+      [])] |}]
+;;
+
+let%expect_test "sum with if" =
+  let input = "let _ = a + if 3 > 2 then 2 else 1" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply ((Apply ((Variable "+"), (Variable "a"))),
+          (If_then_else (
+             (Apply ((Apply ((Variable ">"), (Const (Int_lt 3)))),
+                (Const (Int_lt 2)))),
+             (Const (Int_lt 2)), (Some (Const (Int_lt 1)))))
+          ))),
+      [])] |}]
+;;
+
+let%expect_test "inner expressions with LetIn and If" =
+  let input =
+    "let _ = if let x = true in let y = false in x || y then 3 else if 5 > 3 then 2 else \
+     1"
+  in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (If_then_else (
+          (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))), [],
+             (LetIn (Nonrec, ((PVar "y"), (Const (Bool_lt false))), [],
+                (Apply ((Apply ((Variable "||"), (Variable "x"))), (Variable "y")
+                   ))
+                ))
+             )),
+          (Const (Int_lt 3)),
+          (Some (If_then_else (
+                   (Apply ((Apply ((Variable ">"), (Const (Int_lt 5)))),
+                      (Const (Int_lt 3)))),
+                   (Const (Int_lt 2)), (Some (Const (Int_lt 1))))))
+          ))),
+      [])] |}]
+;;
+
+let%expect_test "fail in ITE with incorrect else expression" =
+  let input = "let _ = if true then 1 else 2c" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {| Parse error: : end_of_input |}]
+;;
+
+let%expect_test "fail in apply with complex expression without parenteses" =
+  let input = "let _ = f let x = 1 in x" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect {| Parse error: : end_of_input |}]
+;;
+
+let%expect_test "call if with parentheses" =
+  let input = "let _ = (if(false)then(a) else(b))c" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (If_then_else ((Const (Bool_lt false)), (Variable "a"),
+             (Some (Variable "b")))),
+          (Variable "c")))),
+      [])] |}]
+;;
