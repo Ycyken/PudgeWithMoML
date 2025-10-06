@@ -12,7 +12,6 @@ let is_keyword = function
   | "else"
   | "let"
   | "in"
-  | "not"
   | "true"
   | "false"
   | "fun"

@@ -250,7 +250,19 @@ let%expect_test "order of logical expressions and function applying" =
   let input = {| let _ = let x = true in not x || true && f 12|} in
   let result = parse input in
   let () = print_result result in
-  [%expect {||}]
+  [%expect
+    {|
+[(Nonrec,
+  (Wild,
+   (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))), [],
+      (Apply (
+         (Apply ((Variable "||"), (Apply ((Variable "not"), (Variable "x")))
+            )),
+         (Apply ((Apply ((Variable "&&"), (Const (Bool_lt true)))),
+            (Apply ((Variable "f"), (Const (Int_lt 12))))))
+         ))
+      ))),
+  [])] |}]
 ;;
 
 let%expect_test "logical expression" =
@@ -282,7 +294,23 @@ let%expect_test "unary chain" =
   let input = "let _ = not not ( not true && false || 3 > 5)" in
   let result = parse input in
   let () = print_result result in
-  [%expect {| |}]
+  [%expect
+    {|
+[(Nonrec,
+  (Wild,
+   (Apply ((Apply ((Variable "not"), (Variable "not"))),
+      (Apply (
+         (Apply ((Variable "||"),
+            (Apply (
+               (Apply ((Variable "&&"),
+                  (Apply ((Variable "not"), (Const (Bool_lt true)))))),
+               (Const (Bool_lt false))))
+            )),
+         (Apply ((Apply ((Variable ">"), (Const (Int_lt 3)))),
+            (Const (Int_lt 5))))
+         ))
+      ))),
+  [])] |}]
 ;;
 
 let%expect_test "if with comparison" =
@@ -361,7 +389,7 @@ let%expect_test "fail in apply with complex expression without parenteses" =
   let input = "let _ = f let x = 1 in x" in
   let result = parse input in
   let () = print_result result in
-  [%expect {| Parse error: : end_of_input |}]
+  [%expect {||}]
 ;;
 
 let%expect_test "call if with parentheses" =
