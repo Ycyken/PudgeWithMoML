@@ -224,9 +224,9 @@ let%expect_test "arithmetic with unary operations and variables" =
        (Apply (
           (Apply ((Variable "+"),
              (Apply (
-                (Apply ((Variable "-"), (Apply ((Variable "-"), (Variable "a")))
+                (Apply ((Variable "-"), (Apply ((Variable "~-"), (Variable "a")))
                    )),
-                (Apply ((Variable "-"), (Variable "b")))))
+                (Apply ((Variable "~-"), (Variable "b")))))
              )),
           (Const (Int_lt 4))))),
       [])] |}]
@@ -416,7 +416,7 @@ let%expect_test "precedence of -, apply, tuple etc" =
     [(Nonrec,
       (Wild,
        (Tuple (
-          (Apply ((Variable "-"),
+          (Apply ((Variable "~-"),
              (Apply (
                 (Apply (
                    (LetIn (Nonrec, ((PVar "x"), (Const (Int_lt 1))), [],

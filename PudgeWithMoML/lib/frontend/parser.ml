@@ -173,7 +173,7 @@ let p_cons_list_pat p_pat =
   chainr1 p_pat (skip_ws *> string "::" *> return (fun l r -> PCons (l, r)))
 ;;
 
-let uminus = skip_ws *> string "-" *> return euminus
+let uminus = skip_ws *> (string "-" <|> string "~-") *> return euminus
 
 let p_tuple make p =
   let tuple =
