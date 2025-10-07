@@ -71,7 +71,7 @@ and pp_expr fmt = function
   | Apply (Apply (Variable op, left), right)
     when String.for_all (String.contains op_chars) op ->
     fprintf fmt "(%a) %s (%a)" pp_expr left op pp_expr right
-  | Apply (func, arg) -> fprintf fmt "(%a) %a" pp_expr func pp_expr arg
+  | Apply (func, arg) -> fprintf fmt "(%a) (%a)" pp_expr func pp_expr arg
   | Function ((pat1, expr1), cases) ->
     fprintf fmt "function ";
     List.iter
