@@ -8,12 +8,14 @@
 
 open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Riscv.Codegen
+open PudgeWithMoML.Frontend.Inferencer
 open Stdio
 
 type opts =
   { mutable input_file : string
   ; mutable output_file : string
   ; mutable dump_parsetree : bool
+  ; mutable dump_types : bool
   }
 
 let compiler opts =
@@ -26,21 +28,33 @@ let compiler opts =
     then (
       PudgeWithMoML.Frontend.Ast.pp_program Format.std_formatter program;
       printf "\n")
-    else (
-      let oc = Out_channel.create opts.output_file in
-      let fmt = Format.formatter_of_out_channel oc in
-      gen_program program fmt)
+    else
+      let open Format in
+      (match infer program with
+       | Error e -> fprintf std_formatter "Type error: %a\n" pp_error e
+       | Ok env ->
+         if opts.dump_types
+         then TypeEnv.pp std_formatter env
+         else (
+           let oc = Out_channel.create opts.output_file in
+           let fmt = Format.formatter_of_out_channel oc in
+           gen_program program fmt))
 ;;
 
 let () =
-  let opts = { input_file = ""; output_file = "a.s"; dump_parsetree = false } in
+  let opts =
+    { input_file = ""; output_file = "a.s"; dump_parsetree = false; dump_types = false }
+  in
   let open Stdlib.Arg in
   let speclist =
     [ "-fromfile", String (fun filename -> opts.input_file <- filename), "Input file name"
     ; "-o", String (fun filename -> opts.output_file <- filename), "Output file name"
     ; ( "-dparsetree"
       , Unit (fun _ -> opts.dump_parsetree <- true)
-      , "Dump parse tree, don't evaluate anything" )
+      , "Dump parse tree, don't typecheck and evaluate anything" )
+    ; ( "-dtypes"
+      , Unit (fun _ -> opts.dump_types <- true)
+      , "Dump types, don't evaluate anything" )
     ]
   in
   let anon_func _ =
