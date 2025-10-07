@@ -26,3 +26,15 @@
  (deps
   ../bin/compiler.exe
   (glob_files manytests/typed/*.ml)))
+
+(cram
+ (applies_to not_typed_typecheck)
+ (deps
+  ../bin/compiler.exe
+  (glob_files manytests/do_not_type/*.ml)))
+
+(cram
+ (applies_to typed_typecheck)
+ (deps
+  ../bin/compiler.exe
+  (glob_files manytests/typed/*.ml)))
