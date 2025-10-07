@@ -232,7 +232,11 @@ let p_binding p_expr : binding t =
   let* name = p_pat in
   let* args = many p_pat in
   let* body = skip_ws *> string "=" *> p_expr in
-  return (name, elambda body args)
+  match name, args with
+  | PVar _, args -> return (name, elambda body args)
+  | _, args when List.length args > 0 ->
+    fail "Args in let bind are only allowed when binding a variable name "
+  | _ -> return (name, elambda body args)
 ;;
 
 let p_letin p_expr =

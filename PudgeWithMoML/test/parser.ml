@@ -446,3 +446,21 @@ let%expect_test "precedence of infix operator with if and apply" =
           (Variable "k")))),
       [])] |}]
 ;;
+
+let%expect_test "fail when args in not-variable binding" =
+  let input = "let _ x = 1" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    Parse error: : Args in let bind are only allowed when binding a variable name |}]
+;;
+
+let%expect_test "fail when args in not-variable binding2" =
+  let input = "let _ = let 1 y = 1 in x + 2" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    Parse error: : char '(' |}]
+;;
