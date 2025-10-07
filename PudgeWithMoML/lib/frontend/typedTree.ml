@@ -22,7 +22,7 @@ type typ =
   | TOption of typ
 [@@deriving show { with_path = false }, qcheck]
 
-let arrow_of_types first_types last_type =
+let arrow_t first_types last_type =
   let open Base in
   List.fold_right first_types ~init:last_type ~f:(fun left right -> Arrow (left, right))
 ;;
@@ -44,3 +44,4 @@ let int_typ = Primitive "int"
 let bool_typ = Primitive "bool"
 let string_typ = Primitive "string"
 let unit_typ = Primitive "unit"
+let typevar n = Type_var n
