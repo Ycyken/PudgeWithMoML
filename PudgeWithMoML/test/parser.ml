@@ -389,10 +389,10 @@ let%expect_test "fail in apply with complex expression without parenteses" =
   let input = "let _ = f let x = 1 in x" in
   let result = parse input in
   let () = print_result result in
-  [%expect {||}]
+  [%expect {| Parse error: : end_of_input |}]
 ;;
 
-let%expect_test "call if with parentheses" =
+let%expect_test "apply if with parentheses" =
   let input = "let _ = (if(false)then(a) else(b))c" in
   let result = parse input in
   let () = print_result result in
@@ -404,5 +404,45 @@ let%expect_test "call if with parentheses" =
           (If_then_else ((Const (Bool_lt false)), (Variable "a"),
              (Some (Variable "b")))),
           (Variable "c")))),
+      [])] |}]
+;;
+
+let%expect_test "precedence of -, apply, tuple etc" =
+  let input = "let _ = -(let x = 1 in x) (fun x -> x) 1,2,3" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Tuple (
+          (Apply ((Variable "-"),
+             (Apply (
+                (Apply (
+                   (LetIn (Nonrec, ((PVar "x"), (Const (Int_lt 1))), [],
+                      (Variable "x"))),
+                   (Lambda ((PVar "x"), (Variable "x"))))),
+                (Const (Int_lt 1))))
+             )),
+          (Const (Int_lt 2)), [(Const (Int_lt 3))]))),
+      [])] |}]
+;;
+
+let%expect_test "precedence of infix operator with if and apply" =
+  let input = "let _ =  (if true then 1 + 2 f (function | x -> x) ) k" in
+  let result = parse input in
+  let () = print_result result in
+  [%expect
+    {|
+    [(Nonrec,
+      (Wild,
+       (Apply (
+          (If_then_else ((Const (Bool_lt true)),
+             (Apply ((Apply ((Variable "+"), (Const (Int_lt 1)))),
+                (Apply ((Apply ((Const (Int_lt 2)), (Variable "f"))),
+                   (Function (((PVar "x"), (Variable "x")), []))))
+                )),
+             None)),
+          (Variable "k")))),
       [])] |}]
 ;;

@@ -247,9 +247,9 @@ let p_letin p_expr =
   return (LetIn (rec_flag, bind, binds_rest, inner_expr))
 ;;
 
-let p_apply p_expr =
+let p_apply p_expr self =
   chainl1
-    (p_parens p_expr <|> (p_expr <* peek_sep1))
+    (p_parens (p_expr <|> self) <|> (p_expr <* peek_sep1))
     (return (fun expr1 expr2 -> Apply (expr1, expr2)))
 ;;
 
@@ -332,25 +332,27 @@ let p_infix_expr p_expr =
 let p_expr =
   skip_ws
   *> fix (fun self ->
-    let atom =
-      choice
-        [ p_expr_atom
-        ; p_parens self
-        ; p_semicolon_list_expr self
-        ; p_parens (p_constraint_expr self)
-        ]
+    let simple =
+      fix (fun simple ->
+        let atom =
+          choice
+            [ p_expr_atom
+            ; p_parens self
+            ; p_semicolon_list_expr self
+            ; p_parens (p_constraint_expr self)
+            ]
+        in
+        let option = p_option_expr simple <|> atom in
+        option)
     in
-    let if_expr = p_if self <|> atom in
-    let letin_expr = p_letin self <|> if_expr in
-    let option = p_option_expr letin_expr <|> letin_expr in
-    let apply = p_apply option <|> option in
+    let heavy =
+      choice [ p_if self; p_letin self; p_function self; p_match self; p_lambda self ]
+    in
+    let apply = p_apply simple self <|> simple <|> heavy in
     let unary = unary_chain uminus apply in
     let infix = p_infix_expr unary in
     let tuple = p_tuple_expr infix <|> infix in
-    let p_function = p_function self <|> tuple in
-    let ematch = p_match self <|> p_function in
-    let efun = p_lambda self <|> ematch in
-    efun)
+    tuple)
 ;;
 
 let str_item : structure_item t =
