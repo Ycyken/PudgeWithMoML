@@ -5,10 +5,12 @@
   .text
   .globl _start
   fac:
-    addi sp, sp, -32
-    sd ra, 0(sp)
-    sd a0, 8(sp)
-    ld t0, 8(sp)
+    addi sp, sp, -56
+    sd ra, 48(sp)
+    sd fp, 40(sp)
+    addi fp, sp, 56
+    sd a0, -24(fp)
+    ld t0, -24(fp)
     li t1, 1
     slt t0, t1, t0
     xori t0, t0, 1
@@ -16,20 +18,21 @@
     li a0, 1
     j L1
   L0:
-    ld t0, 8(sp)
+    ld t0, -24(fp)
     li t1, 1
     sub t0, t0, t1
-    sd t0, 16(sp)
-    ld a0, 16(sp)
+    sd t0, -32(fp)
+    ld a0, -32(fp)
     call fac
     mv t0, a0
-    sd t0, 24(sp)
-    ld t0, 8(sp)
-    ld t1, 24(sp)
+    sd t0, -40(fp)
+    ld t0, -24(fp)
+    ld t1, -40(fp)
     mul a0, t0, t1
   L1:
-    ld ra, 0(sp)
-    addi sp, sp, 32
+    ld ra, 48(sp)
+    ld fp, 40(sp)
+    addi sp, sp, 56
     ret
   _start:
     li a0, 4

@@ -15,6 +15,8 @@ type reg =
   | T of int
 [@@deriving eq]
 
+let fp = S 0
+
 let pp_reg fmt =
   let open Format in
   function
