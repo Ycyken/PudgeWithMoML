@@ -10,6 +10,7 @@ open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Riscv.Codegen
 open PudgeWithMoML.Frontend.Inferencer
 open Stdio
+open Format
 
 type opts =
   { mutable input_file : string
@@ -19,26 +20,29 @@ type opts =
   }
 
 let compiler opts =
-  let input = In_channel.read_all opts.input_file |> String.trim in
+  let input =
+    if opts.input_file <> ""
+    then In_channel.read_all opts.input_file
+    else In_channel.input_all stdin
+  in
   let program = parse input in
   match program with
   | Error e -> eprintf "Parsing error: %s\n" e
   | Ok program ->
     if opts.dump_parsetree
     then (
-      PudgeWithMoML.Frontend.Ast.pp_program Format.std_formatter program;
+      PudgeWithMoML.Frontend.Ast.pp_program std_formatter program;
       printf "\n")
-    else
-      let open Format in
-      (match infer program with
-       | Error e -> fprintf std_formatter "Type error: %a\n" pp_error e
-       | Ok env ->
-         if opts.dump_types
-         then TypeEnv.pp std_formatter env
-         else (
-           let oc = Out_channel.create opts.output_file in
-           let fmt = Format.formatter_of_out_channel oc in
-           gen_program program fmt))
+    else (
+      match infer program with
+      | Error e -> fprintf std_formatter "Type error: %a\n" pp_error e
+      | Ok env ->
+        if opts.dump_types
+        then TypeEnv.pp std_formatter env
+        else (
+          let oc = Out_channel.create opts.output_file in
+          let fmt = Format.formatter_of_out_channel oc in
+          gen_program program fmt))
 ;;
 
 let () =
