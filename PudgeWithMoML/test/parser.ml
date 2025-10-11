@@ -40,10 +40,8 @@ let main = fac 4 |}
                         ((PVar "n1"),
                          (Apply ((Apply ((Variable "-"), (Variable "n"))),
                             (Const (Int_lt 1))))),
-                        [],
                         (LetIn (Nonrec,
                            ((PVar "m"), (Apply ((Variable "fac"), (Variable "n1")))),
-                           [],
                            (Apply ((Apply ((Variable "*"), (Variable "n"))),
                               (Variable "m")))
                            ))
@@ -205,7 +203,7 @@ let%expect_test "function apply of letIn" =
        (Apply (
           (Apply ((Variable "||"),
              (Apply ((Variable "f"),
-                (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt false))), [],
+                (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt false))),
                    (Const (Bool_lt true))))
                 ))
              )),
@@ -254,7 +252,7 @@ let%expect_test "order of logical expressions and function applying" =
     {|
 [(Nonrec,
   (Wild,
-   (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))), [],
+   (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))),
       (Apply (
          (Apply ((Variable "||"), (Apply ((Variable "not"), (Variable "x")))
             )),
@@ -363,8 +361,8 @@ let%expect_test "inner expressions with LetIn and If" =
     [(Nonrec,
       (Wild,
        (If_then_else (
-          (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))), [],
-             (LetIn (Nonrec, ((PVar "y"), (Const (Bool_lt false))), [],
+          (LetIn (Nonrec, ((PVar "x"), (Const (Bool_lt true))),
+             (LetIn (Nonrec, ((PVar "y"), (Const (Bool_lt false))),
                 (Apply ((Apply ((Variable "||"), (Variable "x"))), (Variable "y")
                    ))
                 ))
@@ -419,7 +417,7 @@ let%expect_test "precedence of -, apply, tuple etc" =
           (Apply ((Variable "~-"),
              (Apply (
                 (Apply (
-                   (LetIn (Nonrec, ((PVar "x"), (Const (Int_lt 1))), [],
+                   (LetIn (Nonrec, ((PVar "x"), (Const (Int_lt 1))),
                       (Variable "x"))),
                    (Lambda ((PVar "x"), (Variable "x"))))),
                 (Const (Int_lt 1))))

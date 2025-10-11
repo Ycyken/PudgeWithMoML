@@ -246,9 +246,8 @@ let p_letin p_expr =
   *>
   let* rec_flag = string "rec" *> peek_sep1 *> return Rec <|> return Nonrec in
   let* bind = p_binding p_expr in
-  let* binds_rest = many (skip_ws *> string "and" *> peek_sep1 *> p_binding p_expr) in
   let* inner_expr = skip_ws *> string "in" *> peek_sep1 *> p_expr in
-  LetIn (rec_flag, bind, binds_rest, inner_expr) |> return
+  LetIn (rec_flag, bind, inner_expr) |> return
 ;;
 
 let p_apply p_expr self =

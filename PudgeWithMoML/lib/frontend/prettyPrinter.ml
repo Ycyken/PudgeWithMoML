@@ -87,13 +87,9 @@ and pp_expr fmt = function
      | None -> fprintf fmt "None "
      | Some e -> fprintf fmt "Some (%a)" pp_expr e)
   | EConstraint (e, t) -> fprintf fmt "(%a : %a) " pp_expr e pp_typ t
-  | LetIn (rec_flag, bind, binds, in_expr) ->
+  | LetIn (rec_flag, bind, in_expr) ->
     fprintf fmt "let %a " pp_rec_flag rec_flag;
-    pp_print_list
-      ~pp_sep:(fun fmt () -> fprintf fmt "\n\nand ")
-      pp_bind
-      fmt
-      (bind :: binds);
+    pp_bind fmt bind;
     fprintf fmt "in\n";
     fprintf fmt "%a " pp_expr in_expr
 

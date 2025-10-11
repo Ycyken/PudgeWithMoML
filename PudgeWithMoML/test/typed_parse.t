@@ -21,7 +21,7 @@
          ((PConst Unit_lt),
           (Apply ((Variable "print_int"),
              (Apply ((Variable "fac"), (Const (Int_lt 4))))))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -58,7 +58,7 @@
              (Apply ((Apply ((Variable "fac_cps"), (Const (Int_lt 4)))),
                 (Lambda ((PVar "print_int"), (Variable "print_int")))))
              ))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -77,12 +77,10 @@
                           ((PVar "n1"),
                            (Apply ((Apply ((Variable "-"), (Variable "n"))),
                               (Const (Int_lt 1))))),
-                          [],
                           (LetIn (Nonrec,
                              ((PVar "ab"),
                               (Apply ((Apply ((Variable "+"), (Variable "a"))),
                                  (Variable "b")))),
-                             [],
                              (Apply (
                                 (Apply (
                                    (Apply ((Variable "fib_acc"), (Variable "b")
@@ -128,12 +126,11 @@
                    (Const (Int_lt 1)))),
                 (Const (Int_lt 4))))
              ))),
-         [],
          (LetIn (Nonrec,
             ((PConst Unit_lt),
              (Apply ((Variable "print_int"),
                 (Apply ((Variable "fib"), (Const (Int_lt 4))))))),
-            [], (Const (Int_lt 0))))
+            (Const (Int_lt 0))))
          ))),
      [])
   
@@ -156,15 +153,13 @@
             (Lambda ((PVar "c"),
                (LetIn (Nonrec,
                   ((PVar "a"), (Apply ((Variable "print_int"), (Variable "a")))),
-                  [],
                   (LetIn (Nonrec,
                      ((PVar "b"),
                       (Apply ((Variable "print_int"), (Variable "b")))),
-                     [],
                      (LetIn (Nonrec,
                         ((PVar "c"),
                          (Apply ((Variable "print_int"), (Variable "c")))),
-                        [], (Const (Int_lt 0))))
+                        (Const (Int_lt 0))))
                      ))
                   ))
                ))
@@ -269,11 +264,9 @@
                    (Const (Int_lt 10000000)))),
                 (Const (Int_lt 100000000)))),
              (Const (Int_lt 1000000000))))),
-         [],
          (LetIn (Nonrec,
             ((PConst Unit_lt),
              (Apply ((Variable "print_int"), (Variable "rez")))),
-            [],
             (LetIn (Nonrec,
                ((PVar "temp2"),
                 (Apply (
@@ -282,7 +275,7 @@
                          (Const (Int_lt 1)))),
                       (Const (Int_lt 10)))),
                    (Const (Int_lt 100))))),
-               [], (Const (Int_lt 0))))
+               (Const (Int_lt 0))))
             ))
          ))),
      [])
@@ -327,7 +320,7 @@
              (Apply ((Apply ((Variable "fix"), (Variable "fac"))),
                 (Const (Int_lt 6))))
              ))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -367,7 +360,7 @@
          ((PConst Unit_lt),
           (Apply ((Variable "print_int"),
              (Apply ((Variable "foo"), (Const (Int_lt 11))))))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -381,15 +374,12 @@
               (LetIn (Nonrec,
                  ((PConst Unit_lt),
                   (Apply ((Variable "print_int"), (Variable "a")))),
-                 [],
                  (LetIn (Nonrec,
                     ((PConst Unit_lt),
                      (Apply ((Variable "print_int"), (Variable "b")))),
-                    [],
                     (LetIn (Nonrec,
                        ((PConst Unit_lt),
                         (Apply ((Variable "print_int"), (Variable "c")))),
-                       [],
                        (Apply ((Apply ((Variable "+"), (Variable "a"))),
                           (Apply ((Apply ((Variable "*"), (Variable "b"))),
                              (Variable "c")))
@@ -404,18 +394,15 @@
     (Nonrec,
      ((PVar "main"),
       (LetIn (Nonrec,
-         ((PVar "foo"), (Apply ((Variable "foo"), (Const (Int_lt 1))))), 
-         [],
+         ((PVar "foo"), (Apply ((Variable "foo"), (Const (Int_lt 1))))),
          (LetIn (Nonrec,
-            ((PVar "foo"), (Apply ((Variable "foo"), (Const (Int_lt 2))))), 
-            [],
+            ((PVar "foo"), (Apply ((Variable "foo"), (Const (Int_lt 2))))),
             (LetIn (Nonrec,
                ((PVar "foo"), (Apply ((Variable "foo"), (Const (Int_lt 3))))),
-               [],
                (LetIn (Nonrec,
                   ((PConst Unit_lt),
                    (Apply ((Variable "print_int"), (Variable "foo")))),
-                  [], (Const (Int_lt 0))))
+                  (Const (Int_lt 0))))
                ))
             ))
          ))),
@@ -429,12 +416,10 @@
      (Lambda ((PVar "a"),
         (LetIn (Nonrec,
            ((PConst Unit_lt), (Apply ((Variable "print_int"), (Variable "a")))),
-           [],
            (Lambda ((PVar "b"),
               (LetIn (Nonrec,
                  ((PConst Unit_lt),
                   (Apply ((Variable "print_int"), (Variable "b")))),
-                 [],
                  (Lambda ((PVar "c"),
                     (Apply ((Variable "print_int"), (Variable "c")))))
                  ))
@@ -450,7 +435,7 @@
              (Apply ((Apply ((Variable "foo"), (Const (Int_lt 4)))),
                 (Const (Int_lt 8)))),
              (Const (Int_lt 9))))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -475,12 +460,10 @@
                                              (Variable "a"))),
                                           (Variable "b")))
                                        ))),
-                                   [],
                                    (LetIn (Nonrec,
                                       ((PConst Unit_lt),
                                        (Apply ((Variable "print_int"),
                                           (Variable "__")))),
-                                      [],
                                       (Apply (
                                          (Apply ((Variable "+"),
                                             (Apply (
@@ -586,7 +569,7 @@
                    )),
                 (Const (Int_lt 4))))
              ))),
-         [], (Const (Int_lt 0))))),
+         (Const (Int_lt 0))))),
      [])
   
     ]
@@ -594,8 +577,7 @@
   $ ../bin/compiler.exe -fromfile manytests/typed/009let_poly.ml -dparsetree
   [(Nonrec,
     ((PVar "temp"),
-     (LetIn (Nonrec, ((PVar "f"), (Lambda ((PVar "x"), (Variable "x")))), 
-        [],
+     (LetIn (Nonrec, ((PVar "f"), (Lambda ((PVar "x"), (Variable "x")))),
         (Tuple ((Apply ((Variable "f"), (Const (Int_lt 1)))),
            (Apply ((Variable "f"), (Const (Bool_lt true)))), []))
         ))),
@@ -614,10 +596,8 @@
                     ((PVar "n1"),
                      (Apply ((Apply ((Variable "-"), (Variable "n"))),
                         (Const (Int_lt 1))))),
-                    [],
                     (LetIn (Nonrec,
                        ((PVar "m"), (Apply ((Variable "fac"), (Variable "n1")))),
-                       [],
                        (Apply ((Apply ((Variable "*"), (Variable "n"))),
                           (Variable "m")))
                        ))
@@ -663,8 +643,7 @@
             (Match ((Variable "xs"), ((PList []), (Const Unit_lt)),
                [((PCons ((PVar "h"), (PVar "tl"))),
                  (LetIn (Nonrec,
-                    ((PVar "w"), (Apply ((Variable "f"), (Variable "h")))), 
-                    [],
+                    ((PVar "w"), (Apply ((Variable "f"), (Variable "h")))),
                     (Apply ((Apply ((Variable "iter"), (Variable "f"))),
                        (Variable "tl")))
                     )))
@@ -827,8 +806,7 @@
       (Lambda ((PVar "f"),
          (Lambda ((PVar "p"),
             (LetIn (Nonrec,
-               ((PTuple ((PVar "a"), (PVar "b"), [])), (Variable "p")), 
-               [],
+               ((PTuple ((PVar "a"), (PVar "b"), [])), (Variable "p")),
                (Tuple ((Apply ((Variable "f"), (Variable "a"))),
                   (Apply ((Variable "f"), (Variable "b"))), []))
                ))
@@ -867,8 +845,7 @@
       (Lambda ((PVar "p"),
          (Lambda ((PVar "n"),
             (LetIn (Nonrec,
-               ((PTuple ((PVar "e"), (PVar "o"), [])), (Variable "p")), 
-               [],
+               ((PTuple ((PVar "e"), (PVar "o"), [])), (Variable "p")),
                (If_then_else (
                   (Apply ((Apply ((Variable "="), (Variable "n"))),
                      (Const (Int_lt 0)))),
@@ -887,8 +864,7 @@
       (Lambda ((PVar "p"),
          (Lambda ((PVar "n"),
             (LetIn (Nonrec,
-               ((PTuple ((PVar "e"), (PVar "o"), [])), (Variable "p")), 
-               [],
+               ((PTuple ((PVar "e"), (PVar "o"), [])), (Variable "p")),
                (If_then_else (
                   (Apply ((Apply ((Variable "="), (Variable "n"))),
                      (Const (Int_lt 0)))),
@@ -939,25 +915,21 @@
          ((PConst Unit_lt),
           (Apply ((Variable "print_int"),
              (Apply ((Variable "modd"), (Const (Int_lt 1))))))),
-         [],
          (LetIn (Nonrec,
             ((PConst Unit_lt),
              (Apply ((Variable "print_int"),
                 (Apply ((Variable "meven"), (Const (Int_lt 2))))))),
-            [],
             (LetIn (Nonrec,
                ((PTuple ((PVar "even"), (PVar "odd"), [])), (Variable "tie")),
-               [],
                (LetIn (Nonrec,
                   ((PConst Unit_lt),
                    (Apply ((Variable "print_int"),
                       (Apply ((Variable "odd"), (Const (Int_lt 3))))))),
-                  [],
                   (LetIn (Nonrec,
                      ((PConst Unit_lt),
                       (Apply ((Variable "print_int"),
                          (Apply ((Variable "even"), (Const (Int_lt 4))))))),
-                     [], (Const (Int_lt 0))))
+                     (Const (Int_lt 0))))
                   ))
                ))
             ))
@@ -996,7 +968,7 @@
                    ))
                 ))
              ))),
-         [], (Apply ((Variable "helper"), (Const (Int_lt 0))))))),
+         (Apply ((Variable "helper"), (Const (Int_lt 0))))))),
      []);
     (Rec,
      ((PVar "map"),
@@ -1071,7 +1043,7 @@
                   ]
                 ))
              ))),
-         [], (Variable "helper")))),
+         (Variable "helper")))),
      []);
     (Rec,
      ((PVar "iter"),
@@ -1081,7 +1053,6 @@
                [((PCons ((PVar "h"), (PVar "tl"))),
                  (LetIn (Nonrec,
                     ((PConst Unit_lt), (Apply ((Variable "f"), (Variable "h")))),
-                    [],
                     (Apply ((Apply ((Variable "iter"), (Variable "f"))),
                        (Variable "tl")))
                     )))
@@ -1120,7 +1091,6 @@
           (Apply ((Apply ((Variable "iter"), (Variable "print_int"))),
              (List [(Const (Int_lt 1)); (Const (Int_lt 2)); (Const (Int_lt 3))])
              ))),
-         [],
          (LetIn (Nonrec,
             ((PConst Unit_lt),
              (Apply ((Variable "print_int"),
@@ -1134,7 +1104,7 @@
                       ))
                    ))
                 ))),
-            [], (Const (Int_lt 0))))
+            (Const (Int_lt 0))))
          ))),
      [])
   

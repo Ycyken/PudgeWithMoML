@@ -59,11 +59,7 @@ type expr =
       * (case list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_case_sized (n / 20)))])
   | Option of (expr option[@gen QCheck.Gen.option (gen_expr_sized (n / 4))])
   | EConstraint of (expr[@gen gen_expr_sized (n / 4)]) * typ
-  | LetIn of
-      is_recursive
-      * (binding[@gen gen_binding_sized (n / 4)])
-      * (binding list[@gen QCheck.Gen.(list_size (0 -- 2) (gen_binding_sized (n / 20)))])
-      * expr
+  | LetIn of is_recursive * (binding[@gen gen_binding_sized (n / 4)]) * expr
 [@@deriving show { with_path = false }, qcheck]
 
 and binding =

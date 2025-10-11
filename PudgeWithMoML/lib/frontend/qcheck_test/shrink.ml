@@ -77,12 +77,10 @@ and shrink_expr = function
     of_list [ e; Option None ] <+> (shrink_expr e >|= fun a' -> Option (Some a'))
   | Option None -> empty
   | EConstraint (e, t) -> return e <+> shrink_expr e >|= fun a' -> EConstraint (a', t)
-  | LetIn (rec_flag, bind, binds, inner_e) ->
-    of_list (inner_e :: List.map snd (bind :: binds))
-    <+> (shrink_bind bind >|= fun a' -> LetIn (rec_flag, a', binds, inner_e))
-    <+> (QCheck.Shrink.list ~shrink:shrink_bind binds
-         >|= fun a' -> LetIn (rec_flag, bind, a', inner_e))
-    <+> (shrink_expr inner_e >|= fun a' -> LetIn (rec_flag, bind, binds, a'))
+  | LetIn (rec_flag, bind, inner_e) ->
+    shrink_bind bind
+    >|= (fun a' -> LetIn (rec_flag, a', inner_e))
+    <+> (shrink_expr inner_e >|= fun a' -> LetIn (rec_flag, bind, a'))
 
 and shrink_pattern = function
   | PList l -> QCheck.Shrink.list ~shrink:shrink_pattern l >|= fun l' -> PList l'

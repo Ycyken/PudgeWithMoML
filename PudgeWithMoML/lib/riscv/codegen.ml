@@ -115,7 +115,7 @@ let rec gen_expr dst : expr -> instr list M.t = function
     let* arg_code = gen_expr (A 0) arg in
     let instrs = arg_code @ [ Call f ] @ if dst = A 0 then [] else [ Mv (dst, A 0) ] in
     M.return instrs
-  | LetIn (Nonrec, (PVar x, expr), [], inner_expr) ->
+  | LetIn (Nonrec, (PVar x, expr), inner_expr) ->
     let* code1 = gen_expr (T 0) expr in
     let* off = save_var_on_stack x in
     let* code2 = gen_expr dst inner_expr in

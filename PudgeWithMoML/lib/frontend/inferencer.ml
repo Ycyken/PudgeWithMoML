@@ -501,7 +501,7 @@ let extend_env_with_bind_names env binds =
   return env
 ;;
 
-let check_let_bind_correctness is_rec (bind : binding) =
+let check_bind_correctness is_rec (bind : binding) =
   match bind, is_rec with
   | (PVar _, _), _ -> return bind
   | _, Rec -> fail `Not_allowed_left_hand_side_let_rec
@@ -586,15 +586,14 @@ let rec infer_expr env = function
     let* env, arg_types = infer_patterns env ~shadow:true [ arg ] in
     let* subst, e_type = infer_expr env e in
     return (subst, Substitution.apply subst (arrow_t arg_types e_type))
-  | LetIn (Rec, let_bind, let_binds, e) ->
-    let let_binds = let_bind :: let_binds in
-    let* env = extend_env_with_bind_names env let_binds in
-    let* env, subst1 = extend_env_with_binds env Rec let_binds in
+  | LetIn (Rec, bind, e) ->
+    let* env = extend_env_with_bind_names env [ bind ] in
+    let* env, subst1 = extend_env_with_binds env Rec [ bind ] in
     let* subst2, typ = infer_expr env e in
     let* subst_final = Substitution.compose subst1 subst2 in
     return (subst_final, typ)
-  | LetIn (Nonrec, let_bind, let_binds, e) ->
-    let* env, subst1 = extend_env_with_binds env Nonrec (let_bind :: let_binds) in
+  | LetIn (Nonrec, bind, e) ->
+    let* env, subst1 = extend_env_with_binds env Nonrec [ bind ] in
     let* subst2, typ = infer_expr env e in
     let* subst_final = Substitution.compose subst1 subst2 in
     return (subst_final, typ)
@@ -646,23 +645,23 @@ and infer_matching_expr env cases subst_init match_t return_t ~with_arg =
   in
   return (subst, final_typ)
 
-and extend_env_with_binds env is_rec let_binds =
+and extend_env_with_binds env is_rec binds =
   List.fold
-    let_binds
+    binds
     ~init:(return (env, Substitution.empty))
-    ~f:(fun acc let_bind ->
+    ~f:(fun acc bind ->
       let* env, subst_acc = acc in
-      let* subst, names_schemes_list = infer_bind env is_rec let_bind in
+      let* subst, names_schemes_list = infer_bind env is_rec bind in
       let env = TypeEnv.extend_many env names_schemes_list in
       let env = TypeEnv.apply subst env in
       let* subst_acc = Substitution.compose subst_acc subst in
       return (env, subst_acc))
 
 and infer_bind env is_rec bind =
-  let* name, e = check_let_bind_correctness is_rec bind in
+  let* name, e = check_bind_correctness is_rec bind in
   let* subst1, rvalue_type = infer_expr env e in
   let bind_type = Substitution.apply subst1 rvalue_type in
-  (* If let_bind is recursive, then name was already in environment *)
+  (* If bind is recursive, then name was already in environment *)
   let* env, name_type =
     match is_rec with
     | Nonrec -> infer_pattern env ~shadow:true name
