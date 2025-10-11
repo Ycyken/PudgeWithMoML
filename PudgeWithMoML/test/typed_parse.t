@@ -23,7 +23,6 @@
              (Apply ((Variable "fac"), (Const (Int_lt 4))))))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
   $ ../bin/compiler.exe -fromfile manytests/typed/002fac.ml -dparsetree
   [(Rec,
@@ -60,7 +59,6 @@
              ))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/003fib.ml -dparsetree
@@ -133,7 +131,6 @@
             (Const (Int_lt 0))))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/004manyargs.ml -dparsetree
@@ -279,7 +276,6 @@
             ))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/005fix.ml -dparsetree
@@ -322,7 +318,6 @@
              ))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/006partial.ml -dparsetree
@@ -362,7 +357,6 @@
              (Apply ((Variable "foo"), (Const (Int_lt 11))))))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/006partial2.ml -dparsetree
@@ -407,7 +401,6 @@
             ))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/006partial3.ml -dparsetree
@@ -437,7 +430,6 @@
              (Const (Int_lt 9))))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/007order.ml -dparsetree
@@ -516,7 +508,6 @@
             (Const (Int_lt -555555))))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/008ascription.ml -dparsetree
@@ -571,7 +562,6 @@
              ))),
          (Const (Int_lt 0))))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/009let_poly.ml -dparsetree
@@ -581,8 +571,7 @@
         (Tuple ((Apply ((Variable "f"), (Const (Int_lt 1)))),
            (Apply ((Variable "f"), (Const (Bool_lt true)))), []))
         ))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/010fac_anf.ml -dparsetree
   [(Rec,
@@ -607,7 +596,6 @@
     []);
     (Nonrec, ((PVar "main"), (Apply ((Variable "fac"), (Const (Int_lt 4))))),
      [])
-  
     ]
   $ ../bin/compiler.exe -fromfile manytests/typed/011mapcps.ml -dparsetree
   [(Rec,
@@ -669,7 +657,6 @@
             (Lambda ((PVar "x"), (Variable "x")))))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/012fibcps.ml -dparsetree
@@ -714,7 +701,6 @@
             (Lambda ((PVar "x"), (Variable "x")))))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/013foldfoldr.ml -dparsetree
@@ -786,7 +772,6 @@
             ))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/015tuples.ml -dparsetree
@@ -935,7 +920,6 @@
             ))
          ))),
      [])
-  
     ]
 
   $ ../bin/compiler.exe -fromfile manytests/typed/016lists.ml -dparsetree
@@ -1107,5 +1091,4 @@
             (Const (Int_lt 0))))
          ))),
      [])
-  
     ]

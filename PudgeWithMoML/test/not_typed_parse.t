@@ -14,16 +14,14 @@
                     )))
            ))
         ))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/do_not_type/002if.ml -dparsetree
   [(Nonrec,
     ((PVar "main"),
      (If_then_else ((Const (Bool_lt true)), (Const (Int_lt 1)),
         (Some (Const (Bool_lt false)))))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/do_not_type/003occurs.ml -dparsetree
   [(Nonrec,
@@ -48,8 +46,7 @@
               ))
            ))
         ))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/do_not_type/004let_poly.ml -dparsetree
   [(Nonrec,
@@ -60,18 +57,15 @@
               (Apply ((Variable "f"), (Const (Bool_lt true)))), []))
            )),
         (Lambda ((PVar "x"), (Variable "x")))))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/do_not_type/015tuples.ml -dparsetree
   [(Rec,
     ((PTuple ((PVar "a"), (PVar "b"), [])),
      (Tuple ((Variable "a"), (Variable "b"), []))),
-    [])
-  ]
+    [])]
 
   $ ../bin/compiler.exe -fromfile manytests/do_not_type/099.ml -dparsetree
   [(Rec, ((POption (Some (PVar "x"))), (Option (Some (Const (Int_lt 1))))), []);
     (Nonrec, ((POption (Some (PVar "a"))), (Variable "<")), []);
-    (Nonrec, ((PConst Unit_lt), (Lambda ((PVar "x"), (Variable "x")))), [])
-  ]
+    (Nonrec, ((PConst Unit_lt), (Lambda ((PVar "x"), (Variable "x")))), [])]
