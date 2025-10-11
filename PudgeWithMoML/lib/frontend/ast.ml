@@ -103,3 +103,7 @@ let eland a b = eapp (Variable "&&") [ a; b ]
 let elor a b = eapp (Variable "||") [ a; b ]
 let econs a b = eapp (Variable "::") [ a; b ]
 let euminus a = eapp (Variable "~-") [ a ]
+
+let std_ops =
+  [ "="; "<>"; "<"; "<="; ">"; ">="; "+"; "-"; "*"; "/"; "&&"; "||"; "::"; "~-"; "not" ]
+;;
