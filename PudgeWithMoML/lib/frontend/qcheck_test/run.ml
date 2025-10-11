@@ -16,7 +16,7 @@ let arbitrary_program printer =
     ~print:
       (asprintf "%a" (fun fmt c ->
          fprintf fmt "Generated:\n%a\n\n" printer c;
-         match parse (asprintf "%a\n" PrettyPrinter.pp_program c) with
+         match parse (asprintf "%a\n" AstPP.pp_program c) with
          | Ok parsed -> fprintf fmt "Parsed:\n%a" printer parsed
          | Error e -> fprintf fmt "Parsing error:\n%s\n" e))
     ~shrink:Shrink.shrink_program
@@ -30,9 +30,9 @@ let run runs printer dparse =
           Test.make arb ~count:runs (fun c ->
             if dparse
             then (
-              PrettyPrinter.pp_program Format.std_formatter c;
+              AstPP.pp_program Format.std_formatter c;
               true)
-            else Ok c = parse (asprintf "%a\n" PrettyPrinter.pp_program c)))
+            else Ok c = parse (asprintf "%a\n" AstPP.pp_program c)))
       ]
   in
   ()

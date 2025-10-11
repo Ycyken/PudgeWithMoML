@@ -28,7 +28,7 @@ let () =
   let () = Arg.parse speclist (fun _ -> assert false) "help" in
   let printer =
     if opts.pp
-    then PudgeWithMoML.Frontend.PrettyPrinter.pp_program
+    then PudgeWithMoML.Frontend.AstPP.pp_program
     else PudgeWithMoML.Frontend.Ast.pp_program
   in
   run opts.runs printer opts.dparse
