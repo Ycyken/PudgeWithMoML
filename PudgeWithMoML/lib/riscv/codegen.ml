@@ -20,52 +20,49 @@ module M = struct
 
   type env = (string, location, String.comparator_witness) Map.t
 
-  type state =
+  type st =
     { env : env
     ; frame_offset : int
     ; fresh : int
     }
 
-  type 'a t = state -> 'a * state
+  include Common.Monad.State (struct
+      type state = st
+    end)
 
-  let return x st = x, st
-
-  let bind m f st =
-    let x, st' = m st in
-    f x st'
-  ;;
-
-  let ( let* ) = bind
-
-  let run m =
-    let init = { env = Map.empty (module String); frame_offset = 0; fresh = 0 } in
-    m init
-  ;;
+  let default = { env = Map.empty (module String); frame_offset = 0; fresh = 0 }
 
   let fresh : string t =
-    fun st -> "L" ^ Int.to_string st.fresh, { st with fresh = st.fresh + 1 }
+    let* st = get in
+    let+ _ = put { st with fresh = st.fresh + 1 } in
+    "L" ^ Int.to_string st.fresh
   ;;
 
   let alloc_frame_slot : int t =
-    fun st ->
+    let* st = get in
     let off = st.frame_offset + word_size in
-    off, { st with frame_offset = off }
+    put { st with frame_offset = off } >>| fun _ -> off
   ;;
 
   let add_binding name loc : unit t =
-    fun st -> (), { st with env = Map.set st.env ~key:name ~data:loc }
+    modify (fun st -> { st with env = Map.set st.env ~key:name ~data:loc })
   ;;
 
-  let get_frame_offset : int t = fun st -> st.frame_offset, st
-  let set_frame_offset (off : int) : unit t = fun st -> (), { st with frame_offset = off }
+  let get_frame_offset : int t =
+    let+ st = get in
+    st.frame_offset
+  ;;
+
+  let set_frame_offset (off : int) : unit t =
+    modify (fun st -> { st with frame_offset = off })
+  ;;
 
   let save_var_on_stack name : int t =
     let* off = alloc_frame_slot in
-    let* () = add_binding name (Stack off) in
-    return off
+    add_binding name (Stack off) >>| fun _ -> off
   ;;
 
-  let lookup name : location option t = fun st -> Map.find st.env name, st
+  let lookup name : location option t = get >>| fun st -> Map.find st.env name
 end
 
 open Frontend.Ast
@@ -163,7 +160,7 @@ let gen_program (pr : program) fmt =
   let open Format in
   fprintf fmt ".text\n";
   fprintf fmt ".globl _start\n";
-  let code, _ = M.run (gather pr) in
+  let _, code = M.run (gather pr) M.default in
   Base.List.iter code ~f:(function
     | Label l -> fprintf fmt "%s:\n" l
     | i -> fprintf fmt "  %a\n" pp_instr i)
