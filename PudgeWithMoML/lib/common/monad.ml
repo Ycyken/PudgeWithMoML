@@ -54,6 +54,13 @@ module State (S : sig
   let run m = m
 end
 
-module Counter = State (struct
-    type state = int
-  end)
+module Counter = struct
+  include State (struct
+      type state = int
+    end)
+
+  let make_fresh : state t =
+    let* st = get in
+    put (st + 1) >>| fun _ -> st
+  ;;
+end
