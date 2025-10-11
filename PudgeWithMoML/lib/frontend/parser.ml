@@ -62,7 +62,7 @@ let p_int =
   skip_ws
   *> let* sign = option "" (string "+" <|> string "-") in
      let* number = take_while1 Char.is_digit in
-     return (Int.of_string (sign ^ number))
+     Int.of_string (sign ^ number) |> return
 ;;
 
 let p_int_expr = expr_const (p_int >>| fun x -> Int_lt x)
@@ -248,7 +248,7 @@ let p_letin p_expr =
   let* bind = p_binding p_expr in
   let* binds_rest = many (skip_ws *> string "and" *> peek_sep1 *> p_binding p_expr) in
   let* inner_expr = skip_ws *> string "in" *> peek_sep1 *> p_expr in
-  return (LetIn (rec_flag, bind, binds_rest, inner_expr))
+  LetIn (rec_flag, bind, binds_rest, inner_expr) |> return
 ;;
 
 let p_apply p_expr self =
@@ -284,7 +284,7 @@ let p_match p_expr =
   let* value = skip_ws *> string "match" *> p_expr <* skip_ws <* string "with" in
   let* pat1, expr1 = p_first_case p_expr in
   let* cases = many (p_case p_expr) in
-  return (Match (value, (pat1, expr1), cases))
+  Match (value, (pat1, expr1), cases) |> return
 ;;
 
 let p_function p_expr =
@@ -293,13 +293,13 @@ let p_function p_expr =
   *>
   let* pat1, expr1 = p_first_case p_expr in
   let* cases = many (p_case p_expr) in
-  return (Function ((pat1, expr1), cases))
+  Function ((pat1, expr1), cases) |> return
 ;;
 
 let p_constraint_expr p_expr =
   let* expr = p_expr in
   let* typ = p_type in
-  return (EConstraint (expr, typ))
+  EConstraint (expr, typ) |> return
 ;;
 
 let infix_op (op, func) = skip_ws *> string op *> return func

@@ -106,10 +106,10 @@ let rec gen_expr dst : expr -> instr list M.t = function
     let* c1 = gen_expr (T 0) e1 in
     let* c2 = gen_expr (T 1) e2 in
     (match op with
-     | "<=" -> M.return (c1 @ c2 @ [ slt dst (T 1) (T 0); xori dst dst 1 ])
-     | "+" -> M.return (c1 @ c2 @ [ add dst (T 0) (T 1) ])
-     | "-" -> M.return (c1 @ c2 @ [ sub dst (T 0) (T 1) ])
-     | "*" -> M.return (c1 @ c2 @ [ mul dst (T 0) (T 1) ])
+     | "<=" -> c1 @ c2 @ [ slt dst (T 1) (T 0); xori dst dst 1 ] |> M.return
+     | "+" -> c1 @ c2 @ [ add dst (T 0) (T 1) ] |> M.return
+     | "-" -> c1 @ c2 @ [ sub dst (T 0) (T 1) ] |> M.return
+     | "*" -> c1 @ c2 @ [ mul dst (T 0) (T 1) ] |> M.return
      | _ -> failwith ("unsupported infix operator: " ^ op))
   | Apply (Variable f, arg) ->
     let* arg_code = gen_expr (A 0) arg in
@@ -144,10 +144,10 @@ let gen_structure_item : structure_item -> instr list M.t = function
     let epilogue =
       [ ld Ra (frame - 8) Sp; ld fp (frame - 16) Sp; addi Sp Sp frame; ret ]
     in
-    M.return ([ label f ] @ prologue @ body_code @ epilogue)
+    [ label f ] @ prologue @ body_code @ epilogue |> M.return
   | Nonrec, (PVar "main", e), [] ->
     let* body_code = gen_expr (A 0) e in
-    M.return ([ label "_start" ] @ body_code @ [ li (A 7) 94; ecall ])
+    [ label "_start" ] @ body_code @ [ li (A 7) 94; ecall ] |> M.return
   | _ -> failwith "unsupported structure item"
 ;;
 
