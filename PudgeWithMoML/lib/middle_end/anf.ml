@@ -30,6 +30,22 @@ and aexpr =
 type binding = ident * aexpr
 type astr_item = is_recursive * binding * binding list
 type aprogram = astr_item list
+
+let rec simplify_aexpr = function
+  (* let x = v in x*)
+  | ALet (Nonrec, name1, value, ACExpr (CImm (ImmVar name2)))
+    when String.equal name1 name2 -> ACExpr value |> simplify_aexpr
+  | ACExpr cexpr -> ACExpr (simplify_cexpr cexpr)
+  | _ as e -> e
+
+and simplify_cexpr = function
+  | CNot (ImmConst (Bool_lt b)) -> CImm (ImmConst (Bool_lt (not b)))
+  | CLambda (arg, body) -> CLambda (arg, simplify_aexpr body)
+  | CIte (cond, then_branch, else_branch) ->
+    CIte (cond, simplify_aexpr then_branch, simplify_aexpr else_branch)
+  | _ as e -> e
+;;
+
 type state = { counter : int }
 
 open Common.Monad.Counter
@@ -77,16 +93,14 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
         | Some e -> anf e expr_with_hole
         | None -> ACExpr (CImm (ImmConst Unit_lt)) |> return
       in
-      let* temp = make_temp in
-      let* ehole = expr_with_hole (ImmVar temp) in
-      ALet (Nonrec, temp, CIte (i', t', e'), ehole) |> return)
+      ACExpr (CIte (i', t', e')) |> return)
   | _ -> failwith "Not implemented"
 ;;
 
 let anf_str_item : structure_item -> astr_item t = function
   | rec_flag, (PVar name, v), [] ->
     let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
-    rec_flag, (name, v'), []
+    rec_flag, (name, simplify_aexpr v'), []
   | _ -> failwith "Not implemented"
 ;;
 
