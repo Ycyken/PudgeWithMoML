@@ -164,5 +164,5 @@ let convert_program (program : program) =
       ~init:(return (program, default))
       program
   in
-  run prg_w_ctx 0 |> snd |> fst
+  run prg_w_ctx 0 |> snd |> fst |> List.rev
 ;;

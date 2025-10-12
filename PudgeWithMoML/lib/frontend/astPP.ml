@@ -22,6 +22,12 @@ let pp_varname fmt name =
   else fprintf fmt "%s " name
 ;;
 
+let pp_literal fmt = function
+  | Int_lt i -> fprintf fmt "%d " i
+  | Bool_lt b -> fprintf fmt "%b " b
+  | Unit_lt -> fprintf fmt "() "
+;;
+
 let rec pp_pattern fmt = function
   | Wild -> fprintf fmt "_ "
   | PList l ->
@@ -37,7 +43,7 @@ let rec pp_pattern fmt = function
       fmt
       (p1 :: p2 :: rest);
     fprintf fmt ")"
-  | PConst literal -> fprintf fmt "%a " pp_expr (Const literal)
+  | PConst literal -> pp_literal fmt literal
   | PVar name -> fprintf fmt "%a " pp_varname name
   | POption p ->
     (match p with
@@ -46,9 +52,7 @@ let rec pp_pattern fmt = function
   | PConstraint (p, t) -> fprintf fmt "(%a : %a) " pp_pattern p pp_typ t
 
 and pp_expr fmt = function
-  | Const (Int_lt i) -> fprintf fmt "%d " i
-  | Const (Bool_lt b) -> fprintf fmt "%b " b
-  | Const Unit_lt -> fprintf fmt "() "
+  | Const lt -> pp_literal fmt lt
   | Tuple (e1, e2, rest) ->
     fprintf fmt "(";
     pp_print_list
