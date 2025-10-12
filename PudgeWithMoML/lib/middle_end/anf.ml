@@ -54,7 +54,7 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
     let k_end i = ACExpr (CImm i) |> return in
     let* body' = anf body k_end in
     emit (CLambda (ImmVar arg, body')) k
-  | Apply (f, a) -> anf f (fun ifun -> anf a (fun iarg -> emit (CApp (ifun, iarg)) k)) *)
+  | Apply (f, a) -> anf f (fun ifun -> anf a (fun iarg -> ) k)) *)
   | _ -> failwith "Not implemented"
 ;;
 
