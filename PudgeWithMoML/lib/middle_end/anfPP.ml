@@ -32,7 +32,7 @@ and pp_aexpr fmt = function
   | ALet (rec_flag, name, cexpr, body) ->
     Format.fprintf
       fmt
-      "%a %s = %a in\n%a"
+      "let %a %s = %a in\n%a"
       pp_rec_flag
       rec_flag
       name

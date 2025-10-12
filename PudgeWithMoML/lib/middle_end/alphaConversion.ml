@@ -161,7 +161,7 @@ let convert_program (program : program) =
         let* items, ctx = acc in
         let+ item, ctx = convert_str_item ctx str_item in
         item :: items, ctx)
-      ~init:(return (program, default))
+      ~init:(return ([], default))
       program
   in
   run prg_w_ctx 0 |> snd |> fst |> List.rev
