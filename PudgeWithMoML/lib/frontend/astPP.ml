@@ -12,20 +12,20 @@ open TypesPp
 open Keywords
 
 let pp_rec_flag fmt = function
-  | Rec -> fprintf fmt "rec"
+  | Rec -> fprintf fmt "rec "
   | Nonrec -> ()
 ;;
 
 let pp_varname fmt name =
   if String.for_all (String.contains op_chars) name
   then fprintf fmt "(%s)" name
-  else fprintf fmt "%s " name
+  else fprintf fmt "%s" name
 ;;
 
 let pp_literal fmt = function
-  | Int_lt i -> fprintf fmt "%d " i
-  | Bool_lt b -> fprintf fmt "%b " b
-  | Unit_lt -> fprintf fmt "() "
+  | Int_lt i -> fprintf fmt "%d" i
+  | Bool_lt b -> fprintf fmt "%b" b
+  | Unit_lt -> fprintf fmt "()"
 ;;
 
 let rec pp_pattern fmt = function
@@ -92,7 +92,7 @@ and pp_expr fmt = function
      | Some e -> fprintf fmt "Some (%a)" pp_expr e)
   | EConstraint (e, t) -> fprintf fmt "(%a : %a) " pp_expr e pp_typ t
   | LetIn (rec_flag, bind, in_expr) ->
-    fprintf fmt "let %a " pp_rec_flag rec_flag;
+    fprintf fmt "let %a" pp_rec_flag rec_flag;
     pp_bind fmt bind;
     fprintf fmt "in\n";
     fprintf fmt "%a " pp_expr in_expr
@@ -104,7 +104,7 @@ and pp_parens_expr fmt expr = fprintf fmt "(%a)" pp_expr expr
 
 let pp_structure_item fmt : structure_item -> unit = function
   | rec_flag, bind, binds ->
-    fprintf fmt "let %a " pp_rec_flag rec_flag;
+    fprintf fmt "let %a" pp_rec_flag rec_flag;
     pp_print_list
       ~pp_sep:(fun fmt () -> fprintf fmt "\n\nand ")
       pp_bind

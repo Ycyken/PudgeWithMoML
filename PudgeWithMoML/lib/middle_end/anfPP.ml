@@ -26,13 +26,13 @@ let rec pp_cexpr fmt = function
   | CNot i -> fprintf fmt "not %a" pp_imm i
   | CApp (f, arg) -> fprintf fmt "%a %a" pp_imm f pp_imm arg
   | CIte (i, t, e) ->
-    fprintf fmt "if %a then (%a)\nelse %a " pp_imm i pp_aexpr t pp_aexpr e
+    fprintf fmt "if %a then (%a)\nelse %a" pp_imm i pp_aexpr t pp_aexpr e
 
 and pp_aexpr fmt = function
   | ALet (rec_flag, name, cexpr, body) ->
     Format.fprintf
       fmt
-      "let %a %s = %a in\n%a"
+      "let %a%s = %a in\n%a"
       pp_rec_flag
       rec_flag
       name
@@ -48,7 +48,7 @@ let pp_bind fmt : binding -> unit = function
 ;;
 
 let pp_astr_item fmt (rec_flag, bind, binds) =
-  fprintf fmt "let %a " pp_rec_flag rec_flag;
+  fprintf fmt "let %a" pp_rec_flag rec_flag;
   pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "\n\nand ") pp_bind fmt (bind :: binds)
 ;;
 
