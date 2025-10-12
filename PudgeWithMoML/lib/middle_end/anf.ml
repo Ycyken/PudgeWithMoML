@@ -36,7 +36,12 @@ open Common.Monad.Counter
 
 let make_labmda_arg =
   let+ fresh = make_fresh in
-  "anf__larg" ^ Int.to_string fresh
+  "anf_larg" ^ Int.to_string fresh
+;;
+
+let make_temp =
+  let+ fresh = make_fresh in
+  "anf_t" ^ Int.to_string fresh
 ;;
 
 let is_op name = List.mem (String.to_list op_chars) name.[0] ~equal:Char.equal
@@ -49,19 +54,39 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
     let* body = anf body expr_with_hole in
     anf value (fun immv -> ALet (rec_flag, name, CImm immv, body) |> return)
   | Apply (Apply (Variable f, arg1), arg2) when is_op f ->
-    anf arg1 (fun i1 -> anf arg2 (fun i2 -> ACExpr (CBinop (f, i1, i2)) |> return))
-  (* | Lambda (arg, body) ->
-    let k_end i = ACExpr (CImm i) |> return in
-    let* body' = anf body k_end in
-    emit (CLambda (ImmVar arg, body')) k
-  | Apply (f, a) -> anf f (fun ifun -> anf a (fun iarg -> ) k)) *)
+    anf arg1 (fun i1 ->
+      anf arg2 (fun i2 ->
+        let* temp = make_temp in
+        let* ehole = expr_with_hole (ImmVar temp) in
+        ALet (Nonrec, temp, CBinop (f, i1, i2), ehole) |> return))
+  | Lambda (PVar arg, body) ->
+    let+ body' = anf body expr_with_hole in
+    let lambda = CLambda (ImmVar arg, body') in
+    ACExpr lambda
+  | Apply (f, arg) ->
+    anf f (fun i1 ->
+      anf arg (fun i2 ->
+        let* temp = make_temp in
+        let* ehole = expr_with_hole (ImmVar temp) in
+        ALet (Nonrec, temp, CApp (i1, i2), ehole) |> return))
+  | If_then_else (i, t, e) ->
+    anf i (fun i' ->
+      let* t' = anf t expr_with_hole in
+      let* e' =
+        match e with
+        | Some e -> anf e expr_with_hole
+        | None -> ACExpr (CImm (ImmConst Unit_lt)) |> return
+      in
+      let* temp = make_temp in
+      let* ehole = expr_with_hole (ImmVar temp) in
+      ALet (Nonrec, temp, CIte (i', t', e'), ehole) |> return)
   | _ -> failwith "Not implemented"
 ;;
 
 let anf_str_item : structure_item -> astr_item t = function
-  | Nonrec, (PVar name, v), [] ->
+  | rec_flag, (PVar name, v), [] ->
     let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
-    Nonrec, (name, v'), []
+    rec_flag, (name, v'), []
   | _ -> failwith "Not implemented"
 ;;
 
