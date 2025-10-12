@@ -8,8 +8,7 @@
   if anf_t1 then (1)
   else let anf_t2 = n__1 - 1 in
   let anf_t3 = fac__0 anf_t2 in
-  let anf_t4 = n__1 * anf_t3 in
-  anf_t4 
+  n__1 * anf_t3 
   
   let main__2 = fac__0 4 
 
@@ -26,8 +25,7 @@
   let anf_t2 = fib__0 anf_t1 in
   let anf_t3 = n__1 - 2 in
   let anf_t4 = fib__0 anf_t3 in
-  let anf_t5 = anf_t2 + anf_t4 in
-  anf_t5 
+  anf_t2 + anf_t4 
 
 (nested letin)
   $ ./run_anf.exe <<'EOF'
@@ -37,8 +35,7 @@
   let anf_t1 = 3 - 4 in
   let anf_t2 = anf_t1 + 1 in
   let y__2 = anf_t2 in
-  let anf_t0 = x__1 * y__2 in
-  anf_t0 
+  x__1 * y__2 
 
 (sum)
   $ ./run_anf.exe <<'EOF'
@@ -52,7 +49,9 @@
   let main__3 = let anf_t0 = 1 + 2 in
   let anf_t1 = sum__0 anf_t0 in
   let anf_t2 = 3 - 4 in
-  let anf_t3 = anf_t1 anf_t2 in
-  anf_t3 
+  anf_t1 anf_t2 
 
+  $ ./run_anf.exe <<'EOF'
+  > let x = let y = 1 + 2 in y
+  let x__0 = 1 + 2 
 

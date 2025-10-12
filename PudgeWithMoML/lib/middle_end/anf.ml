@@ -31,19 +31,11 @@ type binding = ident * aexpr
 type astr_item = is_recursive * binding * binding list
 type aprogram = astr_item list
 
-let rec simplify_aexpr = function
+let mk_alet rf name1 v body =
+  match rf, body with
   (* let x = v in x*)
-  | ALet (Nonrec, name1, value, ACExpr (CImm (ImmVar name2)))
-    when String.equal name1 name2 -> ACExpr value |> simplify_aexpr
-  | ACExpr cexpr -> ACExpr (simplify_cexpr cexpr)
-  | _ as e -> e
-
-and simplify_cexpr = function
-  | CNot (ImmConst (Bool_lt b)) -> CImm (ImmConst (Bool_lt (not b)))
-  | CLambda (arg, body) -> CLambda (arg, simplify_aexpr body)
-  | CIte (cond, then_branch, else_branch) ->
-    CIte (cond, simplify_aexpr then_branch, simplify_aexpr else_branch)
-  | _ as e -> e
+  | Nonrec, ACExpr (CImm (ImmVar name2)) when String.equal name1 name2 -> ACExpr v
+  | _ -> ALet (rf, name1, v, body)
 ;;
 
 type state = { counter : int }
@@ -68,13 +60,13 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
   | Variable n -> expr_with_hole (ImmVar n)
   | LetIn (rec_flag, (PVar name, value), body) ->
     let* body = anf body expr_with_hole in
-    anf value (fun immv -> ALet (rec_flag, name, CImm immv, body) |> return)
+    anf value (fun immv -> mk_alet rec_flag name (CImm immv) body |> return)
   | Apply (Apply (Variable f, arg1), arg2) when is_op f ->
     anf arg1 (fun i1 ->
       anf arg2 (fun i2 ->
         let* temp = make_temp in
         let* ehole = expr_with_hole (ImmVar temp) in
-        ALet (Nonrec, temp, CBinop (f, i1, i2), ehole) |> return))
+        mk_alet Nonrec temp (CBinop (f, i1, i2)) ehole |> return))
   | Lambda (PVar arg, body) ->
     let+ body' = anf body expr_with_hole in
     let lambda = CLambda (ImmVar arg, body') in
@@ -84,7 +76,7 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
       anf arg (fun i2 ->
         let* temp = make_temp in
         let* ehole = expr_with_hole (ImmVar temp) in
-        ALet (Nonrec, temp, CApp (i1, i2), ehole) |> return))
+        mk_alet Nonrec temp (CApp (i1, i2)) ehole |> return))
   | If_then_else (i, t, e) ->
     anf i (fun i' ->
       let* t' = anf t expr_with_hole in
@@ -100,7 +92,7 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
 let anf_str_item : structure_item -> astr_item t = function
   | rec_flag, (PVar name, v), [] ->
     let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
-    rec_flag, (name, simplify_aexpr v'), []
+    rec_flag, (name, v'), []
   | _ -> failwith "Not implemented"
 ;;
 
