@@ -1,0 +1,3 @@
+(cram
+ (deps 1.cpp)
+ (applies_to *))
