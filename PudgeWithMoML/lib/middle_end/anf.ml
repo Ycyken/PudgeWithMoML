@@ -19,7 +19,7 @@ type cexpr =
   | CTuple of imm * imm * imm list
   | CBinop of ident * imm * imm
   | CNot of imm
-  | CLambda of imm * aexpr
+  | CLambda of ident * aexpr
   | CApp of imm * imm
   | CIte of imm * aexpr * aexpr
 
@@ -69,7 +69,7 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
         mk_alet Nonrec temp (CBinop (f, i1, i2)) ehole |> return))
   | Lambda (PVar arg, body) ->
     let+ body' = anf body expr_with_hole in
-    let lambda = CLambda (ImmVar arg, body') in
+    let lambda = CLambda (arg, body') in
     ACExpr lambda
   | Apply (f, arg) ->
     anf f (fun i1 ->

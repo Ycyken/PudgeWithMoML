@@ -8,4 +8,5 @@
 
 open Anf
 
+val pp_astr_item : Format.formatter -> astr_item -> unit
 val pp_aprogram : Format.formatter -> aprogram -> unit

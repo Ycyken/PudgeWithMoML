@@ -7,8 +7,10 @@
 [@@@ocaml.text "/*"]
 
 open PudgeWithMoML.Frontend.Parser
-open PudgeWithMoML.Riscv.Codegen
 open PudgeWithMoML.Frontend.Inferencer
+open PudgeWithMoML.Middle_end.AlphaConversion
+open PudgeWithMoML.Middle_end.Anf
+open PudgeWithMoML.Riscv.Codegen
 open Stdio
 open Format
 
@@ -42,7 +44,9 @@ let compiler opts =
         else (
           let oc = Out_channel.create opts.output_file in
           let fmt = Format.formatter_of_out_channel oc in
-          gen_program program fmt))
+          let a_converted = convert_program program in
+          let anf = anf_program a_converted in
+          gen_aprogram anf fmt))
 ;;
 
 let () =
