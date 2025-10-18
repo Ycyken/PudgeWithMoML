@@ -157,8 +157,10 @@ let gen_astr_item : astr_item -> instr list M.t = function
     in
     [ label f ] @ prologue @ body_code @ epilogue
   | Nonrec, (_, e), [] ->
-    let* body_code = gen_aexpr (A 0) e in
-    [ label "_start" ] @ body_code @ [ li (A 7) 94; ecall ] |> M.return
+    let+ body_code = gen_aexpr (A 0) e in
+    [ label "_start"; mv fp Sp ]
+    @ body_code
+    @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
   | i ->
     failwith (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
 ;;
@@ -167,8 +169,8 @@ let rec gather : aprogram -> instr list M.t = function
   | [] -> M.return []
   | item :: rest ->
     let* code1 = gen_astr_item item in
-    let* code2 = gather rest in
-    M.return (code1 @ code2)
+    let+ code2 = gather rest in
+    code1 @ code2
 ;;
 
 let gen_aprogram (pr : aprogram) fmt =

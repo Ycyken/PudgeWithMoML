@@ -51,3 +51,7 @@
 (cram
  (applies_to anf)
  (deps ./run_anf.exe))
+
+(cram
+ (applies_to runtime)
+ (deps ../bin/compiler.exe ../Makefile ../lib/runtime/runtime.c))

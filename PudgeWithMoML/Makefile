@@ -1,4 +1,5 @@
-.PHONY: all test
+.PHONY: all test coverate compile qemu
+
 all:
 	dune build
 
@@ -18,3 +19,14 @@ coverage:
 	bisect-ppx-report html $(COVERAGE_OPTS)
 	bisect-ppx-report summary $(COVERAGE_OPTS)
 	@echo "Use 'xdg-open _coverage/index.html' to see coverage report"
+
+input ?=
+
+compile:
+	@riscv64-linux-gnu-gcc -S -march=rv64gc lib/runtime/runtime.c -o runtime.s
+	@dune exec compiler -- $(if $(input),-fromfile=$(input)) -o main.s
+
+	@riscv64-linux-gnu-as -march=rv64gc main.s -o main.o
+	@riscv64-linux-gnu-as -march=rv64gc runtime.s -o runtime.o
+
+	@riscv64-linux-gnu-gcc -nostartfiles main.o runtime.o -o main.exe

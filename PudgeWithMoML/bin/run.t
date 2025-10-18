@@ -1,7 +1,5 @@
-  $ ./compiler.exe -fromfile fact
-  $ riscv64-linux-gnu-as -march=rv64gc a.s -o temp.o
-  $ riscv64-linux-gnu-ld temp.o -o a.exe
-  $ cat a.s
+  $ make compile input=bin/fact --no-print-directory -C .. << 'EOF'
+  $ cat ../main.s
   .text
   .globl _start
   fac__0:
@@ -41,9 +39,16 @@
     addi sp, sp, 80
     ret
   _start:
+    mv fp, sp
     li a0, 4
     call fac__0
+    mv t0, a0
+    sd t0, -8(fp)
+    ld a0, -8(fp)
+    call print_int
+    call flush
+    li a0, 0
     li a7, 94
     ecall
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ./a.exe
-  [24]
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  24

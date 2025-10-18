@@ -51,7 +51,11 @@ let compiler opts =
 
 let () =
   let opts =
-    { input_file = ""; output_file = "a.s"; dump_parsetree = false; dump_types = false }
+    { input_file = ""
+    ; output_file = "main.s"
+    ; dump_parsetree = false
+    ; dump_types = false
+    }
   in
   let open Stdlib.Arg in
   let speclist =
