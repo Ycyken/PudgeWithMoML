@@ -327,6 +327,7 @@ end = struct
         , arrow_t [ typevar tv; Type_list (typevar tv) ] (Type_list (typevar tv)) )
     in
     let uminus_s = Scheme (VarSet.empty, arrow_t [ int_typ ] int_typ) in
+    let bool_not = Scheme (VarSet.empty, arrow_t [ bool_typ ] bool_typ) in
     let print_int_s = Scheme (VarSet.empty, arrow_t [ int_typ ] unit_typ) in
     ( Map.of_alist_exn
         (module String)
@@ -343,6 +344,7 @@ end = struct
         ; "&&", bbool_s
         ; "||", bbool_s
         ; "::", cons_s
+        ; "not", bool_not
         ; "~-", uminus_s
         ; "print_int", print_int_s
         ]
