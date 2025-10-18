@@ -1,4 +1,4 @@
-  $ make compile input=bin/fact --no-print-directory -C .. << 'EOF'
+  $ make compile input=bin/fact --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
   $ cat ../main.s
@@ -53,7 +53,7 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/fib --no-print-directory -C .. << 'EOF'
+  $ make compile input=bin/fib --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   55
   $ cat ../main.s
@@ -111,7 +111,7 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/large_if --no-print-directory -C .. << 'EOF'
+  $ make compile input=bin/large_if --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   42
   0
