@@ -11,13 +11,7 @@ open Machine
 open Middle_end
 open Middle_end.Anf
 
-type location =
-  | Reg of reg
-  | Stack of int
-    (* OCaml say: "constructor Reg is never used to build values.
-(However, this constructor appears in patterns.)"
-So for now we disable that warning *)
-[@@deriving eq] [@@warning "-37"]
+type location = Stack of int [@@deriving eq] [@@warning "-37"]
 
 let word_size = 8
 
@@ -87,8 +81,6 @@ let gen_imm dst = function
   | ImmVar x ->
     let+ loc = M.lookup x in
     (match loc with
-     | Some (Reg r) when r = dst -> []
-     | Some (Reg r) -> [ mv dst r ]
      | Some (Stack off) -> [ ld dst (-off) fp ]
      | _ -> failwith ("unbound variable: " ^ x))
 ;;
