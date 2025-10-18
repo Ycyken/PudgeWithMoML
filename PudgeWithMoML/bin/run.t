@@ -1,4 +1,6 @@
   $ make compile input=bin/fact --no-print-directory -C .. << 'EOF'
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  24
   $ cat ../main.s
   .text
   .globl _start
@@ -50,5 +52,3 @@
     li a0, 0
     li a7, 94
     ecall
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  24
