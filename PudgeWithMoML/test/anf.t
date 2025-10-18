@@ -3,6 +3,7 @@
   > let rec fac n = if n <= 1 then 1 else n * fac (n-1)
   > 
   > let main = fac 4
+  > EOF
   let rec fac__0 = fun n__1 ->
   let anf_t1 = n__1 <= 1 in
   if anf_t1 then (1)
@@ -18,6 +19,7 @@
   > if n<2
   > then n
   > else fib (n - 1) + fib (n - 2) 
+  > EOF
   let rec fib__0 = fun n__1 ->
   let anf_t0 = n__1 < 2 in
   if anf_t0 then (n__1)
@@ -30,6 +32,7 @@
 (nested letin)
   $ ./run_anf.exe <<'EOF'
   > let main = let x = 1 + 2 in let y = 3 - 4 + 1 in x * y
+  > EOF
   let main__0 = let anf_t3 = 1 + 2 in
   let x__1 = anf_t3 in
   let anf_t1 = 3 - 4 in
@@ -42,6 +45,7 @@
   > let sum x y = x + y
   > 
   > let main = sum (1 + 2) (3 - 4)
+  > EOF
   let sum__0 = fun x__1 ->
   fun y__2 ->
   x__1 + y__2 
@@ -53,5 +57,5 @@
 
   $ ./run_anf.exe <<'EOF'
   > let x = let y = 1 + 2 in y
+  > EOF
   let x__0 = 1 + 2 
-

@@ -1,5 +1,6 @@
   $ make compile --no-print-directory -C .. << 'EOF'
   > let main = print_int 5
+  > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   5
   $ cat ../main.s
