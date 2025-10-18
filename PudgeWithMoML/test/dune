@@ -53,5 +53,5 @@
  (deps ./run_anf.exe))
 
 (cram
- (applies_to runtime)
+ (applies_to codegen)
  (deps ../bin/compiler.exe ../Makefile ../lib/runtime/runtime.c))

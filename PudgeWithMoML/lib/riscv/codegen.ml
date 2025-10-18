@@ -161,8 +161,9 @@ let gen_astr_item : astr_item -> instr list M.t = function
     in
     [ label f ] @ prologue @ body_code @ epilogue
   | Nonrec, (_, e), [] ->
-    let+ body_code = gen_aexpr (A 0) e in
-    [ label "_start"; mv fp Sp ]
+    let* body_code = gen_aexpr (A 0) e in
+    let+ frame = M.get_frame_offset in
+    [ label "_start"; mv fp Sp; addi Sp Sp (-frame) ]
     @ body_code
     @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
   | i ->

@@ -42,6 +42,7 @@
     ret
   _start:
     mv fp, sp
+    addi sp, sp, -8
     li a0, 4
     call fac__0
     mv t0, a0
@@ -100,6 +101,7 @@
     ret
   _start:
     mv fp, sp
+    addi sp, sp, -8
     li a0, 10
     call fib__0
     mv t0, a0
@@ -144,6 +146,7 @@
     ret
   _start:
     mv fp, sp
+    addi sp, sp, -136
     li t0, 0
     li t1, 1
     sub t0, t0, t1
