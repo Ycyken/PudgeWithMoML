@@ -111,6 +111,7 @@ let rec gen_cexpr dst = function
     let+ c2 = gen_imm (T 1) e2 in
     (match op with
      | "<=" -> c1 @ c2 @ [ slt dst (T 1) (T 0); xori dst dst 1 ]
+     | "<" -> c1 @ c2 @ [ slt dst (T 0) (T 1) ]
      | "+" -> c1 @ c2 @ [ add dst (T 0) (T 1) ]
      | "-" -> c1 @ c2 @ [ sub dst (T 0) (T 1) ]
      | "*" -> c1 @ c2 @ [ mul dst (T 0) (T 1) ]
