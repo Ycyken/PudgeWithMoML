@@ -105,9 +105,12 @@ let rec gen_cexpr dst = function
     (match op with
      | "<=" -> c1 @ c2 @ [ slt dst (T 1) (T 0); xori dst dst 1 ]
      | "<" -> c1 @ c2 @ [ slt dst (T 0) (T 1) ]
+     | ">=" -> c1 @ c2 @ [ slt dst (T 0) (T 1); xori dst dst 1 ]
+     | ">" -> c1 @ c2 @ [ slt dst (T 1) (T 0) ]
      | "+" -> c1 @ c2 @ [ add dst (T 0) (T 1) ]
      | "-" -> c1 @ c2 @ [ sub dst (T 0) (T 1) ]
      | "*" -> c1 @ c2 @ [ mul dst (T 0) (T 1) ]
+     | "/" -> c1 @ c2 @ [ div dst (T 0) (T 1) ]
      | "<>" -> c1 @ c2 @ [ sub dst (T 0) (T 1); snez dst dst ]
      | "=" -> c1 @ c2 @ [ sub dst (T 0) (T 1); seqz dst dst ]
      | _ -> failwith ("std binop is not implemented yet: " ^ op))
