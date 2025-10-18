@@ -44,14 +44,14 @@ let mk_alet rf name1 v body =
   | _ -> ALet (rf, name1, v, body)
 ;;
 
-type state = { counter : int }
+(* type state = { counter : int } *)
 
 open Common.Monad.Counter
 
-let make_labmda_arg =
+(* let make_labmda_arg =
   let+ fresh = make_fresh in
   "anf_larg" ^ Int.to_string fresh
-;;
+;; *)
 
 let make_temp =
   let+ fresh = make_fresh in
