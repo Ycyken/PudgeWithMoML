@@ -118,7 +118,9 @@ let rec gen_cexpr dst = function
      | "/" -> c1 @ c2 @ [ div dst (T 0) (T 1) ]
      | "<>" -> c1 @ c2 @ [ sub dst (T 0) (T 1); snez dst dst ]
      | "=" -> c1 @ c2 @ [ sub dst (T 0) (T 1); seqz dst dst ]
-     | _ -> failwith ("std binop is not implemented yet: " ^ op))
+     | "&&" -> c1 @ c2 @ [ and_ dst (T 0) (T 1) ]
+     | "||" -> c1 @ c2 @ [ or_ dst (T 0) (T 1) ]
+     | "" | _ -> failwith ("std binop is not implemented yet: " ^ op))
   | CBinop (op, e1, e2) ->
     let* e1_c = gen_imm (A 0) e1 in
     let+ e2_c = gen_imm (A 1) e2 in

@@ -47,6 +47,10 @@ type instr =
   | Sd of reg * offset * reg
   | Xori of reg * reg * int
   | Xor of reg * reg * reg
+  | Andi of reg * reg * int
+  | And of reg * reg * reg
+  | Ori of reg * reg * int
+  | Or of reg * reg * reg
   | Beq of reg * reg * string
   | Ble of reg * reg * string
   | J of string
@@ -72,6 +76,10 @@ let pp_instr fmt =
   | Sd (rs1, offset, rs2) -> fprintf fmt "sd %a, %d(%a)" pp_reg rs1 offset pp_reg rs2
   | Xori (rd, rs, n) -> fprintf fmt "xori %a, %a, %d" pp_reg rd pp_reg rs n
   | Xor (rd, rs1, rs2) -> fprintf fmt "xor %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
+  | Andi (rd, rs, n) -> fprintf fmt "andi %a, %a, %d" pp_reg rd pp_reg rs n
+  | And (rd, rs1, rs2) -> fprintf fmt "and %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
+  | Ori (rd, rs, n) -> fprintf fmt "ori %a, %a, %d" pp_reg rd pp_reg rs n
+  | Or (rd, rs1, rs2) -> fprintf fmt "or %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
   | Beq (rs1, rs2, label) -> fprintf fmt "beq %a, %a, %s" pp_reg rs1 pp_reg rs2 label
   | Ble (rs1, rs2, label) -> fprintf fmt "ble %a, %a, %s" pp_reg rs1 pp_reg rs2 label
   | J label -> fprintf fmt "j %s" label
@@ -95,6 +103,10 @@ let mv r1 r2 = Mv (r1, r2)
 let sd r1 off base = Sd (r1, off, base)
 let xori r1 r2 n = Xori (r1, r2, n)
 let xor r1 r2 r3 = Xor (r1, r2, r3)
+let andi r1 r2 n = Andi (r1, r2, n)
+let and_ r1 r2 r3 = And (r1, r2, r3)
+let ori r1 r2 n = Ori (r1, r2, n)
+let or_ r1 r2 r3 = Or (r1, r2, r3)
 let beq r1 r2 label = Beq (r1, r2, label)
 let ble r1 r2 label = Ble (r1, r2, label)
 let j label = J label
