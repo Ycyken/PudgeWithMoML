@@ -7,4 +7,4 @@
   (backend bisect_ppx)))
 
 (cram
- (deps ./compiler.exe fact ../Makefile ../lib/runtime/runtime.c))
+ (deps ./compiler.exe fact fib ../Makefile ../lib/runtime/runtime.c))
