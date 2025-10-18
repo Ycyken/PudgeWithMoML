@@ -114,6 +114,8 @@ let rec gen_cexpr dst = function
      | "+" -> c1 @ c2 @ [ add dst (T 0) (T 1) ]
      | "-" -> c1 @ c2 @ [ sub dst (T 0) (T 1) ]
      | "*" -> c1 @ c2 @ [ mul dst (T 0) (T 1) ]
+     | "<>" -> c1 @ c2 @ [ sub dst (T 0) (T 1); snez dst dst ]
+     | "=" -> c1 @ c2 @ [ xor dst (T 0) (T 1); snez dst dst ]
      | _ -> failwith ("std binop is not implemented yet: " ^ op))
   | CBinop (op, e1, e2) ->
     let* e1_c = gen_imm (A 0) e1 in
@@ -138,7 +140,7 @@ and gen_aexpr dst = function
 ;;
 
 let gen_astr_item : astr_item -> instr list M.t = function
-  | Rec, (f, ACExpr (CLambda (arg, body))), [] ->
+  | _, (f, ACExpr (CLambda (arg, body))), [] ->
     let* saved_off = M.get_frame_offset in
     let* () = M.set_frame_offset 16 in
     let* x_off = save_var_on_stack arg in
