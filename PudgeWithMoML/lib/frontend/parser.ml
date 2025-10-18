@@ -234,7 +234,7 @@ let p_binding p_expr : binding t =
   let* body = skip_ws *> string "=" *> p_expr in
   match name, args with
   | PVar _, args -> return (name, elambda body args)
-  | _, args when List.length args > 0 ->
+  | _, args when List.length args <> 0 ->
     fail "Args in let bind are only allowed when binding a variable name "
   | _ -> return (name, elambda body args)
 ;;
