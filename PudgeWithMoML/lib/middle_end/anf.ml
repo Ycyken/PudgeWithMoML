@@ -13,6 +13,7 @@ open Base
 type imm =
   | ImmConst of literal
   | ImmVar of ident
+[@@deriving show { with_path = false }]
 
 type cexpr =
   | CImm of imm
@@ -22,14 +23,19 @@ type cexpr =
   | CLambda of ident * aexpr
   | CApp of imm * imm
   | CIte of imm * aexpr * aexpr
+[@@deriving show { with_path = false }]
 
 and aexpr =
   | ALet of is_recursive * ident * cexpr * aexpr
   | ACExpr of cexpr
+[@@deriving show { with_path = false }]
 
-type binding = ident * aexpr
+type binding = ident * aexpr [@@deriving show { with_path = false }]
+
 type astr_item = is_recursive * binding * binding list
-type aprogram = astr_item list
+[@@deriving show { with_path = false }]
+
+type aprogram = astr_item list [@@deriving show { with_path = false }]
 
 let mk_alet rf name1 v body =
   match rf, body with

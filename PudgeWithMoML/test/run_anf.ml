@@ -8,7 +8,7 @@
 
 open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Frontend.Inferencer
-open PudgeWithMoML.Middle_end.AnfPP
+open PudgeWithMoML.Middle_end
 open PudgeWithMoML.Middle_end.Anf
 open PudgeWithMoML.Middle_end.AlphaConversion
 open Format
@@ -24,7 +24,7 @@ let compiler () =
      | Ok _ ->
        let a_converted = convert_program program in
        let anf = anf_program a_converted in
-       pp_aprogram std_formatter anf)
+       AnfPP.pp_aprogram std_formatter anf)
 ;;
 
 let () = compiler ()

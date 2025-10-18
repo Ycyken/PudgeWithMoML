@@ -8,8 +8,8 @@
 
 open Frontend.Ast
 open Machine
+open Middle_end
 open Middle_end.Anf
-open Middle_end.AnfPP
 
 type location =
   | Reg of reg
@@ -122,7 +122,10 @@ let rec gen_cexpr dst = function
   | CApp (ImmVar f, arg) ->
     let+ arg_c = gen_imm (A 0) arg in
     arg_c @ [ call f ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
-  | _ -> failwith "gen_cexpr case not implemented yet"
+  | cexpr ->
+    (* TODO: replace it with Anf.pp_cexpr without \n prints *)
+    failwith
+      (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)
 
 and gen_aexpr dst = function
   | ACExpr cexpr -> gen_cexpr dst cexpr
@@ -162,6 +165,7 @@ let gen_astr_item : astr_item -> instr list M.t = function
     @ body_code
     @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
   | i ->
+    (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     failwith (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
 ;;
 
