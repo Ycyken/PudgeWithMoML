@@ -37,6 +37,7 @@ type instr =
   | Add of reg * reg * reg
   | Sub of reg * reg * reg
   | Mul of reg * reg * reg
+  | Div of reg * reg * reg
   | Li of reg * int
   | Ld of reg * offset * reg
   | Slt of reg * reg * reg
@@ -61,6 +62,7 @@ let pp_instr fmt =
   | Add (rd, rs1, rs2) -> fprintf fmt "add %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
   | Sub (rd, rs1, rs2) -> fprintf fmt "sub %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
   | Mul (rd, rs1, rs2) -> fprintf fmt "mul %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
+  | Div (rd, rs1, rs2) -> fprintf fmt "div %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
   | Li (rd, n) -> fprintf fmt "li %a, %d" pp_reg rd n
   | Ld (rd, offset, rs) -> fprintf fmt "ld %a, %d(%a)" pp_reg rd offset pp_reg rs
   | Slt (rd, rs1, rs2) -> fprintf fmt "slt %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
@@ -83,6 +85,7 @@ let addi r1 r2 n = Addi (r1, r2, n)
 let add r1 r2 r3 = Add (r1, r2, r3)
 let sub r1 r2 r3 = Sub (r1, r2, r3)
 let mul r1 r2 r3 = Mul (r1, r2, r3)
+let div r1 r2 r3 = Div (r1, r2, r3)
 let li r n = Li (r, n)
 let ld r off base = Ld (r, off, base)
 let slt r1 r2 r3 = Slt (r1, r2, r3)
