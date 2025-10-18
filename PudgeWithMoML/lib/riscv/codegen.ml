@@ -16,8 +16,6 @@ type location =
   | Stack of int
 [@@deriving eq]
 
-let code : (instr * string) Queue.t = Queue.create ()
-let emit ?(comm = "") instr = instr (fun i -> Queue.add (i, comm) code)
 let word_size = 8
 
 module M = struct
