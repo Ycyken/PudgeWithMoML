@@ -8,4 +8,6 @@
 
 open Frontend.Ast
 
+(** Performs alpha-conversion to distinguish shadowed variables 
+    and prevent user-defined names from clashing with compiler-generated ones (e.g., from ANF).  *)
 val convert_program : program -> program
