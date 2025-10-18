@@ -14,7 +14,10 @@ open Middle_end.Anf
 type location =
   | Reg of reg
   | Stack of int
-[@@deriving eq]
+    (* OCaml say: "constructor Reg is never used to build values.
+(However, this constructor appears in patterns.)"
+So for now we disable that warning *)
+[@@deriving eq] [@@warning "-37"]
 
 let word_size = 8
 
