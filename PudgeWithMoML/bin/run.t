@@ -1,3 +1,19 @@
+  $ make compile input=bin/fact_cc_ln --no-print-directory -C ..
+  Fatal error: exception Failure("gen_cexpr case not implemented yet: fun k__4 ->\nfun p__5 ->\nlet anf_t10 = p__5 * n__3 in\nk__4 anf_t10")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from PudgeWithMoML__Riscv__Codegen.gen_astr_item in file "lib/riscv/codegen.ml", line 146, characters 21-41
+  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
+  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
+  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 186, characters 16-43
+  Called from Dune__exe__Compiler.compiler in file "bin/compiler.ml", line 49, characters 10-30
+  make: *** [Makefile:27: compile] Error 2
+  [2]
+
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  [1]
+  $ cat ../main.s
+
+
   $ make compile input=bin/fact --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
