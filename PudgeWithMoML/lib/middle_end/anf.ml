@@ -60,6 +60,9 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
   | LetIn (rec_flag, (PVar name, value), body) ->
     let* body = anf body expr_with_hole in
     anf value (fun immv -> mk_alet rec_flag name (CImm immv) body |> return)
+  | LetIn (_, (Wild, value), body) ->
+    let* body = anf body expr_with_hole in
+    anf value (fun _ -> body |> return)
   | Apply (Apply (Variable f, arg1), arg2) when is_op f ->
     anf arg1 (fun i1 ->
       anf arg2 (fun i2 ->
@@ -92,6 +95,10 @@ let anf_str_item : structure_item -> astr_item t = function
   | rec_flag, (PVar name, v), [] ->
     let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
     rec_flag, (name, v'), []
+  | rec_flag, (Wild, v), [] ->
+    (* TODO: alpha conversion must keep wildcard variable but exec code *)
+    let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
+    rec_flag, ("_", v'), []
   | other ->
     failwith (Stdlib.Format.asprintf "Not implemented %a" pp_structure_item other)
 ;;

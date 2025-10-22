@@ -58,3 +58,16 @@
   > let x = let y = 1 + 2 in y
   > EOF
   let x__0 = 1 + 2 
+
+(wildcard)
+  $ ./run_anf.exe <<'EOF'
+  > let _ = 5
+  > EOF
+  let _ = 5 
+
+  $ ./run_anf.exe <<'EOF'
+  > let main = let _ = print_int 4 in let _ = print_int 3 in 0
+  > EOF
+  let main__0 = let anf_t1 = print_int 4 in
+    let anf_t0 = print_int 3 in
+    0 
