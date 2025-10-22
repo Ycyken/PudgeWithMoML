@@ -9,5 +9,6 @@
 open Anf
 
 val pp_cexpr : Format.formatter -> cexpr -> unit
+val pp_aexpr : Format.formatter -> aexpr -> unit
 val pp_astr_item : Format.formatter -> astr_item -> unit
 val pp_aprogram : Format.formatter -> aprogram -> unit
