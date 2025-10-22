@@ -85,14 +85,15 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
         | None -> ACExpr (CImm (ImmConst Unit_lt)) |> return
       in
       ACExpr (CIte (i', t', e')) |> return)
-  | _ -> failwith "Not implemented"
+  | other -> failwith (Stdlib.Format.asprintf "Not implemented %a" pp_expr other)
 ;;
 
 let anf_str_item : structure_item -> astr_item t = function
   | rec_flag, (PVar name, v), [] ->
     let+ v' = anf v (fun i -> ACExpr (CImm i) |> return) in
     rec_flag, (name, v'), []
-  | _ -> failwith "Not implemented"
+  | other ->
+    failwith (Stdlib.Format.asprintf "Not implemented %a" pp_structure_item other)
 ;;
 
 let anf_program program : aprogram =
