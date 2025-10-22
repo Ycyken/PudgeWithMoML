@@ -120,7 +120,7 @@ let rec gen_cexpr dst = function
     let* e1_c = gen_imm (A 0) e1 in
     let+ e2_c = gen_imm (A 1) e2 in
     e1_c @ e2_c @ [ call op ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
-  | CApp (ImmVar f, arg) ->
+  | CApp (ImmVar f, arg, _) ->
     let+ arg_c = gen_imm (A 0) arg in
     arg_c @ [ call f ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
   | cexpr ->

@@ -21,7 +21,7 @@ type cexpr =
   | CBinop of ident * imm * imm
   | CNot of imm
   | CLambda of ident * aexpr
-  | CApp of imm * imm
+  | CApp of imm * imm * imm list
   | CIte of imm * aexpr * aexpr
 [@@deriving show { with_path = false }]
 
@@ -73,12 +73,35 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
     let+ body' = anf body expr_with_hole in
     let lambda = CLambda (arg, body') in
     ACExpr lambda
+  | Apply ((Apply (_, _) as app), arg1) ->
+    let f, args =
+      let rec helper e =
+        match e with
+        | Apply (f, arg) ->
+          let f', args = helper f in
+          f', args @ [ arg ]
+        | _ -> e, []
+      in
+      helper (Apply (app, arg1))
+    in
+    let rec anf_list (l : expr list) (k : imm list -> aexpr t) =
+      match l with
+      | hd :: tl -> anf hd (fun i -> anf_list tl (fun res -> k (i :: res)))
+      | [] -> k []
+    in
+    anf f (fun i1 ->
+      anf_list args (fun l ->
+        let* temp = make_temp in
+        let* ehole = expr_with_hole (ImmVar temp) in
+        match l with
+        | arg :: args -> mk_alet Nonrec temp (CApp (i1, arg, args)) ehole |> return
+        | [] -> failwith "Apply must contain at least one argument"))
   | Apply (f, arg) ->
     anf f (fun i1 ->
       anf arg (fun i2 ->
         let* temp = make_temp in
         let* ehole = expr_with_hole (ImmVar temp) in
-        mk_alet Nonrec temp (CApp (i1, i2)) ehole |> return))
+        mk_alet Nonrec temp (CApp (i1, i2, [])) ehole |> return))
   | If_then_else (i, t, e) ->
     anf i (fun i' ->
       let* t' = anf t expr_with_hole in

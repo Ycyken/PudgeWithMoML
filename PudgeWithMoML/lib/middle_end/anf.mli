@@ -18,7 +18,7 @@ type cexpr =
   | CBinop of string * imm * imm
   | CNot of imm
   | CLambda of string * aexpr
-  | CApp of imm * imm
+  | CApp of imm * imm * imm list
   | CIte of imm * aexpr * aexpr
 
 and aexpr =
