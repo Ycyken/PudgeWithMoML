@@ -171,7 +171,7 @@ let rec gen_cexpr dst = function
     let args, body =
       let rec helper acc = function
         | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
-        | e -> acc, e
+        | e -> List.rev acc, e
       in
       helper [ arg ] body
     in
