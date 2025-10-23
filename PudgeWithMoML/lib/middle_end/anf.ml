@@ -17,7 +17,7 @@ type imm =
 
 type cexpr =
   | CImm of imm
-  | CTuple of imm * imm * imm list
+  (* | CTuple of imm * imm * imm list *)
   | CBinop of ident * imm * imm
   | CNot of imm
   | CLambda of ident * aexpr
