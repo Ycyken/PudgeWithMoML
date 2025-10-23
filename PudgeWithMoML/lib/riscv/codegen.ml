@@ -11,7 +11,10 @@ open Machine
 open Middle_end
 open Middle_end.Anf
 
-type location = Stack of int [@@deriving eq] [@@warning "-37"]
+type location =
+  | Stack of int
+  | Function of string
+[@@deriving eq] [@@warning "-37"]
 
 let word_size = 8
 
@@ -62,6 +65,17 @@ module M = struct
     add_binding name (Stack off) >>| fun _ -> off
   ;;
 
+  (* let save_vars_on_stack names : int t =
+    let rec helper = function
+      | hd :: tl ->
+        let* off = alloc_frame_slot in
+        let* _ = add_binding hd (Stack off) >>| fun _ -> off in
+        helper tl
+      | [] -> get_frame_offset
+    in
+    helper names
+  ;; *)
+
   let lookup name : location option t = get >>| fun st -> Map.find st.env name
 end
 
@@ -83,6 +97,32 @@ let gen_imm dst = function
     (match loc with
      | Some (Stack off) -> [ ld dst (-off) fp ]
      | _ -> failwith ("unbound variable: " ^ x))
+;;
+
+let load_args_on_stack (args : imm list) : instr list t =
+  let argc = List.length args in
+  let* current_stack = get_frame_offset in
+  let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
+  let* () = set_frame_offset (current_stack + stack_size) in
+  let* load_variables_code =
+    let rec helper num acc = function
+      | arg :: args ->
+        let* load_arg = gen_imm (T 0) arg in
+        helper
+          (num + 1)
+          (acc @ load_arg @ [ sd (T 0) (stack_size - (word_size * num)) Sp ])
+          args
+      | [] -> return acc
+    in
+    helper 1 [] args
+  in
+  [ addi Sp Sp (-stack_size) ] @ load_variables_code |> return
+;;
+
+let free_args_on_stack (args : imm list) : instr list t =
+  let argc = List.length args in
+  let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
+  return [ addi Sp Sp stack_size ]
 ;;
 
 let rec gen_cexpr dst = function
@@ -120,9 +160,51 @@ let rec gen_cexpr dst = function
     let* e1_c = gen_imm (A 0) e1 in
     let+ e2_c = gen_imm (A 1) e2 in
     e1_c @ e2_c @ [ call op ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
-  | CApp (ImmVar f, arg, _) ->
+  | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
-    arg_c @ [ call f ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
+    arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
+  | CApp (ImmVar f, arg, args) ->
+    let* load_code = load_args_on_stack (arg :: args) in
+    let+ free_code = free_args_on_stack (arg :: args) in
+    load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ]
+  | CLambda (arg, body) ->
+    let args, body =
+      let rec helper acc = function
+        | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
+        | e -> acc, e
+      in
+      helper [ arg ] body
+    in
+    let argc = List.length args in
+    let argc = if argc mod 2 = 0 then argc else argc + 1 in
+    let* current_sp = M.get_frame_offset in
+    (* get args from stack *)
+    let* () =
+      let rec helper num = function
+        | arg :: args ->
+          let* () = add_binding arg (Stack (current_sp - (num * word_size))) in
+          helper (num - 1) args
+        | [] -> return ()
+      in
+      helper (argc - 1) args
+    in
+    (* ra and sp *)
+    let* () = M.set_frame_offset 16 in
+    let* body_code = gen_aexpr (A 0) body in
+    let* locals = M.get_frame_offset in
+    let frame = locals + (locals mod 8) in
+    let* () = M.set_frame_offset current_sp in
+    let prologue =
+      [ addi Sp Sp (-frame)
+      ; sd Ra (frame - 8) Sp
+      ; sd fp (frame - 16) Sp
+      ; addi fp Sp frame
+      ]
+    in
+    let epilogue =
+      [ ld Ra (frame - 8) Sp; ld fp (frame - 16) Sp; addi Sp Sp frame; ret ]
+    in
+    prologue @ body_code @ epilogue |> return
   | cexpr ->
     (* TODO: replace it with Anf.pp_cexpr without \n prints *)
     failwith
@@ -138,34 +220,15 @@ and gen_aexpr dst = function
   | _ -> failwith "gen_aexpr case not implemented yet"
 ;;
 
+(* let common_prologue frame =
+  [ addi Sp Sp (-frame); sd Ra (frame - 8) Sp; sd fp (frame - 16) Sp ]
+;; *)
+
 let gen_astr_item : astr_item -> instr list M.t = function
-  | _, (f, ACExpr (CLambda (arg, body))), [] ->
-    let* saved_off = M.get_frame_offset in
-    let* () = M.set_frame_offset 16 in
-    let* x_off = save_var_on_stack arg in
-    let* body_code = gen_aexpr (A 0) body in
-    let* locals = M.get_frame_offset in
-    (* for ra and fp *)
-    let frame = locals + (2 * word_size) in
-    let+ () = M.set_frame_offset saved_off in
-    let prologue =
-      [ addi Sp Sp (-frame)
-      ; sd Ra (frame - 8) Sp
-      ; sd fp (frame - 16) Sp
-      ; addi fp Sp frame
-      ; sd (A 0) (-x_off) fp
-      ]
-    in
-    let epilogue =
-      [ ld Ra (frame - 8) Sp; ld fp (frame - 16) Sp; addi Sp Sp frame; ret ]
-    in
-    [ label f ] @ prologue @ body_code @ epilogue
-  | Nonrec, (_, e), [] ->
-    let* body_code = gen_aexpr (A 0) e in
-    let+ frame = M.get_frame_offset in
-    [ label "_start"; mv fp Sp; addi Sp Sp (-frame) ]
-    @ body_code
-    @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
+  | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
+    let+ code = gen_cexpr (T 0) lam in
+    [ label (Format.asprintf ".globl %s" f); label f ] @ code
+  | Nonrec, (_, e), [] -> gen_aexpr (A 0) e
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     failwith (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
@@ -173,6 +236,12 @@ let gen_astr_item : astr_item -> instr list M.t = function
 
 let rec gather : aprogram -> instr list M.t = function
   | [] -> M.return []
+  | [ item ] ->
+    let* code = gen_astr_item item in
+    let+ frame = M.get_frame_offset in
+    [ label "_start"; mv fp Sp; addi Sp Sp (-frame) ]
+    @ code
+    @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
   | item :: rest ->
     let* code1 = gen_astr_item item in
     let+ code2 = gather rest in
@@ -185,6 +254,7 @@ let gen_aprogram (pr : aprogram) fmt =
   fprintf fmt ".globl _start\n";
   let _, code = M.run (gather pr) M.default in
   Base.List.iter code ~f:(function
+    | Label l when String.starts_with ~prefix:".globl " l -> fprintf fmt "%s\n" l
     | Label l -> fprintf fmt "%s:\n" l
     | i -> fprintf fmt "  %a\n" pp_instr i)
 ;;
