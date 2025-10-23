@@ -122,6 +122,8 @@ let load_args_on_stack (args : imm list) : instr list t =
 let free_args_on_stack (args : imm list) : instr list t =
   let argc = List.length args in
   let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
+  let* current = get_frame_offset in
+  let* () = set_frame_offset (current - stack_size) in
   return [ addi Sp Sp stack_size ]
 ;;
 

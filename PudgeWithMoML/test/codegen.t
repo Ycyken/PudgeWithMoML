@@ -53,7 +53,7 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -24
+    addi sp, sp, -8
     addi sp, sp, -16
     li t0, 5
     sd t0, 8(sp)
@@ -62,8 +62,8 @@
     call add__0
     addi sp, sp, 16
     mv t0, a0
-    sd t0, -24(fp)
-    ld a0, -24(fp)
+    sd t0, -8(fp)
+    ld a0, -8(fp)
     call print_int
     call flush
     li a0, 0
@@ -114,7 +114,7 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -104
+    addi sp, sp, -8
     addi sp, sp, -96
     li t0, 122
     sd t0, 88(sp)
@@ -143,8 +143,8 @@
     call homka__0
     addi sp, sp, 96
     mv t0, a0
-    sd t0, -104(fp)
-    ld a0, -104(fp)
+    sd t0, -8(fp)
+    ld a0, -8(fp)
     call print_int
     call flush
     li a0, 0
@@ -184,15 +184,15 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -24
+    addi sp, sp, -8
     addi sp, sp, -16
     li t0, 5
     sd t0, 8(sp)
     call id__0
     addi sp, sp, 16
     mv t0, a0
-    sd t0, -24(fp)
-    ld a0, -24(fp)
+    sd t0, -8(fp)
+    ld a0, -8(fp)
     call print_int
     call flush
     li a0, 0
@@ -230,7 +230,7 @@
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 255, characters 16-43
+  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 257, characters 16-43
   Called from Dune__exe__Compiler.compiler in file "bin/compiler.ml", line 49, characters 10-30
   make: *** [Makefile:27: compile] Error 2
   [2]
