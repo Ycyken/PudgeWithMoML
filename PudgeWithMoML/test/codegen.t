@@ -45,8 +45,8 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    ld t0, 8(fp)
-    ld t1, 0(fp)
+    ld t0, 0(fp)
+    ld t1, 8(fp)
     add a0, t0, t1
     ld ra, 8(sp)
     ld fp, 0(sp)
@@ -58,9 +58,9 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 5
-    sd t0, 8(sp)
-    li t0, 2
     sd t0, 0(sp)
+    li t0, 2
+    sd t0, 8(sp)
   # End loading args on stack
     call add__0
   # Free args on stack
@@ -113,7 +113,7 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    ld a0, 88(fp)
+    ld a0, 0(fp)
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -124,29 +124,29 @@
   # Load args on stack
     addi sp, sp, -96
     li t0, 122
-    sd t0, 88(sp)
-    li t0, 1
-    sd t0, 80(sp)
-    li t0, 2
-    sd t0, 72(sp)
-    li t0, 3
-    sd t0, 64(sp)
-    li t0, 4
-    sd t0, 56(sp)
-    li t0, 5
-    sd t0, 48(sp)
-    li t0, 6
-    sd t0, 40(sp)
-    li t0, 7
-    sd t0, 32(sp)
-    li t0, 8
-    sd t0, 24(sp)
-    li t0, 9
-    sd t0, 16(sp)
-    li t0, 10
-    sd t0, 8(sp)
-    li t0, 11
     sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 2
+    sd t0, 16(sp)
+    li t0, 3
+    sd t0, 24(sp)
+    li t0, 4
+    sd t0, 32(sp)
+    li t0, 5
+    sd t0, 40(sp)
+    li t0, 6
+    sd t0, 48(sp)
+    li t0, 7
+    sd t0, 56(sp)
+    li t0, 8
+    sd t0, 64(sp)
+    li t0, 9
+    sd t0, 72(sp)
+    li t0, 10
+    sd t0, 80(sp)
+    li t0, 11
+    sd t0, 88(sp)
   # End loading args on stack
     call homka__0
   # Free args on stack
@@ -163,14 +163,15 @@
 
 (just id)
   $ ./run_anf.exe << 'EOF'
-  > let id x = x
-  > let main = print_int (id 5)
+  > let id x1 x2 = x2
+  > let main = print_int (id 5 5)
   > EOF
-  let id__0 = fun x__1 ->
-    x__1 
+  let id__0 = fun x1__1 ->
+    fun x2__2 ->
+    x2__2 
   
   
-  let main__2 = let anf_t0 = id__0 5 in
+  let main__3 = let anf_t0 = id__0 5 5 in
     print_int anf_t0 
   $ rm ../main.exe ../main.s
   $ make compile --no-print-directory -C .. << 'EOF'
@@ -188,7 +189,7 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    ld a0, 0(fp)
+    ld a0, 8(fp)
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -199,9 +200,9 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 5
-    sd t0, 8(sp)
-    li t0, 5
     sd t0, 0(sp)
+    li t0, 5
+    sd t0, 8(sp)
   # End loading args on stack
     call id__0
   # Free args on stack
@@ -241,8 +242,8 @@
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   HOMKA 5: 
-  HOMKA 6: 
-  6
+  HOMKA 1: 
+  1
   $ cat ../main.s
   .text
   .globl _start
@@ -254,12 +255,12 @@
     addi fp, sp, 16
   # Load args on stack
     addi sp, sp, -16
-    ld t0, 0(fp)
-    sd t0, 8(sp)
-  # End loading args on stack
     ld t0, 8(fp)
-    mv a0, t0
+    sd t0, 0(sp)
+  # End loading args on stack
     ld t0, 0(fp)
+    mv a0, t0
+    ld t0, 8(fp)
     mv a1, t0
     call apply_1
     mv a0, a0
@@ -276,7 +277,7 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     add a0, t0, t1
     ld ra, 8(sp)
@@ -292,9 +293,9 @@
     li a1, 1
     call alloc_closure
     mv t0, a0
-    sd t0, 8(sp)
-    li t0, 5
     sd t0, 0(sp)
+    li t0, 5
+    sd t0, 8(sp)
   # End loading args on stack
     call app__0
   # Free args on stack
@@ -370,7 +371,7 @@
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
   Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 422, characters 16-56
+  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 419, characters 16-56
   Called from Dune__exe__Compiler.compiler in file "bin/compiler.ml", line 49, characters 10-30
   make: *** [Makefile:27: compile] Error 2
   [2]

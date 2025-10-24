@@ -116,13 +116,10 @@ let load_args_on_stack (args : imm list) : instr list t =
     let rec helper num acc = function
       | arg :: args ->
         let* load_arg = gen_imm (T 0) arg in
-        helper
-          (num + 1)
-          (acc @ load_arg @ [ sd (T 0) (stack_size - (word_size * num)) Sp ])
-          args
+        helper (num + 1) (acc @ load_arg @ [ sd (T 0) (word_size * num) Sp ]) args
       | [] -> return acc
     in
-    helper 1 [] args
+    helper 0 [] args
   in
   [ comment "Load args on stack"; addi Sp Sp (-stack_size) ]
   @ load_variables_code
@@ -155,13 +152,13 @@ let%expect_test "even args" =
     # Load args on stack
       addi sp, sp, -32
       li t0, 5
-      sd t0, 24(sp)
-      li t0, 2
-      sd t0, 16(sp)
-      li t0, 1
-      sd t0, 8(sp)
-      li t0, 4
       sd t0, 0(sp)
+      li t0, 2
+      sd t0, 8(sp)
+      li t0, 1
+      sd t0, 16(sp)
+      li t0, 4
+      sd t0, 24(sp)
     # End loading args on stack
      |}]
 ;;
@@ -177,11 +174,11 @@ let%expect_test "not even args" =
     # Load args on stack
       addi sp, sp, -32
       li t0, 4
-      sd t0, 24(sp)
+      sd t0, 0(sp)
       li t0, 2
-      sd t0, 16(sp)
-      li t0, 1
       sd t0, 8(sp)
+      li t0, 1
+      sd t0, 16(sp)
     # End loading args on stack
      |}]
 ;;
@@ -190,17 +187,17 @@ let%expect_test "not even args" =
 (* argument values keeps on stack *)
 (* use this function before save ra and fp registers *)
 let get_args_from_stack (args : ident list) : unit t =
-  let argc = List.length args in
-  let argc = argc + (argc mod 2) in
+  (* let argc = List.length args in *)
+  (* let argc = argc + (argc mod 2) in *)
   let* current_sp = get_frame_offset in
   let* () =
     let rec helper num = function
       | arg :: args ->
         let* () = add_binding arg (Stack (current_sp - (num * word_size))) in
-        helper (num - 1) args
+        helper (num + 1) args
       | [] -> return ()
     in
-    helper (argc - 1) args
+    helper 0 args
   in
   return ()
 ;;

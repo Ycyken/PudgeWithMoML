@@ -1,7 +1,7 @@
   $ make compile input=bin/fact_cc_ln --no-print-directory -C ..
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  80839 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  170863 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   [139]
   $ cat ../main.s
   .text
@@ -12,7 +12,7 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    ld a0, 8(fp)
+    ld a0, 0(fp)
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -23,17 +23,21 @@
     sd ra, 16(sp)
     sd fp, 8(sp)
     addi fp, sp, 24
-    ld t0, 8(fp)
-    ld t1, 24(fp)
+    ld t0, 16(fp)
+    ld t1, 0(fp)
     mul t0, t0, t1
     sd t0, -24(fp)
   # Load args on stack
     addi sp, sp, -16
     ld t0, -24(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
-    ld t0, 16(fp)
-    jalr ra, t0, 0
+    ld t0, 8(fp)
+    mv a0, t0
+    ld t0, -24(fp)
+    mv a1, t0
+    call apply_1
+    mv a0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
@@ -47,7 +51,7 @@
     sd ra, 32(sp)
     sd fp, 24(sp)
     addi fp, sp, 40
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
@@ -57,27 +61,43 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 1
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
-    ld t0, 0(fp)
-    jalr ra, t0, 0
+    ld t0, 8(fp)
+    mv a0, t0
+    li t0, 1
+    mv a1, t0
+    call apply_1
+    mv a0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
     j L1
   L0:
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     sub t0, t0, t1
     sd t0, -32(fp)
-  # Homka
+    la a0, fresh_1__2
+    li a1, 3
+    call alloc_closure
+    mv t0, a0
+    ld t0, 0(fp)
+    mv a1, t0
+    ld t0, 8(fp)
+    mv a2, t0
+    call apply_2
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
     sd t0, -40(fp)
   # Load args on stack
     addi sp, sp, -16
     ld t0, -32(fp)
-    sd t0, 8(sp)
-    ld t0, -40(fp)
     sd t0, 0(sp)
+    ld t0, -40(fp)
+    sd t0, 8(sp)
   # End loading args on stack
     call fac_cps__6
   # Free args on stack
@@ -94,9 +114,12 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 4
-    sd t0, 8(sp)
-    la t0, id__0
     sd t0, 0(sp)
+    la a0, id__0
+    li a1, 1
+    call alloc_closure
+    mv t0, a0
+    sd t0, 8(sp)
   # End loading args on stack
     call fac_cps__6
   # Free args on stack
@@ -126,7 +149,7 @@
     sd ra, 48(sp)
     sd fp, 40(sp)
     addi fp, sp, 56
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     slt t0, t1, t0
     xori t0, t0, 1
@@ -136,7 +159,7 @@
     li a0, 1
     j L1
   L0:
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     sub t0, t0, t1
     sd t0, -32(fp)
@@ -145,7 +168,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -40(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call fac__0
   # Free args on stack
@@ -155,7 +178,7 @@
     sd t0, -48(fp)
     ld t0, -48(fp)
     sd t0, -56(fp)
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     ld t1, -56(fp)
     mul a0, t0, t1
   L1:
@@ -169,7 +192,7 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 4
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call fac__0
   # Free args on stack
@@ -196,23 +219,23 @@
     sd ra, 48(sp)
     sd fp, 40(sp)
     addi fp, sp, 56
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 2
     slt t0, t0, t1
     sd t0, -24(fp)
     ld t0, -24(fp)
     beq t0, zero, L0
-    ld a0, 8(fp)
+    ld a0, 0(fp)
     j L1
   L0:
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 1
     sub t0, t0, t1
     sd t0, -32(fp)
   # Load args on stack
     addi sp, sp, -16
     ld t0, -32(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call fib__0
   # Free args on stack
@@ -220,14 +243,14 @@
   # End free args on stack
     mv t0, a0
     sd t0, -40(fp)
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     li t1, 2
     sub t0, t0, t1
     sd t0, -48(fp)
   # Load args on stack
     addi sp, sp, -16
     ld t0, -48(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call fib__0
   # Free args on stack
@@ -249,7 +272,7 @@
   # Load args on stack
     addi sp, sp, -16
     li t0, 10
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call fib__0
   # Free args on stack
@@ -278,7 +301,7 @@
     sd fp, 8(sp)
     addi fp, sp, 24
     li t0, 0
-    ld t1, 8(fp)
+    ld t1, 0(fp)
     sub t0, t0, t1
     snez t0, t0
     sd t0, -24(fp)
@@ -324,7 +347,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -32(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -337,7 +360,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -40(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -358,7 +381,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -56(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -371,7 +394,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -64(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -406,7 +429,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -104(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -419,7 +442,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -112(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -440,7 +463,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -128(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
@@ -453,7 +476,7 @@
   # Load args on stack
     addi sp, sp, -16
     ld t0, -136(fp)
-    sd t0, 8(sp)
+    sd t0, 0(sp)
   # End loading args on stack
     call large__0
   # Free args on stack
