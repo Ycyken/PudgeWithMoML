@@ -1,5 +1,4 @@
-  $ make compile input=bin/fact_cc_ln --no-print-directory -C ..
-
+  $ make compile input=bin/my_manytests/fac_cc_ll --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
   $ cat ../main.s
@@ -160,7 +159,234 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/fact --no-print-directory -C ..
+  $ make compile input=bin/my_manytests/fib_cc_ll --no-print-directory -C ..
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  8
+  $ cat ../main.s
+  .text
+  .globl _start
+  .globl id__0
+  id__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld a0, 0(fp)
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl fresh_2__2
+  fresh_2__2:
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    ld t0, 0(fp)
+    ld t1, 16(fp)
+    add t0, t0, t1
+    sd t0, -24(fp)
+  # Apply k__4 with 1 args
+    ld t0, 8(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    ld t0, -24(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call apply_1
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  # End Apply k__4 with 1 args
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
+    ret
+  .globl fresh_1__6
+  fresh_1__6:
+    addi sp, sp, -40
+    sd ra, 32(sp)
+    sd fp, 24(sp)
+    addi fp, sp, 40
+    ld t0, 0(fp)
+    li t1, 2
+    sub t0, t0, t1
+    sd t0, -24(fp)
+  # Partial application fresh_2__2 with 2 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t0, fresh_2__2
+    li t1, 3
+    sd t0, 0(sp)
+    sd t1, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    ld t0, 24(fp)
+    sd t0, 8(sp)
+    ld t0, 8(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_2
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application fresh_2__2 with 2 args
+    sd t0, -32(fp)
+  # Apply fib__9 with 2 args
+    ld t0, 16(fp)
+    sd t0, -40(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -40(fp)
+    sd t0, 0(sp)
+    ld t0, -24(fp)
+    sd t0, 8(sp)
+    ld t0, -32(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_2
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply fib__9 with 2 args
+    ld ra, 32(sp)
+    ld fp, 24(sp)
+    addi sp, sp, 40
+    ret
+  .globl fib__11
+  fib__11:
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
+    ld t0, 0(fp)
+    li t1, 2
+    slt t0, t0, t1
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    beq t0, zero, L3
+  # Apply k__13 with 1 args
+    ld t0, 8(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    ld t0, 0(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call apply_1
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  # End Apply k__13 with 1 args
+    j L4
+  L3:
+    ld t0, 0(fp)
+    li t1, 1
+    sub t0, t0, t1
+    sd t0, -40(fp)
+  # Partial application fresh_1__6 with 3 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t0, fresh_1__6
+    li t1, 4
+    sd t0, 0(sp)
+    sd t1, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    ld t0, 0(fp)
+    sd t0, 8(sp)
+    ld t0, 8(fp)
+    sd t0, 16(sp)
+    addi sp, sp, -16
+    la t0, fib__11
+    li t1, 2
+    sd t0, 0(sp)
+    sd t1, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 24(sp)
+  # End loading args on stack
+    call apply_3
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application fresh_1__6 with 3 args
+    sd t0, -48(fp)
+  # Apply fib__11 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -40(fp)
+    sd t0, 0(sp)
+    ld t0, -48(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fib__11
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  L4:
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
+    ret
+  _start:
+    mv fp, sp
+    addi sp, sp, -32
+    sd a0, -8(fp)
+  # Apply fib__11 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 6
+    sd t0, 0(sp)
+    addi sp, sp, -16
+    la t0, id__0
+    li t1, 1
+    sd t0, 0(sp)
+    sd t1, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fib__11
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply fib__11 with 2 args
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    sd t0, -32(fp)
+    li a0, 0
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+
+  $ make compile input=bin/my_manytests/fact --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
   $ cat ../main.s
@@ -236,7 +462,7 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/fib --no-print-directory -C ..
+  $ make compile input=bin/my_manytests/fib --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   55
   $ cat ../main.s
@@ -324,7 +550,7 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/large_if --no-print-directory -C ..
+  $ make compile input=bin/my_manytests/large_if --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   42
   0
