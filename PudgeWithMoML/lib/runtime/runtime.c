@@ -50,10 +50,8 @@ void *apply_1(void *f, void *arg1) {
 
   // full applcation
   clos->args[clos->argc_recived++] = arg1;
-  fun10 func = clos->code;
-  printf("HOMKA %d: \n", clos->args[0]);
-  printf("HOMKA %d: \n", func(ZERO8, 0, clos->args[0]));
-  return func(ZERO8, 0, clos->args[0]);
+  fun9 func = clos->code;
+  return func(ZERO8, clos->args[0]);
 }
 
 void *apply_2(void *f, void *arg1, void *arg2) {

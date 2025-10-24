@@ -241,9 +241,7 @@
   > let main = print_int (app inc 5)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  HOMKA 5: 
-  HOMKA 1: 
-  1
+  6
   $ cat ../main.s
   .text
   .globl _start
