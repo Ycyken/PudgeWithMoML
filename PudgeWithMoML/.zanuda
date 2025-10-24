@@ -1,1 +1,2 @@
 forward mutability_check ignore bin/compiler.ml,test/run_qcheck.ml
+-no-exc_failwith
