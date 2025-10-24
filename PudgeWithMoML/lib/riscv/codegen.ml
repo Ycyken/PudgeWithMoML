@@ -114,6 +114,7 @@ let gen_imm dst = function
          (* ; li (A 1) arity *)
        ; call "alloc_closure"
        ; mv dst (A 0)
+       ; addi Sp Sp 16
          (* ; mv (A 0) (T 5) *)
          (* ; mv (A 1) (T 6) *)
        ]
@@ -228,6 +229,7 @@ let free_args_on_stack (args : imm list) : instr list t =
 ;;
 
 (* Put arguments on stack and exec alloc_closure function *)
+(* Result of function stay in a0 register *)
 let alloc_closure func arity =
   let args = [ ImmVar func; ImmConst (Int_lt arity) ] in
   let* load_code = load_args_on_stack args in
@@ -236,7 +238,13 @@ let alloc_closure func arity =
 ;;
 
 let%expect_test _ =
-  let code = alloc_closure "homka" 5 in
+  let code =
+    let* curr_off = get_frame_offset in
+    let* code = alloc_closure "homka" 5 in
+    let* prev_off = get_frame_offset in
+    assert (curr_off = prev_off);
+    return code
+  in
   let open Base in
   let env = Map.empty (module String) in
   let env = Map.add_exn env ~key:"homka" ~data:(Function 5) in
@@ -253,6 +261,7 @@ let%expect_test _ =
       sd t1, 8(sp)
       call alloc_closure
       mv t0, a0
+      addi sp, sp, 16
       sd t0, 0(sp)
       li t0, 5
       sd t0, 8(sp)
@@ -300,7 +309,10 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     e1_c @ e2_c @ [ call op ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
   | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
-    arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
+    [ comment "Apply print_int" ]
+    @ arg_c
+    @ [ call "print_int" ]
+    @ if dst = A 0 then [] else [ mv dst (A 0) ] @ [ comment "End Apply print_int" ]
   | CApp (ImmVar f, arg, args) when fst @@ is_top_level f ->
     let argc_f = is_top_level f |> snd in
     let argc_actual = List.length (arg :: args) in
@@ -309,15 +321,22 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     if argc_actual = argc_f
     then
       return
-      @@ load_code
+      @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
+      @ load_code
       @ [ call f ]
       @ free_code
-      @ if dst = A 0 then [] else [ mv dst (A 0) ]
-    else (
-      let alloc_code =
-        [ la (A 0) f; li (A 1) argc_f; call "alloc_closure"; mv dst (A 0) ]
-      in
-      let* load_args =
+      @
+      if dst = A 0
+      then []
+      else
+        [ mv dst (A 0) ]
+        @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
+    else
+      (* let* alloc_code = alloc_closure f argc_f in *)
+      (* let* temp = fresh in *)
+      (* let* off = save_var_on_stack temp in *)
+      (* let save_closure = [ sd (A 0) (-off) fp ] in *)
+      (* let* load_args =
         let rec helper num acc = function
           | arg :: args ->
             let* load_arg_code = gen_imm (T 0) arg in
@@ -325,37 +344,51 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
           | [] -> return acc
         in
         helper 1 [] (arg :: args)
-      in
+      in *)
+      (* 122 is just hole for replace with value in a0 *)
+      let* load_args = load_args_on_stack (ImmVar f :: arg :: args) in
+      let* free_code = free_args_on_stack (ImmVar f :: arg :: args) in
       let apply_f_name = "apply_" ^ string_of_int argc_actual in
       return
-      @@ alloc_code
+      (* alloc_code *)
+      (* @ save_closure *)
+      @@ [ comment (Format.asprintf "Partial application %s with %d args" f argc_actual) ]
       @ load_args
       @ [ call apply_f_name ]
       @ [ mv dst (A 0) ]
-      @ free_code)
-  | CApp ((ImmVar _ as imm), arg, args) ->
+      @ free_code
+      @ [ comment
+            (Format.asprintf "End Partial application %s with %d args" f argc_actual)
+        ]
+  | CApp ((ImmVar f as imm), arg, args) ->
     let argc_actual = List.length (arg :: args) in
-    let* load_code = load_args_on_stack (arg :: args) in
-    let* free_code = free_args_on_stack (arg :: args) in
     let* get_f = gen_imm (T 0) imm in
-    let alloc_code = get_f @ [ mv (A 0) (T 0) ] in
-    let* load_args =
+    let* temp = fresh in
+    let* off = save_var_on_stack temp in
+    let save_closure = [ sd (T 0) (-off) fp ] in
+    let* load_args = load_args_on_stack (ImmVar temp :: arg :: args) in
+    let* free_code =
+      free_args_on_stack (ImmVar temp :: arg :: args)
+      (* let alloc_code = get_f @ [ mv (A 0) (T 0) ] in *)
+      (* let* load_args =
       let rec helper num acc = function
         | arg :: args ->
           let* load_arg_code = gen_imm (T 0) arg in
           helper (num + 1) (acc @ load_arg_code @ [ mv (A num) (T 0) ]) args
         | [] -> return acc
       in
-      helper 1 [] (arg :: args)
+      helper 1 [] (arg :: args) *)
     in
     let apply_f_name = "apply_" ^ string_of_int argc_actual in
     return
-    @@ load_code
-    @ alloc_code
+    @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
+    @ get_f
+    @ save_closure
     @ load_args
     @ [ call apply_f_name ]
     @ [ mv dst (A 0) ]
     @ free_code
+    @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
     (* let+ fun_addr = lookup f in
     (match fun_addr with
      | None -> failwith "Unbound function"
