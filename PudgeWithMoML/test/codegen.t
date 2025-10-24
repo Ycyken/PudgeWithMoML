@@ -993,3 +993,127 @@
     li a0, 0
     li a7, 94
     ecall
+
+(double partial application)
+  $ ./run_anf.exe << 'EOF'
+  > let add x y = x + y
+  > let main = let inc = add 1 in let _ = print_int (inc 121) in print_int (inc 122)
+  > EOF
+  let add__0 = fun x__1 ->
+    fun y__2 ->
+    x__1 + y__2 
+  
+  
+  let main__3 = let anf_t4 = add__0 1 in
+    let inc__4 = anf_t4 in
+    let anf_t2 = inc__4 121 in
+    let anf_t3 = print_int anf_t2 in
+    let anf_t0 = inc__4 122 in
+    print_int anf_t0 
+  $ rm ../main.exe ../main.s
+  $ make compile --no-print-directory -C .. << 'EOF'
+  > let add x y = x + y
+  > let main = let inc = add 1 in let _ = print_int (inc 121) in print_int (inc 122)
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  Runtime error: function accept more arguments than expect
+  122
+  [122]
+  $ cat ../main.s
+  .text
+  .globl _start
+  .globl add__0
+  add__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld t0, 0(fp)
+    ld t1, 8(fp)
+    add a0, t0, t1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  _start:
+    mv fp, sp
+    addi sp, sp, -64
+    sd a0, -8(fp)
+  # Partial application add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t0, add__0
+    li t1, 2
+    sd t0, 0(sp)
+    sd t1, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application add__0 with 1 args
+    sd t0, -16(fp)
+    ld t0, -16(fp)
+    sd t0, -24(fp)
+  # Apply inc__4 with 1 args
+    ld t0, -24(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 121
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply inc__4 with 1 args
+    sd t0, -40(fp)
+  # Apply print_int
+    ld a0, -40(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -48(fp)
+  # Apply inc__4 with 1 args
+    ld t0, -24(fp)
+    sd t0, -56(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -56(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 122
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply inc__4 with 1 args
+    sd t0, -64(fp)
+  # Apply print_int
+    ld a0, -64(fp)
+    call print_int
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
