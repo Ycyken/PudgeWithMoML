@@ -1016,9 +1016,8 @@
   > let main = let inc = add 1 in let _ = print_int (inc 121) in print_int (inc 122)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  Runtime error: function accept more arguments than expect
   122
-  [122]
+  123
   $ cat ../main.s
   .text
   .globl _start

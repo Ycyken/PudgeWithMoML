@@ -29,6 +29,17 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return clos;
 }
 
+void *copy_closure(INT8, void *f) {
+  closure *clos = f;
+  closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
+
+  for (size_t i = 0; i < clos->argc_recived; i++) {
+    new->args[new->argc_recived++] = clos->args[i];
+  }
+
+  return new;
+}
+
 typedef void *(*fun0)();
 typedef void *(*fun8)(INT8);
 typedef void *(*fun9)(INT8, void *);
@@ -40,7 +51,7 @@ typedef void *(*fun12)(INT8, void *, void *, void *, void *);
 
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, void *f, uint8_t argc, ...) {
-  closure *clos = f;
+  closure *clos = copy_closure(ZERO8, f);
   va_list list;
   va_start(list, argc);
 
