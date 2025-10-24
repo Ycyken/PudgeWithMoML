@@ -71,17 +71,6 @@ module M = struct
     ()
   ;;
 
-  (* let save_vars_on_stack names : int t =
-    let rec helper = function
-      | hd :: tl ->
-        let* off = alloc_frame_slot in
-        let* _ = add_binding hd (Stack off) >>| fun _ -> off in
-        helper tl
-      | [] -> get_frame_offset
-    in
-    helper names
-  ;; *)
-
   let lookup name : location option t = get >>| fun st -> Map.find st.env name
 end
 
