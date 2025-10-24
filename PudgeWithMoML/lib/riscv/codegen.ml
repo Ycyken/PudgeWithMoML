@@ -332,26 +332,10 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
         [ mv dst (A 0) ]
         @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
     else
-      (* let* alloc_code = alloc_closure f argc_f in *)
-      (* let* temp = fresh in *)
-      (* let* off = save_var_on_stack temp in *)
-      (* let save_closure = [ sd (A 0) (-off) fp ] in *)
-      (* let* load_args =
-        let rec helper num acc = function
-          | arg :: args ->
-            let* load_arg_code = gen_imm (T 0) arg in
-            helper (num + 1) (acc @ load_arg_code @ [ mv (A num) (T 0) ]) args
-          | [] -> return acc
-        in
-        helper 1 [] (arg :: args)
-      in *)
-      (* 122 is just hole for replace with value in a0 *)
       let* load_args = load_args_on_stack (ImmVar f :: arg :: args) in
       let* free_code = free_args_on_stack (ImmVar f :: arg :: args) in
       let apply_f_name = "apply_" ^ string_of_int argc_actual in
       return
-      (* alloc_code *)
-      (* @ save_closure *)
       @@ [ comment (Format.asprintf "Partial application %s with %d args" f argc_actual) ]
       @ load_args
       @ [ call apply_f_name ]
@@ -367,18 +351,7 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     let* off = save_var_on_stack temp in
     let save_closure = [ sd (T 0) (-off) fp ] in
     let* load_args = load_args_on_stack (ImmVar temp :: arg :: args) in
-    let* free_code =
-      free_args_on_stack (ImmVar temp :: arg :: args)
-      (* let alloc_code = get_f @ [ mv (A 0) (T 0) ] in *)
-      (* let* load_args =
-      let rec helper num acc = function
-        | arg :: args ->
-          let* load_arg_code = gen_imm (T 0) arg in
-          helper (num + 1) (acc @ load_arg_code @ [ mv (A num) (T 0) ]) args
-        | [] -> return acc
-      in
-      helper 1 [] (arg :: args) *)
-    in
+    let* free_code = free_args_on_stack (ImmVar temp :: arg :: args) in
     let apply_f_name = "apply_" ^ string_of_int argc_actual in
     return
     @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
@@ -389,14 +362,6 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     @ [ mv dst (A 0) ]
     @ free_code
     @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
-    (* let+ fun_addr = lookup f in
-    (match fun_addr with
-     | None -> failwith "Unbound function"
-     | Some (Stack offset) ->
-       load_code
-       @ [ ld (T 0) offset Sp; jalr Ra (T 0) 0 ]
-       @ free_code
-       @ if dst = A 0 then [] else [ mv dst (A 0) ]) *)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
@@ -405,10 +370,7 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
       in
       helper [ arg ] body
     in
-    (* let argc = List.length args in *)
-    (* let argc = if argc mod 2 = 0 then argc else argc + 1 in *)
     let* current_sp = M.get_frame_offset in
-    (* get args from stack *)
     let* () = get_args_from_stack args in
     (* ra and sp *)
     let* () = M.set_frame_offset 16 in
@@ -441,10 +403,6 @@ and gen_aexpr (is_top_level : string -> bool * int) dst = function
     cexpr_c @ [ sd (T 0) (-off) fp ] @ body_c
   | _ -> failwith "gen_aexpr case not implemented yet"
 ;;
-
-(* let common_prologue frame =
-  [ addi Sp Sp (-frame); sd Ra (frame - 8) Sp; sd fp (frame - 16) Sp ]
-;; *)
 
 let gen_astr_item (is_top_level : string -> bool * int) : astr_item -> instr list M.t
   = function
