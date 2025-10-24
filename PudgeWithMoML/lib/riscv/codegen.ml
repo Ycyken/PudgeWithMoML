@@ -13,7 +13,7 @@ open Middle_end.Anf
 
 type location =
   | Stack of int
-  | Function of string
+  | Function
 [@@deriving eq] [@@warning "-37"]
 
 let word_size = 8
@@ -65,6 +65,11 @@ module M = struct
     add_binding name (Stack off) >>| fun _ -> off
   ;;
 
+  let save_fun_on_stack name : unit t =
+    let+ () = add_binding name Function in
+    ()
+  ;;
+
   (* let save_vars_on_stack names : int t =
     let rec helper = function
       | hd :: tl ->
@@ -96,6 +101,7 @@ let gen_imm dst = function
     let+ loc = M.lookup x in
     (match loc with
      | Some (Stack off) -> [ ld dst (-off) fp ]
+     | Some Function -> [ la dst x ]
      | _ -> failwith ("unbound variable: " ^ x))
 ;;
 
@@ -116,7 +122,85 @@ let load_args_on_stack (args : imm list) : instr list t =
     in
     helper 1 [] args
   in
-  [ addi Sp Sp (-stack_size) ] @ load_variables_code |> return
+  [ comment "Load args on stack"; addi Sp Sp (-stack_size) ]
+  @ load_variables_code
+  @ [ comment "End loading args on stack" ]
+  |> return
+;;
+
+let pp_instrs code fmt =
+  let open Format in
+  Base.List.iter code ~f:(function
+    | Label l when String.starts_with ~prefix:".globl " l -> fprintf fmt "%s\n" l
+    | Label l -> fprintf fmt "%s:\n" l
+    | Comment c -> fprintf fmt "# %s\n" c
+    | i -> fprintf fmt "  %a\n" pp_instr i)
+;;
+
+let%expect_test "even args" =
+  let code =
+    load_args_on_stack
+      [ ImmConst (Int_lt 5)
+      ; ImmConst (Int_lt 2)
+      ; ImmConst (Int_lt 1)
+      ; ImmConst (Int_lt 4)
+      ]
+  in
+  let _, code = run code default in
+  pp_instrs code Format.std_formatter;
+  [%expect
+    {|
+    # Load args on stack
+      addi sp, sp, -32
+      li t0, 5
+      sd t0, 24(sp)
+      li t0, 2
+      sd t0, 16(sp)
+      li t0, 1
+      sd t0, 8(sp)
+      li t0, 4
+      sd t0, 0(sp)
+    # End loading args on stack
+     |}]
+;;
+
+let%expect_test "not even args" =
+  let code =
+    load_args_on_stack [ ImmConst (Int_lt 4); ImmConst (Int_lt 2); ImmConst (Int_lt 1) ]
+  in
+  let _, code = run code default in
+  pp_instrs code Format.std_formatter;
+  [%expect
+    {|
+    # Load args on stack
+      addi sp, sp, -32
+      li t0, 4
+      sd t0, 24(sp)
+      li t0, 2
+      sd t0, 16(sp)
+      li t0, 1
+      sd t0, 8(sp)
+    # End loading args on stack
+     |}]
+;;
+
+(* add binding in env with arguments of functions and their values *)
+(* argument values keeps on stack *)
+(* use this function before save ra and fp registers *)
+let get_args_from_stack (args : ident list) : unit t =
+  let argc = List.length args in
+  let argc = argc + (argc mod 2) in
+  let* current_sp = get_frame_offset in
+  let* () =
+    let rec helper num = function
+      | arg :: args ->
+        let* () = add_binding arg (Stack (current_sp - (num * word_size))) in
+        helper (num - 1) args
+      | [] -> return ()
+    in
+    helper (argc - 1) args
+  in
+  return ()
 ;;
 
 let free_args_on_stack (args : imm list) : instr list t =
@@ -124,15 +208,19 @@ let free_args_on_stack (args : imm list) : instr list t =
   let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
   let* current = get_frame_offset in
   let* () = set_frame_offset (current - stack_size) in
-  return [ addi Sp Sp stack_size ]
+  return
+    [ comment "Free args on stack"
+    ; addi Sp Sp stack_size
+    ; comment "End free args on stack"
+    ]
 ;;
 
-let rec gen_cexpr dst = function
+let rec gen_cexpr (is_top_level : string -> bool) dst = function
   | CImm imm -> gen_imm dst imm
   | CIte (c, th, el) ->
     let* cond_code = gen_imm (T 0) c in
-    let* then_code = gen_aexpr dst th in
-    let* else_code = gen_aexpr dst el in
+    let* then_code = gen_aexpr is_top_level dst th in
+    let* else_code = gen_aexpr is_top_level dst el in
     let* l_else = M.fresh in
     let+ l_end = M.fresh in
     cond_code
@@ -165,10 +253,27 @@ let rec gen_cexpr dst = function
   | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
     arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
-  | CApp (ImmVar f, arg, args) ->
+  | CApp (ImmVar f, arg, args) when is_top_level f ->
     let* load_code = load_args_on_stack (arg :: args) in
     let+ free_code = free_args_on_stack (arg :: args) in
     load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ]
+  | CApp (imm, arg, args) ->
+    let* load_code = load_args_on_stack (arg :: args) in
+    let* free_code = free_args_on_stack (arg :: args) in
+    let+ get_f = gen_imm (T 0) imm in
+    load_code
+    @ get_f
+    @ [ jalr Ra (T 0) 0 ]
+    @ free_code
+    @ if dst = A 0 then [] else [ mv dst (A 0) ]
+    (* let+ fun_addr = lookup f in
+    (match fun_addr with
+     | None -> failwith "Unbound function"
+     | Some (Stack offset) ->
+       load_code
+       @ [ ld (T 0) offset Sp; jalr Ra (T 0) 0 ]
+       @ free_code
+       @ if dst = A 0 then [] else [ mv dst (A 0) ]) *)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
@@ -177,22 +282,14 @@ let rec gen_cexpr dst = function
       in
       helper [ arg ] body
     in
-    let argc = List.length args in
-    let argc = if argc mod 2 = 0 then argc else argc + 1 in
+    (* let argc = List.length args in *)
+    (* let argc = if argc mod 2 = 0 then argc else argc + 1 in *)
     let* current_sp = M.get_frame_offset in
     (* get args from stack *)
-    let* () =
-      let rec helper num = function
-        | arg :: args ->
-          let* () = add_binding arg (Stack (current_sp - (num * word_size))) in
-          helper (num - 1) args
-        | [] -> return ()
-      in
-      helper (argc - 1) args
-    in
+    let* () = get_args_from_stack args in
     (* ra and sp *)
     let* () = M.set_frame_offset 16 in
-    let* body_code = gen_aexpr (A 0) body in
+    let* body_code = gen_aexpr is_top_level (A 0) body in
     let* locals = M.get_frame_offset in
     let frame = locals + (locals mod 8) in
     let* () = M.set_frame_offset current_sp in
@@ -212,12 +309,12 @@ let rec gen_cexpr dst = function
     failwith
       (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)
 
-and gen_aexpr dst = function
-  | ACExpr cexpr -> gen_cexpr dst cexpr
+and gen_aexpr is_top_level dst = function
+  | ACExpr cexpr -> gen_cexpr is_top_level dst cexpr
   | ALet (Nonrec, name, cexpr, body) ->
-    let* cexpr_c = gen_cexpr (T 0) cexpr in
+    let* cexpr_c = gen_cexpr is_top_level (T 0) cexpr in
     let* off = save_var_on_stack name in
-    let+ body_c = gen_aexpr dst body in
+    let+ body_c = gen_aexpr is_top_level dst body in
     cexpr_c @ [ sd (T 0) (-off) fp ] @ body_c
   | _ -> failwith "gen_aexpr case not implemented yet"
 ;;
@@ -226,37 +323,49 @@ and gen_aexpr dst = function
   [ addi Sp Sp (-frame); sd Ra (frame - 8) Sp; sd fp (frame - 16) Sp ]
 ;; *)
 
-let gen_astr_item : astr_item -> instr list M.t = function
+let gen_astr_item (is_top_level : string -> bool) : astr_item -> instr list M.t = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
-    let+ code = gen_cexpr (T 0) lam in
+    let* () = save_fun_on_stack f in
+    let+ code = gen_cexpr is_top_level (T 0) lam in
     [ label (Format.asprintf ".globl %s" f); label f ] @ code
-  | Nonrec, (_, e), [] -> gen_aexpr (A 0) e
+  | Nonrec, (_, e), [] ->
+    let+ code = gen_aexpr is_top_level (A 0) e in
+    code
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     failwith (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
 ;;
 
-let rec gather : aprogram -> instr list M.t = function
+let rec gather is_top_level : aprogram -> instr list M.t = function
   | [] -> M.return []
   | [ item ] ->
-    let* code = gen_astr_item item in
+    let* code = gen_astr_item is_top_level item in
     let+ frame = M.get_frame_offset in
     [ label "_start"; mv fp Sp; addi Sp Sp (-frame) ]
     @ code
     @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
   | item :: rest ->
-    let* code1 = gen_astr_item item in
-    let+ code2 = gather rest in
+    let* code1 = gen_astr_item is_top_level item in
+    let+ code2 = gather is_top_level rest in
     code1 @ code2
 ;;
 
 let gen_aprogram (pr : aprogram) fmt =
   let open Format in
+  (* If function top-level or it's just, for example, argument *)
+  let is_top_level name =
+    let rec helper = function
+      | (_, (f, _), []) :: tl -> if f = name then true else helper tl
+      | _ -> false
+    in
+    helper pr
+  in
   fprintf fmt ".text\n";
   fprintf fmt ".globl _start\n";
-  let _, code = M.run (gather pr) M.default in
+  let _, code = M.run (gather is_top_level pr) M.default in
   Base.List.iter code ~f:(function
     | Label l when String.starts_with ~prefix:".globl " l -> fprintf fmt "%s\n" l
     | Label l -> fprintf fmt "%s:\n" l
+    | Comment c -> fprintf fmt "# %s\n" c
     | i -> fprintf fmt "  %a\n" pp_instr i)
 ;;
