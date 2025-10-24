@@ -91,25 +91,21 @@ let gen_imm dst = function
     let+ loc = M.lookup x in
     (match loc with
      | Some (Stack off) -> [ ld dst (-off) fp ]
+     (* if we meet function (it's top level) -- call alloc_closure function *)
      | Some (Function arity) ->
        [ addi Sp Sp (-16)
        ; la (T 0) x
        ; li (T 1) arity
        ; sd (T 0) 0 Sp
        ; sd (T 1) 8 Sp
-         (* ; mv (T 5) (A 0) *)
-         (* ; mv (T 6) (A 1) *)
-         (* ; la (A 0) x *)
-         (* ; li (A 1) arity *)
        ; call "alloc_closure"
        ; mv dst (A 0)
        ; addi Sp Sp 16
-         (* ; mv (A 0) (T 5) *)
-         (* ; mv (A 1) (T 6) *)
        ]
      | _ -> failwith ("unbound variable: " ^ x))
 ;;
 
+(* Get args list and put these args on stack for future function exec *)
 let load_args_on_stack (args : imm list) : instr list t =
   let argc = List.length args in
   let* current_stack = get_frame_offset in
@@ -205,6 +201,7 @@ let get_args_from_stack (args : ident list) : unit t =
   return ()
 ;;
 
+(* Get args lists and free stack space that these argument taken *)
 let free_args_on_stack (args : imm list) : instr list t =
   let argc = List.length args in
   let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
@@ -261,6 +258,8 @@ let%expect_test "alloc_closure_test" =
     # End free args on stack |}]
 ;;
 
+let comment_wrap str code = [ comment str ] @ code @ [ comment ("End " ^ str) ]
+
 let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
   | CImm imm -> gen_imm dst imm
   | CIte (c, th, el) ->
@@ -298,67 +297,52 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     e1_c @ e2_c @ [ call op ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
   | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
-    [ comment "Apply print_int" ]
-    @ arg_c
-    @ [ call "print_int" ]
-    @ if dst = A 0 then [] else [ mv dst (A 0) ] @ [ comment "End Apply print_int" ]
-  | CApp (ImmVar f, arg, args) when fst @@ is_top_level f ->
-    let argc_f = is_top_level f |> snd in
-    let argc_actual = List.length (arg :: args) in
-    let* load_code = load_args_on_stack (arg :: args) in
-    let* free_code = free_args_on_stack (arg :: args) in
-    if argc_actual = argc_f
-    then
-      return
-      @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
-      @ load_code
-      @ [ call f ]
-      @ free_code
-      @
-      if dst = A 0
-      then []
-      else
-        [ mv dst (A 0) ]
-        @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
-    else
-      let* load_args =
-        load_args_on_stack (ImmVar f :: ImmConst (Int_lt argc_actual) :: arg :: args)
-      in
-      let* free_code =
-        free_args_on_stack (ImmVar f :: ImmConst (Int_lt argc_actual) :: arg :: args)
-      in
-      let apply_f_name = "apply_closure" in
-      return
-      @@ [ comment (Format.asprintf "Partial application %s with %d args" f argc_actual) ]
-      @ load_args
-      @ [ call apply_f_name ]
-      @ [ mv dst (A 0) ]
-      @ free_code
-      @ [ comment
-            (Format.asprintf "End Partial application %s with %d args" f argc_actual)
-        ]
+    (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
+    |> comment_wrap "Apply print_int"
+  | CApp (ImmVar f, arg, args)
+  (* f is top level and it full application *)
+    when let is_top, arity = is_top_level f in
+         is_top && List.length (arg :: args) = arity ->
+    let args = arg :: args in
+    let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
+    let* load_code, free_code =
+      let* load_code = load_args_on_stack args in
+      let+ free_code = free_args_on_stack args in
+      load_code, free_code
+    in
+    (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
+    |> comment_wrap comment
+    |> return
+  | CApp (ImmVar f, arg, args) when is_top_level f |> fst ->
+    let argc = List.length (arg :: args) in
+    let comment = Format.asprintf "Partial application %s with %d args" f argc in
+    let* load_code, free_code =
+      let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
+      let* load_code = load_args_on_stack args in
+      let+ free_code = free_args_on_stack args in
+      load_code, free_code
+    in
+    load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
+    |> comment_wrap comment
+    |> return
   | CApp ((ImmVar f as imm), arg, args) ->
-    let argc_actual = List.length (arg :: args) in
-    let* get_f = gen_imm (T 0) imm in
+    let argc = List.length (arg :: args) in
+    let comment = Format.asprintf "Apply %s with %d args" f argc in
     let* temp = fresh in
-    let* off = save_var_on_stack temp in
-    let save_closure = [ sd (T 0) (-off) fp ] in
-    let* load_args =
-      load_args_on_stack (ImmVar temp :: ImmConst (Int_lt argc_actual) :: arg :: args)
+    let* get_closure_code =
+      let* get_f = gen_imm (T 0) imm in
+      let+ off = save_var_on_stack temp in
+      get_f @ [ sd (T 0) (-off) fp ]
     in
-    let* free_code =
-      free_args_on_stack (ImmVar temp :: ImmConst (Int_lt argc_actual) :: arg :: args)
+    let* load_code, free_code =
+      let args = ImmVar temp :: ImmConst (Int_lt argc) :: arg :: args in
+      let* load_code = load_args_on_stack args in
+      let+ free_code = free_args_on_stack args in
+      load_code, free_code
     in
-    let apply_f_name = "apply_closure" in
-    return
-    @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
-    @ get_f
-    @ save_closure
-    @ load_args
-    @ [ call apply_f_name ]
-    @ [ mv dst (A 0) ]
-    @ free_code
-    @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
+    get_closure_code @ load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
+    |> comment_wrap comment
+    |> return
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
@@ -455,9 +439,5 @@ let gen_aprogram (pr : aprogram) fmt =
   fprintf fmt ".text\n";
   fprintf fmt ".globl _start\n";
   let _, code = M.run (gather is_top_level pr) M.default in
-  Base.List.iter code ~f:(function
-    | Label l when String.starts_with ~prefix:".globl " l -> fprintf fmt "%s\n" l
-    | Label l -> fprintf fmt "%s:\n" l
-    | Comment c -> fprintf fmt "# %s\n" c
-    | i -> fprintf fmt "  %a\n" pp_instr i)
+  pp_instrs code fmt
 ;;

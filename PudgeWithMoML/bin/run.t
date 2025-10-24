@@ -122,6 +122,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply fac_cps__6 with 2 args
   L3:
     ld ra, 40(sp)
     ld fp, 32(sp)
@@ -357,6 +358,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply fib__11 with 2 args
   L4:
     ld ra, 40(sp)
     ld fp, 32(sp)
@@ -473,6 +475,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -561,6 +564,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -589,11 +593,13 @@
   # Apply print_int
     li a0, 0
     call print_int
+  # End Apply print_int
     j L1
   L0:
   # Apply print_int
     li a0, 1
     call print_int
+  # End Apply print_int
   L1:
     ld ra, 16(sp)
     ld fp, 8(sp)
@@ -636,6 +642,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
     j L3
   L2:
     li t0, 1
@@ -650,6 +657,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
   L3:
     j L7
   L6:
@@ -672,6 +680,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
     j L5
   L4:
     li t0, 1
@@ -686,6 +695,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
   L5:
   L7:
     j L15
@@ -724,6 +734,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
     j L9
   L8:
     li t0, 1
@@ -738,6 +749,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
   L9:
     j L13
   L12:
@@ -760,6 +772,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
     j L11
   L10:
     li t0, 1
@@ -774,6 +787,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply large__0 with 1 args
   L11:
   L13:
   L15:

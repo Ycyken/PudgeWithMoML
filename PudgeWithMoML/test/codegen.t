@@ -14,6 +14,7 @@
   # Apply print_int
     li a0, 5
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -76,6 +77,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -166,6 +168,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -226,6 +229,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -329,6 +333,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -363,6 +368,7 @@
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -457,6 +463,7 @@
   # Apply print_int
     ld a0, -40(fp)
     call print_int
+  # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
@@ -637,6 +644,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply fac_cps__6 with 2 args
   L3:
     ld ra, 40(sp)
     ld fp, 32(sp)
@@ -940,6 +948,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
+  # End Apply fib__11 with 2 args
   L4:
     ld ra, 40(sp)
     ld fp, 32(sp)
