@@ -215,7 +215,7 @@ let free_args_on_stack (args : imm list) : instr list t =
     ]
 ;;
 
-let rec gen_cexpr (is_top_level : string -> bool) dst = function
+let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
   | CImm imm -> gen_imm dst imm
   | CIte (c, th, el) ->
     let* cond_code = gen_imm (T 0) c in
@@ -253,7 +253,7 @@ let rec gen_cexpr (is_top_level : string -> bool) dst = function
   | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
     arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
-  | CApp (ImmVar f, arg, args) when is_top_level f ->
+  | CApp (ImmVar f, arg, args) when fst @@ is_top_level f ->
     let* load_code = load_args_on_stack (arg :: args) in
     let+ free_code = free_args_on_stack (arg :: args) in
     load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ]
@@ -309,7 +309,7 @@ let rec gen_cexpr (is_top_level : string -> bool) dst = function
     failwith
       (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)
 
-and gen_aexpr is_top_level dst = function
+and gen_aexpr (is_top_level : string -> bool * int) dst = function
   | ACExpr cexpr -> gen_cexpr is_top_level dst cexpr
   | ALet (Nonrec, name, cexpr, body) ->
     let* cexpr_c = gen_cexpr is_top_level (T 0) cexpr in
@@ -323,7 +323,8 @@ and gen_aexpr is_top_level dst = function
   [ addi Sp Sp (-frame); sd Ra (frame - 8) Sp; sd fp (frame - 16) Sp ]
 ;; *)
 
-let gen_astr_item (is_top_level : string -> bool) : astr_item -> instr list M.t = function
+let gen_astr_item (is_top_level : string -> bool * int) : astr_item -> instr list M.t
+  = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
     let* () = save_fun_on_stack f in
     let+ code = gen_cexpr is_top_level (T 0) lam in
@@ -353,10 +354,21 @@ let rec gather is_top_level : aprogram -> instr list M.t = function
 let gen_aprogram (pr : aprogram) fmt =
   let open Format in
   (* If function top-level or it's just, for example, argument *)
+  let get_list_args arg body =
+    let rec helper acc = function
+      | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
+      | e -> List.rev acc, e
+    in
+    helper [ arg ] body |> fst
+  in
   let is_top_level name =
-    let rec helper = function
-      | (_, (f, _), []) :: tl -> if f = name then true else helper tl
-      | _ -> false
+    let rec helper (astr : astr_item list) =
+      match astr with
+      | (_, (f, ACExpr (CLambda (arg, body))), []) :: tl ->
+        let list = get_list_args arg body in
+        let arity = List.length list in
+        if f = name then true, arity else helper tl
+      | _ -> false, 0
     in
     helper pr
   in
