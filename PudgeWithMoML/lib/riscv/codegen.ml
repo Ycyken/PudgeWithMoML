@@ -13,7 +13,8 @@ open Middle_end.Anf
 
 type location =
   | Stack of int
-  | Function
+  (* arity of function *)
+  | Function of int
 [@@deriving eq] [@@warning "-37"]
 
 let word_size = 8
@@ -65,8 +66,8 @@ module M = struct
     add_binding name (Stack off) >>| fun _ -> off
   ;;
 
-  let save_fun_on_stack name : unit t =
-    let+ () = add_binding name Function in
+  let save_fun_on_stack name arity : unit t =
+    let+ () = add_binding name (Function arity) in
     ()
   ;;
 
@@ -101,7 +102,8 @@ let gen_imm dst = function
     let+ loc = M.lookup x in
     (match loc with
      | Some (Stack off) -> [ ld dst (-off) fp ]
-     | Some Function -> [ la dst x ]
+     | Some (Function arity) ->
+       [ la (A 0) x; li (A 1) arity; call "alloc_closure"; mv dst (A 0) ]
      | _ -> failwith ("unbound variable: " ^ x))
 ;;
 
@@ -265,16 +267,49 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
       @ [ call f ]
       @ free_code
       @ if dst = A 0 then [] else [ mv dst (A 0) ]
-    else return [ comment "Homka" ]
-  | CApp (imm, arg, args) ->
+    else (
+      let alloc_code =
+        [ la (A 0) f; li (A 1) argc_f; call "alloc_closure"; mv dst (A 0) ]
+      in
+      let* load_args =
+        let rec helper num acc = function
+          | arg :: args ->
+            let* load_arg_code = gen_imm (T 0) arg in
+            helper (num + 1) (acc @ load_arg_code @ [ mv (A num) (T 0) ]) args
+          | [] -> return acc
+        in
+        helper 1 [] (arg :: args)
+      in
+      let apply_f_name = "apply_" ^ string_of_int argc_actual in
+      return
+      @@ alloc_code
+      @ load_args
+      @ [ call apply_f_name ]
+      @ [ mv dst (A 0) ]
+      @ free_code)
+  | CApp ((ImmVar _ as imm), arg, args) ->
+    let argc_actual = List.length (arg :: args) in
     let* load_code = load_args_on_stack (arg :: args) in
     let* free_code = free_args_on_stack (arg :: args) in
-    let+ get_f = gen_imm (T 0) imm in
-    load_code
-    @ get_f
-    @ [ jalr Ra (T 0) 0 ]
+    let* get_f = gen_imm (T 0) imm in
+    let alloc_code = get_f @ [ mv (A 0) (T 0) ] in
+    let* load_args =
+      let rec helper num acc = function
+        | arg :: args ->
+          let* load_arg_code = gen_imm (T 0) arg in
+          helper (num + 1) (acc @ load_arg_code @ [ mv (A num) (T 0) ]) args
+        | [] -> return acc
+      in
+      helper 1 [] (arg :: args)
+    in
+    let apply_f_name = "apply_" ^ string_of_int argc_actual in
+    return
+    @@ load_code
+    @ alloc_code
+    @ load_args
+    @ [ call apply_f_name ]
+    @ [ mv dst (A 0) ]
     @ free_code
-    @ if dst = A 0 then [] else [ mv dst (A 0) ]
     (* let+ fun_addr = lookup f in
     (match fun_addr with
      | None -> failwith "Unbound function"
@@ -335,7 +370,8 @@ and gen_aexpr (is_top_level : string -> bool * int) dst = function
 let gen_astr_item (is_top_level : string -> bool * int) : astr_item -> instr list M.t
   = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
-    let* () = save_fun_on_stack f in
+    let arity = is_top_level f |> snd in
+    let* () = save_fun_on_stack f arity in
     let+ code = gen_cexpr is_top_level (T 0) lam in
     [ label (Format.asprintf ".globl %s" f); label f ] @ code
   | Nonrec, (_, e), [] ->

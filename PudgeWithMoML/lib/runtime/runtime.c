@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void print_int(int n) { printf("%d\n", n); }
 
@@ -27,6 +28,7 @@ void *alloc_closure(void *f, uint8_t argc) {
 #define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
 #define INT8 int, int, int, int, int, int, int, int
 
+typedef void *(*fun9)(INT8, void *);
 typedef void *(*fun10)(INT8, void *, void *);
 typedef void *(*fun11)(INT8, void *, void *, void *);
 typedef void *(*fun12)(INT8, void *, void *, void *, void *);
@@ -49,7 +51,9 @@ void *apply_1(void *f, void *arg1) {
   // full applcation
   clos->args[clos->argc_recived++] = arg1;
   fun10 func = clos->code;
-  return func(ZERO8, clos->args[0], clos->args[1]);
+  printf("HOMKA %d: \n", clos->args[0]);
+  printf("HOMKA %d: \n", func(ZERO8, 0, clos->args[0]));
+  return func(ZERO8, 0, clos->args[0]);
 }
 
 void *apply_2(void *f, void *arg1, void *arg2) {
