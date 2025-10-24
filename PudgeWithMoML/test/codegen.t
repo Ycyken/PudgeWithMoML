@@ -17,6 +17,7 @@
     li a7, 94
     ecall
 
+( just add )
   $ ./run_anf.exe << 'EOF'
   > let add x y = x + y
   > let main = print_int (add 5 2)

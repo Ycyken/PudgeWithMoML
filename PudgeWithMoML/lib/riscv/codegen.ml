@@ -254,9 +254,18 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     let+ arg_c = gen_imm (A 0) arg in
     arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
   | CApp (ImmVar f, arg, args) when fst @@ is_top_level f ->
+    let argc_f = is_top_level f |> snd in
+    let argc_actual = List.length (arg :: args) in
     let* load_code = load_args_on_stack (arg :: args) in
-    let+ free_code = free_args_on_stack (arg :: args) in
-    load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ]
+    let* free_code = free_args_on_stack (arg :: args) in
+    if argc_actual = argc_f
+    then
+      return
+      @@ load_code
+      @ [ call f ]
+      @ free_code
+      @ if dst = A 0 then [] else [ mv dst (A 0) ]
+    else return [ comment "Homka" ]
   | CApp (imm, arg, args) ->
     let* load_code = load_args_on_stack (arg :: args) in
     let* free_code = free_args_on_stack (arg :: args) in

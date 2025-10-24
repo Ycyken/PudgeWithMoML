@@ -1,7 +1,7 @@
   $ make compile input=bin/fact_cc_ln --no-print-directory -C ..
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  63182 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  80839 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   [139]
   $ cat ../main.s
   .text
@@ -70,18 +70,7 @@
     li t1, 1
     sub t0, t0, t1
     sd t0, -32(fp)
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, 8(fp)
-    sd t0, 8(sp)
-    ld t0, 0(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call fresh_1__2
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
-    mv t0, a0
+  # Homka
     sd t0, -40(fp)
   # Load args on stack
     addi sp, sp, -16
