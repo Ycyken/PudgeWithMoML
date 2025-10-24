@@ -226,7 +226,7 @@ let alloc_closure func arity =
   load_code @ [ call "alloc_closure" ] @ free_code |> return
 ;;
 
-let%expect_test _ =
+let%expect_test "alloc_closure_test" =
   let code =
     let* curr_off = get_frame_offset in
     let* code = alloc_closure "homka" 5 in
