@@ -103,7 +103,20 @@ let gen_imm dst = function
     (match loc with
      | Some (Stack off) -> [ ld dst (-off) fp ]
      | Some (Function arity) ->
-       [ la (A 0) x; li (A 1) arity; call "alloc_closure"; mv dst (A 0) ]
+       [ addi Sp Sp (-16)
+       ; la (T 0) x
+       ; li (T 1) arity
+       ; sd (T 0) 0 Sp
+       ; sd (T 1) 8 Sp
+         (* ; mv (T 5) (A 0) *)
+         (* ; mv (T 6) (A 1) *)
+         (* ; la (A 0) x *)
+         (* ; li (A 1) arity *)
+       ; call "alloc_closure"
+       ; mv dst (A 0)
+         (* ; mv (A 0) (T 5) *)
+         (* ; mv (A 1) (T 6) *)
+       ]
      | _ -> failwith ("unbound variable: " ^ x))
 ;;
 
@@ -212,6 +225,42 @@ let free_args_on_stack (args : imm list) : instr list t =
     ; addi Sp Sp stack_size
     ; comment "End free args on stack"
     ]
+;;
+
+(* Put arguments on stack and exec alloc_closure function *)
+let alloc_closure func arity =
+  let args = [ ImmVar func; ImmConst (Int_lt arity) ] in
+  let* load_code = load_args_on_stack args in
+  let* free_code = free_args_on_stack args in
+  load_code @ [ call "alloc_closure" ] @ free_code |> return
+;;
+
+let%expect_test _ =
+  let code = alloc_closure "homka" 5 in
+  let open Base in
+  let env = Map.empty (module String) in
+  let env = Map.add_exn env ~key:"homka" ~data:(Function 5) in
+  let _, code = run code { frame_offset = 0; env; fresh = 0 } in
+  pp_instrs code Stdlib.Format.std_formatter;
+  [%expect
+    {|
+    # Load args on stack
+      addi sp, sp, -16
+      addi sp, sp, -16
+      la t0, homka
+      li t1, 5
+      sd t0, 0(sp)
+      sd t1, 8(sp)
+      call alloc_closure
+      mv t0, a0
+      sd t0, 0(sp)
+      li t0, 5
+      sd t0, 8(sp)
+    # End loading args on stack
+      call alloc_closure
+    # Free args on stack
+      addi sp, sp, 16
+    # End free args on stack |}]
 ;;
 
 let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
