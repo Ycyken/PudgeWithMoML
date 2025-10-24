@@ -1,7 +1,7 @@
   $ make compile input=bin/fact_cc_ln --no-print-directory -C ..
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  170863 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  202440 Segmentation fault      (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   [139]
   $ cat ../main.s
   .text
@@ -110,7 +110,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -16
+    addi sp, sp, -24
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     li t0, 4
@@ -126,11 +127,11 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     mv t0, a0
-    sd t0, -16(fp)
+    sd t0, -24(fp)
     li a0, 0
     call flush
     li a0, 0
@@ -188,7 +189,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     li t0, 4
@@ -199,8 +201,8 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -268,7 +270,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     li t0, 10
@@ -279,8 +282,8 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -320,33 +323,34 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -136
-    li t0, 0
-    li t1, 1
-    sub t0, t0, t1
-    seqz t0, t0
-    sd t0, -8(fp)
-    ld t0, -8(fp)
-    beq t0, zero, L14
+    addi sp, sp, -144
+    sd a0, -8(fp)
     li t0, 0
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -16(fp)
     ld t0, -16(fp)
-    beq t0, zero, L6
+    beq t0, zero, L14
     li t0, 0
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -24(fp)
     ld t0, -24(fp)
+    beq t0, zero, L6
+    li t0, 0
+    li t1, 1
+    sub t0, t0, t1
+    seqz t0, t0
+    sd t0, -32(fp)
+    ld t0, -32(fp)
     beq t0, zero, L2
     li t0, 0
-    sd t0, -32(fp)
+    sd t0, -40(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -32(fp)
+    ld t0, -40(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -356,10 +360,10 @@
     j L3
   L2:
     li t0, 1
-    sd t0, -40(fp)
+    sd t0, -48(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -40(fp)
+    ld t0, -48(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -373,14 +377,14 @@
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -48(fp)
-    ld t0, -48(fp)
+    sd t0, -56(fp)
+    ld t0, -56(fp)
     beq t0, zero, L4
     li t0, 0
-    sd t0, -56(fp)
+    sd t0, -64(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -56(fp)
+    ld t0, -64(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -390,10 +394,10 @@
     j L5
   L4:
     li t0, 1
-    sd t0, -64(fp)
+    sd t0, -72(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -64(fp)
+    ld t0, -72(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -407,28 +411,28 @@
     li a0, 42
     call print_int
     mv t0, a0
-    sd t0, -72(fp)
-    ld t0, -72(fp)
     sd t0, -80(fp)
-    li t0, 1
-    li t1, 1
-    sub t0, t0, t1
-    seqz t0, t0
+    ld t0, -80(fp)
     sd t0, -88(fp)
-    ld t0, -88(fp)
-    beq t0, zero, L12
-    li t0, 0
+    li t0, 1
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -96(fp)
     ld t0, -96(fp)
+    beq t0, zero, L12
+    li t0, 0
+    li t1, 1
+    sub t0, t0, t1
+    seqz t0, t0
+    sd t0, -104(fp)
+    ld t0, -104(fp)
     beq t0, zero, L8
     li t0, 0
-    sd t0, -104(fp)
+    sd t0, -112(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -104(fp)
+    ld t0, -112(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -438,10 +442,10 @@
     j L9
   L8:
     li t0, 1
-    sd t0, -112(fp)
+    sd t0, -120(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -112(fp)
+    ld t0, -120(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -455,14 +459,14 @@
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -120(fp)
-    ld t0, -120(fp)
+    sd t0, -128(fp)
+    ld t0, -128(fp)
     beq t0, zero, L10
     li t0, 0
-    sd t0, -128(fp)
+    sd t0, -136(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -128(fp)
+    ld t0, -136(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
@@ -472,10 +476,10 @@
     j L11
   L10:
     li t0, 1
-    sd t0, -136(fp)
+    sd t0, -144(fp)
   # Load args on stack
     addi sp, sp, -16
-    ld t0, -136(fp)
+    ld t0, -144(fp)
     sd t0, 0(sp)
   # End loading args on stack
     call large__0

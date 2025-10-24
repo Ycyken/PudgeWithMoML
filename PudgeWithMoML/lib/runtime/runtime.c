@@ -49,9 +49,24 @@ void *apply_1(void *f, void *arg1) {
   }
 
   // full applcation
-  clos->args[clos->argc_recived++] = arg1;
-  fun9 func = clos->code;
-  return func(ZERO8, clos->args[0]);
+  if (clos->argc == 1) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun9 func = clos->code;
+    return func(ZERO8, clos->args[0]);
+  } else if (clos->argc == 2) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun10 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1]);
+  } else if (clos->argc == 3) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun11 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
+  } else if (clos->argc == 4) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun12 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2],
+                clos->args[3]);
+  }
 }
 
 void *apply_2(void *f, void *arg1, void *arg2) {
@@ -73,8 +88,20 @@ void *apply_2(void *f, void *arg1, void *arg2) {
   // full applcation
   clos->args[clos->argc_recived++] = arg1;
   clos->args[clos->argc_recived++] = arg2;
-  fun11 func = clos->code;
-  return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
+  if (clos->argc == 2) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun10 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1]);
+  } else if (clos->argc == 3) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun11 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
+  } else if (clos->argc == 4) {
+    clos->args[clos->argc_recived++] = arg1;
+    fun12 func = clos->code;
+    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2],
+                clos->args[3]);
+  }
 }
 
 void *apply_3(void *f, void *arg1, void *arg2, void *arg3) {

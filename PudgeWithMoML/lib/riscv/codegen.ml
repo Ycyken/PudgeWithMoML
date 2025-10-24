@@ -371,9 +371,10 @@ let gen_astr_item (is_top_level : string -> bool * int) : astr_item -> instr lis
     let* () = save_fun_on_stack f arity in
     let+ code = gen_cexpr is_top_level (T 0) lam in
     [ label (Format.asprintf ".globl %s" f); label f ] @ code
-  | Nonrec, (_, e), [] ->
+  | Nonrec, (name, e), [] ->
+    let* off = save_var_on_stack name in
     let+ code = gen_aexpr is_top_level (A 0) e in
-    code
+    [ sd (A 0) (-off) fp ] @ code
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     failwith (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)

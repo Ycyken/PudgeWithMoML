@@ -9,7 +9,8 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, 0
+    addi sp, sp, -8
+    sd a0, -8(fp)
     li a0, 5
     call print_int
     call flush
@@ -54,7 +55,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     li t0, 5
@@ -67,8 +69,8 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -120,7 +122,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -96
     li t0, 122
@@ -153,8 +156,8 @@
     addi sp, sp, 96
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -196,7 +199,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     li t0, 5
@@ -209,8 +213,8 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -284,7 +288,8 @@
     ret
   _start:
     mv fp, sp
-    addi sp, sp, -8
+    addi sp, sp, -16
+    sd a0, -8(fp)
   # Load args on stack
     addi sp, sp, -16
     la a0, inc__3
@@ -300,8 +305,8 @@
     addi sp, sp, 16
   # End free args on stack
     mv t0, a0
-    sd t0, -8(fp)
-    ld a0, -8(fp)
+    sd t0, -16(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -320,18 +325,19 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -32
+    addi sp, sp, -40
+    sd a0, -8(fp)
     li t0, 10
-    sd t0, -8(fp)
-    li t0, 20
     sd t0, -16(fp)
-    ld a0, -16(fp)
+    li t0, 20
+    sd t0, -24(fp)
+    ld a0, -24(fp)
     call print_int
     mv t0, a0
-    sd t0, -24(fp)
-    ld t0, -24(fp)
     sd t0, -32(fp)
-    ld a0, -8(fp)
+    ld t0, -32(fp)
+    sd t0, -40(fp)
+    ld a0, -16(fp)
     call print_int
     call flush
     li a0, 0
@@ -357,22 +363,62 @@
   $ rm ../main.exe ../main.s
   $ make compile --no-print-directory -C .. << 'EOF'
   > let add x y = x + y
-  > let inc = add 1
-  > let main = print_int (inc 121)
+  > let main = let inc = add 1 in print_int (inc 121)
   > EOF
-  Fatal error: exception Failure("unbound variable: inc__3")
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from PudgeWithMoML__Common__Monad.State.(>>|).(fun) in file "lib/common/monad.ml", line 43, characters 42-47
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Common__Monad.State.(>>=) in file "lib/common/monad.ml", line 39, characters 16-20
-  Called from PudgeWithMoML__Riscv__Codegen.gen_aprogram in file "lib/riscv/codegen.ml", line 419, characters 16-56
-  Called from Dune__exe__Compiler.compiler in file "bin/compiler.ml", line 49, characters 10-30
-  make: *** [Makefile:27: compile] Error 2
-  [2]
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
-  [1]
+  122
   $ cat ../main.s
+  .text
+  .globl _start
+  .globl add__0
+  add__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld t0, 0(fp)
+    ld t1, 8(fp)
+    add a0, t0, t1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  _start:
+    mv fp, sp
+    addi sp, sp, -32
+    sd a0, -8(fp)
+    la a0, add__0
+    li a1, 2
+    call alloc_closure
+    mv t0, a0
+    li t0, 1
+    mv a1, t0
+    call apply_1
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    sd t0, -16(fp)
+    ld t0, -16(fp)
+    sd t0, -24(fp)
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 121
+    sd t0, 0(sp)
+  # End loading args on stack
+    ld t0, -24(fp)
+    mv a0, t0
+    li t0, 121
+    mv a1, t0
+    call apply_1
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    sd t0, -32(fp)
+    ld a0, -32(fp)
+    call print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
