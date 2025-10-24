@@ -321,9 +321,13 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
         [ mv dst (A 0) ]
         @ [ comment (Format.asprintf "End Apply %s with %d args" f argc_actual) ]
     else
-      let* load_args = load_args_on_stack (ImmVar f :: arg :: args) in
-      let* free_code = free_args_on_stack (ImmVar f :: arg :: args) in
-      let apply_f_name = "apply_" ^ string_of_int argc_actual in
+      let* load_args =
+        load_args_on_stack (ImmVar f :: ImmConst (Int_lt argc_actual) :: arg :: args)
+      in
+      let* free_code =
+        free_args_on_stack (ImmVar f :: ImmConst (Int_lt argc_actual) :: arg :: args)
+      in
+      let apply_f_name = "apply_closure" in
       return
       @@ [ comment (Format.asprintf "Partial application %s with %d args" f argc_actual) ]
       @ load_args
@@ -339,9 +343,13 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     let* temp = fresh in
     let* off = save_var_on_stack temp in
     let save_closure = [ sd (T 0) (-off) fp ] in
-    let* load_args = load_args_on_stack (ImmVar temp :: arg :: args) in
-    let* free_code = free_args_on_stack (ImmVar temp :: arg :: args) in
-    let apply_f_name = "apply_" ^ string_of_int argc_actual in
+    let* load_args =
+      load_args_on_stack (ImmVar temp :: ImmConst (Int_lt argc_actual) :: arg :: args)
+    in
+    let* free_code =
+      free_args_on_stack (ImmVar temp :: ImmConst (Int_lt argc_actual) :: arg :: args)
+    in
+    let apply_f_name = "apply_closure" in
     return
     @@ [ comment (Format.asprintf "Apply %s with %d args" f argc_actual) ]
     @ get_f

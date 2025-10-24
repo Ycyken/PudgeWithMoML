@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,118 +29,68 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return clos;
 }
 
+typedef void *(*fun0)();
+typedef void *(*fun8)(INT8);
 typedef void *(*fun9)(INT8, void *);
 typedef void *(*fun10)(INT8, void *, void *);
 typedef void *(*fun11)(INT8, void *, void *, void *);
 typedef void *(*fun12)(INT8, void *, void *, void *, void *);
 
-void *apply_1(INT8, void *f, void *arg1) {
-  // printf("APPLY 1\n");
-  // fflush(stdout);
-  closure *clos = f;
+#define WORD_SIZE (8)
 
-  if (clos->argc_recived + 1 > clos->argc) {
-    fprintf(stderr,
-            "Runtime error: function accept more arguments than expect\n");
+// get closure and apply [argc] arguments to closure
+void *apply_closure(INT8, void *f, uint8_t argc, ...) {
+  closure *clos = f;
+  va_list list;
+  va_start(list, argc);
+
+  if (clos->argc_recived + argc > clos->argc) {
+    fprintf(stderr, "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
 
   // partial application
-  if (clos->argc_recived + 1 != clos->argc) {
-    clos->args[clos->argc_recived++] = arg1;
+  if (clos->argc_recived + argc != clos->argc) {
+    for (size_t i = 0; i < argc; i++) {
+      void *arg = va_arg(list, void *);
+      clos->args[clos->argc_recived++] = arg;
+    }
+
+    va_end(list);
     return clos;
   }
 
-  // full applcation
-  if (clos->argc == 1) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun9 func = clos->code;
-    return func(ZERO8, clos->args[0]);
-  } else if (clos->argc == 2) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun10 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1]);
-  } else if (clos->argc == 3) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun11 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
-  } else if (clos->argc == 4) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun12 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2],
-                clos->args[3]);
+  // full application (we need pass all arguments to stack and exec function)
+  // printf("FULL");
+  for (size_t i = 0; i < argc; i++) {
+    void *arg = va_arg(list, void *);
+    clos->args[clos->argc_recived++] = arg;
   }
-}
+  assert(clos->argc_recived == clos->argc);
+  va_end(list);
 
-void *apply_2(INT8, void *f, void *arg1, void *arg2) {
-  // printf("APPLY 2\n");
-  // fflush(stdout);
-  closure *clos = f;
-
-  if (clos->argc_recived + 2 > clos->argc) {
-    fprintf(stderr,
-            "Runtime error: function accept more arguments than expect\n");
-    exit(122);
+  switch (clos->argc) {
+  case 1:
+    return ((fun9)clos->code)(ZERO8, clos->args[0]);
+  case 2:
+    return ((fun10)clos->code)(ZERO8, clos->args[0], clos->args[1]);
+  case 3:
+    return ((fun11)clos->code)(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
+  case 4:
+    return ((fun12)clos->code)(ZERO8, clos->args[0], clos->args[1], clos->args[2], clos->args[3]);
+  default:
+    exit(123);
   }
 
-  // partial application
-  if (clos->argc_recived + 2 != clos->argc) {
-    clos->args[clos->argc_recived++] = arg1;
-    clos->args[clos->argc_recived++] = arg2;
-    return clos;
-  }
+  // inspired by rukaml, alloca push arguments in stack
+  // so we can exec function that use arguments only from stack
 
-  // full applcation
-  clos->args[clos->argc_recived++] = arg1;
-  clos->args[clos->argc_recived++] = arg2;
-  if (clos->argc == 2) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun10 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1]);
-  } else if (clos->argc == 3) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun11 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
-  } else if (clos->argc == 4) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun12 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2],
-                clos->args[3]);
+  // NOW DON'T WORK I DON'T KNOW WHY
+  void **homka = alloca(WORD_SIZE * (clos->argc));
+  for (size_t i = 0; i < clos->argc; i++) {
+    homka[i] = clos->args[i];
   }
-}
+  fun8 func = clos->code;
 
-void *apply_3(INT8, void *f, void *arg1, void *arg2, void *arg3) {
-  closure *clos = f;
-  // printf("HI 3\n");
-
-  if (clos->argc_recived + 3 > clos->argc) {
-    // printf("HI 3, %d, %d, %d, %d, %d", arg1, arg2, arg3, clos->argc_recived,
-    //  clos->argc);
-    fprintf(stderr,
-            "Runtime error: function accept more arguments than expect\n");
-    exit(122);
-  }
-
-  // partial application
-  if (clos->argc_recived + 3 != clos->argc) {
-    clos->args[clos->argc_recived++] = arg1;
-    clos->args[clos->argc_recived++] = arg2;
-    clos->args[clos->argc_recived++] = arg3;
-    return clos;
-  }
-
-  // full applcation
-  clos->args[clos->argc_recived++] = arg1;
-  clos->args[clos->argc_recived++] = arg2;
-  clos->args[clos->argc_recived++] = arg3;
-  if (clos->argc == 3) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun11 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
-  } else if (clos->argc == 4) {
-    clos->args[clos->argc_recived++] = arg1;
-    fun12 func = clos->code;
-    return func(ZERO8, clos->args[0], clos->args[1], clos->args[2],
-                clos->args[3]);
-  }
+  return func(ZERO8);
 }

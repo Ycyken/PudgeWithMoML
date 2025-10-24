@@ -269,16 +269,18 @@
     ld t0, 0(fp)
     sd t0, -24(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    ld t0, 8(fp)
+    li t0, 1
     sd t0, 8(sp)
+    ld t0, 8(fp)
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv a0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply f__1 with 1 args
     ld ra, 16(sp)
@@ -409,7 +411,7 @@
     sd a0, -8(fp)
   # Partial application add__0 with 1 args
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     addi sp, sp, -16
     la t0, add__0
     li t1, 2
@@ -421,11 +423,13 @@
     sd t0, 0(sp)
     li t0, 1
     sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -16(fp)
@@ -435,16 +439,18 @@
     ld t0, -24(fp)
     sd t0, -32(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 121
+    li t0, 1
     sd t0, 8(sp)
+    li t0, 121
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply inc__4 with 1 args
     sd t0, -40(fp)
@@ -538,16 +544,18 @@
     ld t0, 8(fp)
     sd t0, -32(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    ld t0, -24(fp)
+    li t0, 1
     sd t0, 8(sp)
+    ld t0, -24(fp)
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv a0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply k__4 with 1 args
     ld ra, 24(sp)
@@ -571,16 +579,18 @@
     ld t0, 8(fp)
     sd t0, -32(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
     li t0, 1
     sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv a0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply k__8 with 1 args
     j L3
@@ -601,12 +611,14 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    ld t0, 0(fp)
+    li t0, 2
     sd t0, 8(sp)
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     sd t0, 16(sp)
+    ld t0, 8(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_2
+    call apply_closure
     mv t0, a0
   # Free args on stack
     addi sp, sp, 32
@@ -767,16 +779,18 @@
     ld t0, 8(fp)
     sd t0, -32(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    ld t0, -24(fp)
+    li t0, 1
     sd t0, 8(sp)
+    ld t0, -24(fp)
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv a0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply k__4 with 1 args
     ld ra, 24(sp)
@@ -805,12 +819,14 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    ld t0, 24(fp)
+    li t0, 2
     sd t0, 8(sp)
-    ld t0, 8(fp)
+    ld t0, 24(fp)
     sd t0, 16(sp)
+    ld t0, 8(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_2
+    call apply_closure
     mv t0, a0
   # Free args on stack
     addi sp, sp, 32
@@ -824,12 +840,14 @@
     addi sp, sp, -32
     ld t0, -40(fp)
     sd t0, 0(sp)
-    ld t0, -24(fp)
+    li t0, 2
     sd t0, 8(sp)
-    ld t0, -32(fp)
+    ld t0, -24(fp)
     sd t0, 16(sp)
+    ld t0, -32(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_2
+    call apply_closure
     mv a0, a0
   # Free args on stack
     addi sp, sp, 32
@@ -855,16 +873,18 @@
     ld t0, 8(fp)
     sd t0, -32(fp)
   # Load args on stack
-    addi sp, sp, -16
+    addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    ld t0, 0(fp)
+    li t0, 1
     sd t0, 8(sp)
+    ld t0, 0(fp)
+    sd t0, 16(sp)
   # End loading args on stack
-    call apply_1
+    call apply_closure
     mv a0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
   # End Apply k__13 with 1 args
     j L4
@@ -875,7 +895,7 @@
     sd t0, -40(fp)
   # Partial application fresh_1__6 with 3 args
   # Load args on stack
-    addi sp, sp, -32
+    addi sp, sp, -48
     addi sp, sp, -16
     la t0, fresh_1__6
     li t1, 4
@@ -885,10 +905,12 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    ld t0, 0(fp)
+    li t0, 3
     sd t0, 8(sp)
-    ld t0, 8(fp)
+    ld t0, 0(fp)
     sd t0, 16(sp)
+    ld t0, 8(fp)
+    sd t0, 24(sp)
     addi sp, sp, -16
     la t0, fib__11
     li t1, 2
@@ -897,12 +919,12 @@
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, 24(sp)
+    sd t0, 32(sp)
   # End loading args on stack
-    call apply_3
+    call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 48
   # End free args on stack
   # End Partial application fresh_1__6 with 3 args
     sd t0, -48(fp)
