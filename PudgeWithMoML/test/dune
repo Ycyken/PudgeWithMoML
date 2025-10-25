@@ -11,11 +11,6 @@
  (modules run_qcheck)
  (libraries PudgeWithMoML qcheck-core.runner))
 
-(executable
- (name run_anf)
- (modules run_anf)
- (libraries PudgeWithMoML))
-
 (cram
  (applies_to qcheck)
  (deps ./run_qcheck.exe))
@@ -50,8 +45,8 @@
 
 (cram
  (applies_to anf)
- (deps ./run_anf.exe))
+ (deps ../Makefile ../lib/runtime/runtime.c))
 
 (cram
  (applies_to codegen)
- (deps ../bin/compiler.exe ./run_anf.exe ../Makefile ../lib/runtime/runtime.c))
+ (deps ../bin/compiler.exe ../Makefile ../lib/runtime/runtime.c))

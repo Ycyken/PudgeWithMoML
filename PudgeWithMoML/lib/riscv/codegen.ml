@@ -415,7 +415,7 @@ let rec gather is_top_level : aprogram -> instr list M.t = function
     code1 @ code2
 ;;
 
-let gen_aprogram (pr : aprogram) fmt =
+let gen_aprogram fmt (pr : aprogram) =
   let open Format in
   (* If function top-level or it's just, for example, argument *)
   let get_list_args arg body =

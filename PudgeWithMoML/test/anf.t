@@ -1,9 +1,10 @@
-(fac)
-  $ ./run_anf.exe <<'EOF'
+(fact)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let rec fac n = if n <= 1 then 1 else n * fac (n-1)
   > 
   > let main = fac 4
   > EOF
+  > cat ../main.anf
   let rec fac__0 = fun n__1 ->
     let anf_t1 = n__1 <= 1 in
     if anf_t1 then (1)
@@ -14,8 +15,8 @@
   
   let main__2 = fac__0 4 
 
-(fac v2)
-  $ ./run_anf.exe <<'EOF'
+(fact v2)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let rec fac n =
   >   if n <= 1
   >   then 1
@@ -25,6 +26,7 @@
   > 
   > let main = print_int (fac 4)
   > EOF
+  > cat ../main.anf
   let rec fac__0 = fun n__1 ->
     let anf_t2 = n__1 <= 1 in
     if anf_t2 then (1)
@@ -39,7 +41,7 @@
     print_int anf_t0 
 
 (fac v3)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let id x = x
   > let fresh_1 n k p = k (p * n)
   > 
@@ -52,6 +54,7 @@
   >   let _ = print_int (fac_cps 4 id) in
   >   0
   > EOF
+  > cat ../main.anf
   let id__0 = fun x__1 ->
     x__1 
   
@@ -77,10 +80,11 @@
     0 
 
 (add)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let add x y = x + y
   > let main = add 5 2
   > EOF
+  > cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
     x__1 + y__2 
@@ -89,7 +93,7 @@
   let main__3 = add__0 5 2 
 
 (large_if)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let large x = if 0<>x then print_int 0 else print_int 1
   > let main =
   >    let x = if (if (if 0=1
@@ -99,6 +103,7 @@
   >    large x
   > 
   > EOF
+  > cat ../main.anf
   let large__0 = fun x__1 ->
     let anf_t9 = 0 <> x__1 in
     if anf_t9 then (print_int 0)
@@ -132,9 +137,10 @@
     large__0 x__4 
 
 (fib)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let rec fib n = if n<2 then n else fib (n - 1) + fib (n - 2) 
   > EOF
+  > cat ../main.anf
   let rec fib__0 = fun n__1 ->
     let anf_t0 = n__1 < 2 in
     if anf_t0 then (n__1)
@@ -145,9 +151,10 @@
     anf_t2 + anf_t4 
 
 (nested letin)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let main = let x = 1 + 2 in let y = 3 - 4 + 1 in x * y
   > EOF
+  >  cat ../main.anf
   let main__0 = let anf_t3 = 1 + 2 in
     let x__1 = anf_t3 in
     let anf_t1 = 3 - 4 in
@@ -156,11 +163,12 @@
     x__1 * y__2 
 
 (sum)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let sum x y = x + y
   > 
   > let main = sum (1 + 2) (3 - 4)
   > EOF
+  > cat ../main.anf
   let sum__0 = fun x__1 ->
     fun y__2 ->
     x__1 + y__2 
@@ -170,20 +178,24 @@
     let anf_t1 = 3 - 4 in
     sum__0 anf_t0 anf_t1 
 
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let x = let y = 1 + 2 in y
   > EOF
+  > cat ../main.anf
   let x__0 = 1 + 2 
 
 (wildcard)
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let _ = 5
   > EOF
+  > 
+  > cat ../main.anf
   let _ = 5 
 
-  $ ./run_anf.exe <<'EOF'
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let main = let _ = print_int 4 in let _ = print_int 3 in 0
   > EOF
+  > cat ../main.anf
   let main__0 = let anf_t1 = print_int 4 in
     let anf_t0 = print_int 3 in
     0 

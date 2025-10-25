@@ -6,4 +6,4 @@
 
 [@@@ocaml.text "/*"]
 
-val gen_aprogram : Middle_end.Anf.aprogram -> Format.formatter -> unit
+val gen_aprogram : Format.formatter -> Middle_end.Anf.aprogram -> unit
