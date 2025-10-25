@@ -29,8 +29,7 @@ let compiler opts =
     then In_channel.read_all opts.input_file
     else In_channel.input_all stdin
   in
-  let program = parse input in
-  match program with
+  match parse input with
   | Error e -> eprintf "Parsing error: %s\n" e
   | Ok program ->
     if opts.dump_parsetree
@@ -40,23 +39,15 @@ let compiler opts =
     else (
       match infer program with
       | Error e -> fprintf std_formatter "Type error: %a\n" pp_error e
-      | Ok env ->
-        if opts.dump_types
-        then TypeEnv.pp std_formatter env
-        else (
-          let oc = Out_channel.create opts.output_file in
-          let fmt = Format.formatter_of_out_channel oc in
-          let a_converted = convert_program program in
-          let anf = anf_program a_converted in
-          let () =
-            if opts.dump_anf
-            then (
-              let oc = Out_channel.create "main.anf" in
-              let fmt = Format.formatter_of_out_channel oc in
-              pp_aprogram fmt anf;
-              Out_channel.close oc)
-          in
-          gen_aprogram fmt anf))
+      | Ok env when opts.dump_types -> TypeEnv.pp std_formatter env
+      | Ok _ ->
+        let anf = program |> convert_program |> anf_program in
+        if opts.dump_anf
+        then
+          Out_channel.with_file "main.anf" ~f:(fun oc ->
+            pp_aprogram (Format.formatter_of_out_channel oc) anf);
+        Out_channel.with_file opts.output_file ~f:(fun oc ->
+          gen_aprogram (Format.formatter_of_out_channel oc) anf))
 ;;
 
 let () =
