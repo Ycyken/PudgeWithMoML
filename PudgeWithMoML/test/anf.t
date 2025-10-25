@@ -15,32 +15,7 @@
   
   let main__2 = fac__0 4 
 
-(fact v2)
-  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
-  > let rec fac n =
-  >   if n <= 1
-  >   then 1
-  >   else let n1 = n - 1 in
-  >     let m = fac n1 in
-  >         n * m
-  > 
-  > let main = print_int (fac 4)
-  > EOF
-  > cat ../main.anf
-  let rec fac__0 = fun n__1 ->
-    let anf_t2 = n__1 <= 1 in
-    if anf_t2 then (1)
-    else let anf_t5 = n__1 - 1 in
-    let n1__2 = anf_t5 in
-    let anf_t4 = fac__0 n1__2 in
-    let m__3 = anf_t4 in
-    n__1 * m__3 
-  
-  
-  let main__4 = let anf_t0 = fac__0 4 in
-    print_int anf_t0 
-
-(fac v3)
+(fact v3)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
   > let id x = x
   > let fresh_1 n k p = k (p * n)
@@ -91,64 +66,6 @@
   
   
   let main__3 = add__0 5 2 
-
-(large_if)
-  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
-  > let large x = if 0<>x then print_int 0 else print_int 1
-  > let main =
-  >    let x = if (if (if 0=1
-  >                    then 0=1 else (let t42 = print_int 42 in 1=1))
-  >                then 0=1 else 1=1)
-  >            then 0 else 1 in
-  >    large x
-  > 
-  > EOF
-  > cat ../main.anf
-  let large__0 = fun x__1 ->
-    let anf_t9 = 0 <> x__1 in
-    if anf_t9 then (print_int 0)
-    else print_int 1 
-  
-  
-  let main__2 = let anf_t1 = 0 = 1 in
-    if anf_t1 then (let anf_t2 = 0 = 1 in
-    if anf_t2 then (let anf_t3 = 0 = 1 in
-    if anf_t3 then (let x__4 = 0 in
-    large__0 x__4)
-    else let x__4 = 1 in
-    large__0 x__4)
-    else let anf_t4 = 1 = 1 in
-    if anf_t4 then (let x__4 = 0 in
-    large__0 x__4)
-    else let x__4 = 1 in
-    large__0 x__4)
-    else let anf_t8 = print_int 42 in
-    let t42__3 = anf_t8 in
-    let anf_t5 = 1 = 1 in
-    if anf_t5 then (let anf_t6 = 0 = 1 in
-    if anf_t6 then (let x__4 = 0 in
-    large__0 x__4)
-    else let x__4 = 1 in
-    large__0 x__4)
-    else let anf_t7 = 1 = 1 in
-    if anf_t7 then (let x__4 = 0 in
-    large__0 x__4)
-    else let x__4 = 1 in
-    large__0 x__4 
-
-(fib)
-  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
-  > let rec fib n = if n<2 then n else fib (n - 1) + fib (n - 2) 
-  > EOF
-  > cat ../main.anf
-  let rec fib__0 = fun n__1 ->
-    let anf_t0 = n__1 < 2 in
-    if anf_t0 then (n__1)
-    else let anf_t1 = n__1 - 1 in
-    let anf_t2 = fib__0 anf_t1 in
-    let anf_t3 = n__1 - 2 in
-    let anf_t4 = fib__0 anf_t3 in
-    anf_t2 + anf_t4 
 
 (nested letin)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'

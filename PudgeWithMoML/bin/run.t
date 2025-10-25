@@ -1,6 +1,30 @@
-  $ make compile input=bin/my_manytests/fac_cc_ll --no-print-directory -C ..
+  $ make compile opts=-anf input=test/manytests/typed/010faccps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
+  $ cat ../main.anf
+  let id__0 = fun x__1 ->
+    x__1 
+  
+  
+  let fresh_1__2 = fun n__3 ->
+    fun k__4 ->
+    fun p__5 ->
+    let anf_t7 = p__5 * n__3 in
+    k__4 anf_t7 
+  
+  
+  let rec fac_cps__6 = fun n__7 ->
+    fun k__8 ->
+    let anf_t2 = n__7 = 1 in
+    if anf_t2 then (k__8 1)
+    else let anf_t4 = n__7 - 1 in
+    let anf_t5 = fresh_1__2 n__7 k__8 in
+    fac_cps__6 anf_t4 anf_t5 
+  
+  
+  let main__9 = let anf_t0 = fac_cps__6 4 id__0 in
+    let anf_t1 = print_int anf_t0 in
+    0 
   $ cat ../main.s
   .text
   .globl _start
@@ -166,9 +190,43 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/my_manytests/fib_cc_ll --no-print-directory -C ..
+  $ make compile opts=-anf input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   8
+  $ cat ../main.anf
+  let id__0 = fun x__1 ->
+    x__1 
+  
+  
+  let fresh_2__2 = fun p1__3 ->
+    fun k__4 ->
+    fun p2__5 ->
+    let anf_t10 = p1__3 + p2__5 in
+    k__4 anf_t10 
+  
+  
+  let fresh_1__6 = fun n__7 ->
+    fun k__8 ->
+    fun fib__9 ->
+    fun p1__10 ->
+    let anf_t7 = n__7 - 2 in
+    let anf_t8 = fresh_2__2 p1__10 k__8 in
+    fib__9 anf_t7 anf_t8 
+  
+  
+  let rec fib__11 = fun n__12 ->
+    fun k__13 ->
+    let anf_t2 = n__12 < 2 in
+    if anf_t2 then (k__13 n__12)
+    else let anf_t4 = n__12 - 1 in
+    let anf_t5 = fresh_1__6 n__12 k__13 fib__11 in
+    fib__11 anf_t4 anf_t5 
+  
+  
+  let main__14 = let anf_t0 = fib__11 6 id__0 in
+    let anf_t1 = print_int anf_t0 in
+    let z__15 = anf_t1 in
+    0 
   $ cat ../main.s
   .text
   .globl _start
@@ -404,9 +462,22 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/my_manytests/fact --no-print-directory -C ..
+  $ make compile opts=-anf input=bin/tests/fact --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   24
+  $ cat ../main.anf
+  let rec fac__0 = fun n__1 ->
+    let anf_t2 = n__1 <= 1 in
+    if anf_t2 then (1)
+    else let anf_t5 = n__1 - 1 in
+    let n1__2 = anf_t5 in
+    let anf_t4 = fac__0 n1__2 in
+    let m__3 = anf_t4 in
+    n__1 * m__3 
+  
+  
+  let main__4 = let anf_t0 = fac__0 4 in
+    print_int anf_t0 
   $ cat ../main.s
   .text
   .globl _start
@@ -481,9 +552,22 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/my_manytests/fib --no-print-directory -C ..
+  $ make compile opts=-anf input=bin/tests/fib --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   55
+  $ cat ../main.anf
+  let rec fib__0 = fun n__1 ->
+    let anf_t2 = n__1 < 2 in
+    if anf_t2 then (n__1)
+    else let anf_t3 = n__1 - 1 in
+    let anf_t4 = fib__0 anf_t3 in
+    let anf_t5 = n__1 - 2 in
+    let anf_t6 = fib__0 anf_t5 in
+    anf_t4 + anf_t6 
+  
+  
+  let main__2 = let anf_t0 = fib__0 10 in
+    print_int anf_t0 
   $ cat ../main.s
   .text
   .globl _start
@@ -570,10 +654,42 @@
     li a7, 94
     ecall
 
-  $ make compile input=bin/my_manytests/large_if --no-print-directory -C ..
+  $ make compile opts=-anf input=bin/tests/large_if --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
   42
   0
+  $ cat ../main.anf
+  let large__0 = fun x__1 ->
+    let anf_t9 = 0 <> x__1 in
+    if anf_t9 then (print_int 0)
+    else print_int 1 
+  
+  
+  let main__2 = let anf_t1 = 0 = 1 in
+    if anf_t1 then (let anf_t2 = 0 = 1 in
+    if anf_t2 then (let anf_t3 = 0 = 1 in
+    if anf_t3 then (let x__4 = 0 in
+    large__0 x__4)
+    else let x__4 = 1 in
+    large__0 x__4)
+    else let anf_t4 = 1 = 1 in
+    if anf_t4 then (let x__4 = 0 in
+    large__0 x__4)
+    else let x__4 = 1 in
+    large__0 x__4)
+    else let anf_t8 = print_int 42 in
+    let t42__3 = anf_t8 in
+    let anf_t5 = 1 = 1 in
+    if anf_t5 then (let anf_t6 = 0 = 1 in
+    if anf_t6 then (let x__4 = 0 in
+    large__0 x__4)
+    else let x__4 = 1 in
+    large__0 x__4)
+    else let anf_t7 = 1 = 1 in
+    if anf_t7 then (let x__4 = 0 in
+    large__0 x__4)
+    else let x__4 = 1 in
+    large__0 x__4 
   $ cat ../main.s
   .text
   .globl _start
