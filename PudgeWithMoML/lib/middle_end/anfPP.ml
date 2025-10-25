@@ -61,5 +61,6 @@ let pp_aprogram fmt (program : aprogram) =
       fprintf fmt "@\n")
     pp_astr_item
     fmt
-    program
+    program;
+  pp_print_flush fmt ()
 ;;

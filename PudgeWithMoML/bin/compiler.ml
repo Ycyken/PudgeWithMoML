@@ -54,7 +54,6 @@ let compiler opts =
               let oc = Out_channel.create "main.anf" in
               let fmt = Format.formatter_of_out_channel oc in
               pp_aprogram fmt anf;
-              pp_print_flush fmt ();
               Out_channel.close oc)
           in
           gen_aprogram fmt anf))
