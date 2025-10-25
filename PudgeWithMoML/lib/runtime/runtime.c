@@ -29,8 +29,8 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return clos;
 }
 
-void *copy_closure(INT8, void *f) {
-  closure *clos = f;
+void *copy_closure(INT8, closure *old_clos) {
+  closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
   for (size_t i = 0; i < clos->argc_recived; i++) {
@@ -50,47 +50,44 @@ typedef void *(*fun12)(INT8, void *, void *, void *, void *);
 #define WORD_SIZE (8)
 
 // get closure and apply [argc] arguments to closure
-void *apply_closure(INT8, void *f, uint8_t argc, ...) {
-  closure *clos = copy_closure(ZERO8, f);
+void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
+  closure *clos = copy_closure(ZERO8, old_clos);
   va_list list;
   va_start(list, argc);
 
   if (clos->argc_recived + argc > clos->argc) {
-    fprintf(stderr, "Runtime error: function accept more arguments than expect\n");
+    fprintf(stderr,
+            "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
 
-  // partial application
-  if (clos->argc_recived + argc != clos->argc) {
-    for (size_t i = 0; i < argc; i++) {
-      void *arg = va_arg(list, void *);
-      clos->args[clos->argc_recived++] = arg;
-    }
-
-    va_end(list);
-    return clos;
-  }
-
-  // full application (we need pass all arguments to stack and exec function)
-  // printf("FULL");
   for (size_t i = 0; i < argc; i++) {
     void *arg = va_arg(list, void *);
     clos->args[clos->argc_recived++] = arg;
   }
-  assert(clos->argc_recived == clos->argc);
   va_end(list);
 
+  // if application is partial
+  if (clos->argc_recived < clos->argc) {
+    return clos;
+  }
+
+  // full application (we need pass all arguments to stack and exec function)
+  assert(clos->argc_recived == clos->argc);
+
   switch (clos->argc) {
-  case 1:
-    return ((fun9)clos->code)(ZERO8, clos->args[0]);
-  case 2:
-    return ((fun10)clos->code)(ZERO8, clos->args[0], clos->args[1]);
-  case 3:
-    return ((fun11)clos->code)(ZERO8, clos->args[0], clos->args[1], clos->args[2]);
-  case 4:
-    return ((fun12)clos->code)(ZERO8, clos->args[0], clos->args[1], clos->args[2], clos->args[3]);
-  default:
-    exit(123);
+    case 1:
+      return ((fun9)clos->code)(ZERO8, clos->args[0]);
+    case 2:
+      return ((fun10)clos->code)(ZERO8, clos->args[0], clos->args[1]);
+    case 3:
+      return ((fun11)clos->code)(ZERO8, clos->args[0], clos->args[1],
+                                 clos->args[2]);
+    case 4:
+      return ((fun12)clos->code)(ZERO8, clos->args[0], clos->args[1],
+                                 clos->args[2], clos->args[3]);
+    default:
+      exit(123);
   }
 
   // inspired by rukaml, alloca push arguments in stack
