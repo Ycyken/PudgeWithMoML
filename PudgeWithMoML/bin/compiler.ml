@@ -10,6 +10,7 @@ open PudgeWithMoML.Frontend.Parser
 open PudgeWithMoML.Frontend.Inferencer
 open PudgeWithMoML.Middle_end.AlphaConversion
 open PudgeWithMoML.Middle_end.Anf
+open PudgeWithMoML.Middle_end.AnfPP
 open PudgeWithMoML.Riscv.Codegen
 open Stdio
 open Format
@@ -19,6 +20,7 @@ type opts =
   ; mutable output_file : string
   ; mutable dump_parsetree : bool
   ; mutable dump_types : bool
+  ; mutable dump_anf : bool
   }
 
 let compiler opts =
@@ -46,7 +48,16 @@ let compiler opts =
           let fmt = Format.formatter_of_out_channel oc in
           let a_converted = convert_program program in
           let anf = anf_program a_converted in
-          gen_aprogram anf fmt))
+          let () =
+            if opts.dump_anf
+            then (
+              let oc = Out_channel.create "main.anf" in
+              let fmt = Format.formatter_of_out_channel oc in
+              pp_aprogram fmt anf;
+              pp_print_flush fmt ();
+              Out_channel.close oc)
+          in
+          gen_aprogram fmt anf))
 ;;
 
 let () =
@@ -55,6 +66,7 @@ let () =
     ; output_file = "main.s"
     ; dump_parsetree = false
     ; dump_types = false
+    ; dump_anf = false
     }
   in
   let open Stdlib.Arg in
@@ -63,10 +75,13 @@ let () =
     ; "-o", String (fun filename -> opts.output_file <- filename), "Output file name"
     ; ( "-dparsetree"
       , Unit (fun _ -> opts.dump_parsetree <- true)
-      , "Dump parse tree, don't typecheck and evaluate anything" )
+      , "Dump parse tree, don't typecheck and codegen anything" )
     ; ( "-dtypes"
       , Unit (fun _ -> opts.dump_types <- true)
-      , "Dump types, don't evaluate anything" )
+      , "Dump types, don't codegen anything" )
+    ; ( "-anf"
+      , Unit (fun _ -> opts.dump_anf <- true)
+      , "Generate main.anf file with ANF representation" )
     ]
   in
   let anon_func _ =

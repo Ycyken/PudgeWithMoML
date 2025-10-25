@@ -21,10 +21,11 @@ coverage:
 	@echo "Use 'xdg-open _coverage/index.html' to see coverage report"
 
 input ?=
+opts ?=
 
 compile:
 	@riscv64-linux-gnu-gcc -S -march=rv64gc lib/runtime/runtime.c -o runtime.s
-	@dune exec compiler -- $(if $(input),-fromfile=$(input)) -o main.s
+	@dune exec compiler -- $(if $(input),-fromfile=$(input)) $(opts) -o main.s
 
 	@riscv64-linux-gnu-as -march=rv64gc main.s -o main.o
 	@riscv64-linux-gnu-as -march=rv64gc runtime.s -o runtime.o
