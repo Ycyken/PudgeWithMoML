@@ -9,10 +9,7 @@
 (cram
  (deps
   ./compiler.exe
-  my_manytests/fact
-  my_manytests/fib
-  my_manytests/large_if
-  my_manytests/fac_cc_ll
-  my_manytests/fib_cc_ll
   ../Makefile
-  ../lib/runtime/runtime.c))
+  ../lib/runtime/runtime.c
+  (glob_files tests/*)
+  (glob_files ../test/manytests/typed/*.ml)))
