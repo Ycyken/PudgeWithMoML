@@ -1,3 +1,4 @@
+( IT MUST BE AT THE START OF THE CRAM TEST )
   $ rm -f results.txt
   $ touch results.txt
 
@@ -920,6 +921,7 @@
     li a7, 94
     ecall
 
+( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
   24
   -----

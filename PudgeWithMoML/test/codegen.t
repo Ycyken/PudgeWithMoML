@@ -1,3 +1,7 @@
+( IT MUST BE AT THE START OF THE CRAM TEST )
+  $ rm -f results.txt
+  $ touch results.txt
+
 (print_int)
   $ make compile --no-print-directory -C .. << 'EOF'
   > let main = print_int 5
@@ -942,7 +946,7 @@
     homka__5: .dword 0
     homka122__6: .dword 0
 
-( IT MUST BE AT THE END OF THE CRAM TEST)
+( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
   5
   -----
