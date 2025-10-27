@@ -59,6 +59,7 @@ type instr =
   | Call of string
   | Ret
   | Label of string
+  | Directive of string
   | Comment of string
   (* Global 8 byte variable *)
   | DWord of string
@@ -93,6 +94,7 @@ let pp_instr fmt =
   | Call symbol -> fprintf fmt "call %s" symbol
   | Ret -> fprintf fmt "ret"
   | Label label -> fprintf fmt "%s:" label
+  | Directive name -> fprintf fmt "%s" name
   | Comment comment -> fprintf fmt "# %s" comment
   | DWord name -> fprintf fmt "%s: .dword 0" name
 ;;
@@ -124,5 +126,6 @@ let ecall = Ecall
 let call symbol = Call symbol
 let ret = Ret
 let label l = Label l
+let directive l = Directive l
 let comment c = Comment c
 let dword name = DWord name
