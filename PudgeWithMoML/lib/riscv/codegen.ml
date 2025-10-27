@@ -87,11 +87,6 @@ let imm_of_literal : literal -> int = function
 (* Generate code that puts imm value to dst reg *)
 (* Note: gen_imm overwrite **regs t5 and t6** for internal work *)
 let gen_imm dst imm =
-  let* () =
-    match dst with
-    | T 5 | T 6 -> fail "gen_imm use for internal work t5 and t6 regs, choose another"
-    | _ -> return ()
-  in
   match imm with
   | ImmConst lt ->
     let imm = imm_of_literal lt in
