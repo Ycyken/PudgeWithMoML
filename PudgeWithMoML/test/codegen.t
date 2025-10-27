@@ -2,18 +2,17 @@
   $ make compile --no-print-directory -C .. << 'EOF'
   > let main = print_int 5
   > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   5
   $ cat ../main.s
   .text
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
-    sd a0, -8(fp)
   # Apply print_int
     li a0, 5
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -26,7 +25,7 @@
   > let main = print_int (add 5 2)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   7
   $ cat ../main.anf
   let add__0 = fun x__1 ->
@@ -38,7 +37,6 @@
     print_int anf_t0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl add__0
   add__0:
     addi sp, sp, -16
@@ -52,10 +50,10 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply add__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -70,10 +68,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply add__0 with 2 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -86,7 +85,7 @@
   > let main = print_int (homka 122 1 2 3 4 5 6 7 8 9 10 11)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   122
   $ cat ../main.anf
   let homka__0 = fun x0__1 ->
@@ -109,7 +108,6 @@
 
   $ cat ../main.s
   .text
-  .globl _start
   .globl homka__0
   homka__0:
     addi sp, sp, -16
@@ -121,10 +119,10 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply homka__0 with 12 args
   # Load args on stack
     addi sp, sp, -96
@@ -159,10 +157,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply homka__0 with 12 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -175,7 +174,7 @@
   > let main = print_int (id 5 5)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   5
   $ cat ../main.anf
   let id__0 = fun x1__1 ->
@@ -187,7 +186,6 @@
     print_int anf_t0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl id__0
   id__0:
     addi sp, sp, -16
@@ -199,10 +197,10 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply id__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -217,10 +215,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply id__0 with 2 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -234,7 +233,7 @@
   > let main = print_int (app inc 5)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   6
   $ cat ../main.anf
   let app__0 = fun f__1 ->
@@ -251,7 +250,6 @@
 
   $ cat ../main.s
   .text
-  .globl _start
   .globl app__0
   app__0:
     addi sp, sp, -24
@@ -293,18 +291,18 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply app__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
     addi sp, sp, -16
-    la t0, inc__3
-    li t1, 1
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, inc__3
+    li t6, 1
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -318,10 +316,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply app__0 with 2 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -332,7 +331,7 @@
   $ make compile --no-print-directory -C .. << 'EOF'
   > let res = let x = 10 in let t = (let x = 20 in print_int x) in print_int x
   > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   20
   10
   $ cat ../main.s
@@ -340,23 +339,23 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -40
-    sd a0, -8(fp)
+    addi sp, sp, -32
     li t0, 10
-    sd t0, -16(fp)
+    sd t0, -8(fp)
     li t0, 20
-    sd t0, -24(fp)
-  # Apply print_int
-    ld a0, -24(fp)
-    call print_int
-    mv t0, a0
-  # End Apply print_int
-    sd t0, -32(fp)
-    ld t0, -32(fp)
-    sd t0, -40(fp)
+    sd t0, -16(fp)
   # Apply print_int
     ld a0, -16(fp)
     call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    sd t0, -32(fp)
+  # Apply print_int
+    ld a0, -8(fp)
+    call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -369,7 +368,7 @@
   > let main = let inc = add 1 in print_int (inc 121)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   122
   $ cat ../main.anf
   let add__0 = fun x__1 ->
@@ -383,7 +382,6 @@
     print_int anf_t0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl add__0
   add__0:
     addi sp, sp, -16
@@ -397,18 +395,18 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -40
-    sd a0, -8(fp)
+    addi sp, sp, -32
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
-    la t0, add__0
-    li t1, 2
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, add__0
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -424,15 +422,15 @@
     addi sp, sp, 32
   # End free args on stack
   # End Partial application add__0 with 1 args
+    sd t0, -8(fp)
+    ld t0, -8(fp)
     sd t0, -16(fp)
+  # Apply inc__4 with 1 args
     ld t0, -16(fp)
     sd t0, -24(fp)
-  # Apply inc__4 with 1 args
-    ld t0, -24(fp)
-    sd t0, -32(fp)
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, -24(fp)
     sd t0, 0(sp)
     li t0, 1
     sd t0, 8(sp)
@@ -445,10 +443,11 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply inc__4 with 1 args
-    sd t0, -40(fp)
+    sd t0, -32(fp)
   # Apply print_int
-    ld a0, -40(fp)
+    ld a0, -32(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -461,7 +460,7 @@
   > let main = let inc = add 1 in let _ = print_int (inc 121) in print_int (inc 122)
   > EOF
 
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   122
   123
   $ cat ../main.anf
@@ -479,7 +478,6 @@
 
   $ cat ../main.s
   .text
-  .globl _start
   .globl add__0
   add__0:
     addi sp, sp, -16
@@ -493,18 +491,18 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -64
-    sd a0, -8(fp)
+    addi sp, sp, -56
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
-    la t0, add__0
-    li t1, 2
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, add__0
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -520,15 +518,15 @@
     addi sp, sp, 32
   # End free args on stack
   # End Partial application add__0 with 1 args
+    sd t0, -8(fp)
+    ld t0, -8(fp)
     sd t0, -16(fp)
+  # Apply inc__4 with 1 args
     ld t0, -16(fp)
     sd t0, -24(fp)
-  # Apply inc__4 with 1 args
-    ld t0, -24(fp)
-    sd t0, -32(fp)
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, -24(fp)
     sd t0, 0(sp)
     li t0, 1
     sd t0, 8(sp)
@@ -541,19 +539,19 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply inc__4 with 1 args
-    sd t0, -40(fp)
+    sd t0, -32(fp)
   # Apply print_int
-    ld a0, -40(fp)
+    ld a0, -32(fp)
     call print_int
     mv t0, a0
   # End Apply print_int
-    sd t0, -48(fp)
+    sd t0, -40(fp)
   # Apply inc__4 with 1 args
-    ld t0, -24(fp)
-    sd t0, -56(fp)
+    ld t0, -16(fp)
+    sd t0, -48(fp)
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -56(fp)
+    ld t0, -48(fp)
     sd t0, 0(sp)
     li t0, 1
     sd t0, 8(sp)
@@ -566,12 +564,409 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply inc__4 with 1 args
-    sd t0, -64(fp)
+    sd t0, -56(fp)
   # Apply print_int
-    ld a0, -64(fp)
+    ld a0, -56(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
     li a7, 94
     ecall
+
+(Global variables and .data section)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let x = 4
+  > let x = 5
+  > let main = print_int 5
+  > EOF
+
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  5
+  $ cp ../main.exe /home/homka/code/asm/homka.exe
+  $ cat ../main.anf
+  let x__0 = 4 
+  
+  
+  let x__1 = 5 
+  
+  
+  let main__2 = print_int 5 
+
+  $ cat ../main.s
+  .text
+  .globl _start
+  _start:
+    li t0, 4
+    la t1, x__0
+    sd t0, 0(t1)
+    li t0, 5
+    la t1, x__1
+    sd t0, 0(t1)
+    mv fp, sp
+  # Apply print_int
+    li a0, 5
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  
+    load_gp:
+  .option push
+  .option norelax
+    lla   gp, __global_pointer$
+  .option pop
+    ret
+  
+    .section .preinit_array,"aw"
+    .align 8
+    .dc.a load_gp
+  
+  /* Define a symbol for the first piece of initialized data.  */
+    .data
+    .globl __data_start
+  __data_start:
+    .weak data_start
+    data_start = __data_start
+    x__0: .dword 0
+    x__1: .dword 0
+
+(Global variables with partial application)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let add x y = x + y
+  > let add5 = add 5
+  > let main = print_int (add5 117)
+  > EOF
+
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  122
+  $ cp ../main.exe /home/homka/code/asm/homka.exe
+  $ cat ../main.anf
+  let add__0 = fun x__1 ->
+    fun y__2 ->
+    x__1 + y__2 
+  
+  
+  let add5__3 = add__0 5 
+  
+  
+  let main__4 = let anf_t0 = add5__3 117 in
+    print_int anf_t0 
+
+  $ cat ../main.s
+  .text
+  .globl add__0
+  add__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld t0, 0(fp)
+    ld t1, 8(fp)
+    add a0, t0, t1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+  # Partial application add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, add__0
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 5
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application add__0 with 1 args
+    la t1, add5__3
+    sd t0, 0(t1)
+    mv fp, sp
+    addi sp, sp, -16
+  # Apply add5__3 with 1 args
+    la t5, add5__3
+    ld t0, 0(t5)
+    sd t0, -8(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -8(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 117
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply add5__3 with 1 args
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  
+    load_gp:
+  .option push
+  .option norelax
+    lla   gp, __global_pointer$
+  .option pop
+    ret
+  
+    .section .preinit_array,"aw"
+    .align 8
+    .dc.a load_gp
+  
+  /* Define a symbol for the first piece of initialized data.  */
+    .data
+    .globl __data_start
+  __data_start:
+    .weak data_start
+    data_start = __data_start
+    add5__3: .dword 0
+
+(A lot of global variables with partial application)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let add x y = x + y
+  > let add5 = add 5
+  > let inc = add 1
+  > let homka = 17
+  > let homka122 = add 120 2
+  > let main = let _ = print_int (add5 110) in let _ = print_int homka122 in print_int homka
+  > EOF
+
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  115
+  122
+  17
+  $ cp ../main.exe /home/homka/code/asm/homka.exe
+  $ cat ../main.anf
+  let add__0 = fun x__1 ->
+    fun y__2 ->
+    x__1 + y__2 
+  
+  
+  let add5__3 = add__0 5 
+  
+  
+  let inc__4 = add__0 1 
+  
+  
+  let homka__5 = 17 
+  
+  
+  let homka122__6 = add__0 120 2 
+  
+  
+  let main__7 = let anf_t2 = add5__3 110 in
+    let anf_t3 = print_int anf_t2 in
+    let anf_t1 = print_int homka122__6 in
+    print_int homka__5 
+
+  $ cat ../main.s
+  .text
+  .globl add__0
+  add__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld t0, 0(fp)
+    ld t1, 8(fp)
+    add a0, t0, t1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+  # Partial application add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, add__0
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 5
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application add__0 with 1 args
+    la t1, add5__3
+    sd t0, 0(t1)
+  # Partial application add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, add__0
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Partial application add__0 with 1 args
+    la t1, inc__4
+    sd t0, 0(t1)
+    li t0, 17
+    la t1, homka__5
+    sd t0, 0(t1)
+  # Apply add__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 120
+    sd t0, 0(sp)
+    li t0, 2
+    sd t0, 8(sp)
+  # End loading args on stack
+    call add__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply add__0 with 2 args
+    la t1, homka122__6
+    sd t0, 0(t1)
+    mv fp, sp
+    addi sp, sp, -32
+  # Apply add5__3 with 1 args
+    la t5, add5__3
+    ld t0, 0(t5)
+    sd t0, -8(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -8(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 110
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply add5__3 with 1 args
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -24(fp)
+  # Apply print_int
+    la t5, homka122__6
+    ld a0, 0(t5)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -32(fp)
+  # Apply print_int
+    la t5, homka__5
+    ld a0, 0(t5)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  
+    load_gp:
+  .option push
+  .option norelax
+    lla   gp, __global_pointer$
+  .option pop
+    ret
+  
+    .section .preinit_array,"aw"
+    .align 8
+    .dc.a load_gp
+  
+  /* Define a symbol for the first piece of initialized data.  */
+    .data
+    .globl __data_start
+  __data_start:
+    .weak data_start
+    data_start = __data_start
+    add5__3: .dword 0
+    inc__4: .dword 0
+    homka__5: .dword 0
+    homka122__6: .dword 0
+
+( IT MUST BE AT THE END OF THE CRAM TEST)
+  $ cat results.txt
+  5
+  -----
+  7
+  -----
+  122
+  -----
+  5
+  -----
+  6
+  -----
+  20
+  10
+  -----
+  122
+  -----
+  122
+  123
+  -----
+  5
+  -----
+  122
+  -----
+  115
+  122
+  17
+  -----

@@ -1,5 +1,8 @@
+  $ rm -f results.txt
+  $ touch results.txt
+
   $ make compile opts=-anf input=test/manytests/typed/010faccps_ll.ml --no-print-directory -C ..
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe | tee -a results.txt && echo "-----" >> results.txt
   24
   $ cat ../main.anf
   let id__0 = fun x__1 ->
@@ -27,7 +30,6 @@
     0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl id__0
   id__0:
     addi sp, sp, -16
@@ -112,10 +114,10 @@
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
-    la t0, fresh_1__2
-    li t1, 3
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, fresh_1__2
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -152,20 +154,20 @@
     ld fp, 32(sp)
     addi sp, sp, 48
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -24
-    sd a0, -8(fp)
+    addi sp, sp, -16
   # Apply fac_cps__6 with 2 args
   # Load args on stack
     addi sp, sp, -16
     li t0, 4
     sd t0, 0(sp)
     addi sp, sp, -16
-    la t0, id__0
-    li t1, 1
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, id__0
+    li t6, 1
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -177,21 +179,21 @@
   # End free args on stack
     mv t0, a0
   # End Apply fac_cps__6 with 2 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
     mv t0, a0
   # End Apply print_int
-    sd t0, -24(fp)
-    li a0, 0
+    sd t0, -16(fp)
+    li t0, 0
     call flush
     li a0, 0
     li a7, 94
     ecall
 
   $ make compile opts=-anf input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   8
   $ cat ../main.anf
   let id__0 = fun x__1 ->
@@ -229,7 +231,6 @@
     0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl id__0
   id__0:
     addi sp, sp, -16
@@ -287,10 +288,10 @@
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
-    la t0, fresh_2__2
-    li t1, 3
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, fresh_2__2
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -373,10 +374,10 @@
   # Load args on stack
     addi sp, sp, -48
     addi sp, sp, -16
-    la t0, fresh_1__6
-    li t1, 4
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, fresh_1__6
+    li t6, 4
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -388,10 +389,10 @@
     ld t0, 8(fp)
     sd t0, 24(sp)
     addi sp, sp, -16
-    la t0, fib__11
-    li t1, 2
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, fib__11
+    li t6, 2
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -422,20 +423,20 @@
     ld fp, 32(sp)
     addi sp, sp, 48
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -32
-    sd a0, -8(fp)
+    addi sp, sp, -24
   # Apply fib__11 with 2 args
   # Load args on stack
     addi sp, sp, -16
     li t0, 6
     sd t0, 0(sp)
     addi sp, sp, -16
-    la t0, id__0
-    li t1, 1
-    sd t0, 0(sp)
-    sd t1, 8(sp)
+    la t5, id__0
+    li t6, 1
+    sd t5, 0(sp)
+    sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
@@ -447,23 +448,23 @@
   # End free args on stack
     mv t0, a0
   # End Apply fib__11 with 2 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
     mv t0, a0
   # End Apply print_int
+    sd t0, -16(fp)
+    ld t0, -16(fp)
     sd t0, -24(fp)
-    ld t0, -24(fp)
-    sd t0, -32(fp)
-    li a0, 0
+    li t0, 0
     call flush
     li a0, 0
     li a7, 94
     ecall
 
   $ make compile opts=-anf input=bin/tests/fact --no-print-directory -C ..
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   24
   $ cat ../main.anf
   let rec fac__0 = fun n__1 ->
@@ -480,7 +481,6 @@
     print_int anf_t0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl fac__0
   fac__0:
     addi sp, sp, -56
@@ -526,10 +526,10 @@
     ld fp, 40(sp)
     addi sp, sp, 56
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply fac__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
@@ -542,10 +542,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply fac__0 with 1 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -553,7 +554,7 @@
     ecall
 
   $ make compile opts=-anf input=bin/tests/fib --no-print-directory -C ..
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   55
   $ cat ../main.anf
   let rec fib__0 = fun n__1 ->
@@ -570,7 +571,6 @@
     print_int anf_t0 
   $ cat ../main.s
   .text
-  .globl _start
   .globl fib__0
   fib__0:
     addi sp, sp, -56
@@ -628,10 +628,10 @@
     ld fp, 40(sp)
     addi sp, sp, 56
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
-    sd a0, -8(fp)
+    addi sp, sp, -8
   # Apply fib__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
@@ -644,10 +644,11 @@
   # End free args on stack
     mv t0, a0
   # End Apply fib__0 with 1 args
-    sd t0, -16(fp)
+    sd t0, -8(fp)
   # Apply print_int
-    ld a0, -16(fp)
+    ld a0, -8(fp)
     call print_int
+    mv t0, a0
   # End Apply print_int
     call flush
     li a0, 0
@@ -655,7 +656,7 @@
     ecall
 
   $ make compile opts=-anf input=bin/tests/large_if --no-print-directory -C ..
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   42
   0
   $ cat ../main.anf
@@ -692,7 +693,6 @@
     large__0 x__4 
   $ cat ../main.s
   .text
-  .globl _start
   .globl large__0
   large__0:
     addi sp, sp, -24
@@ -721,32 +721,48 @@
     ld fp, 8(sp)
     addi sp, sp, 24
     ret
+  .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -144
-    sd a0, -8(fp)
+    addi sp, sp, -136
+    li t0, 0
+    li t1, 1
+    sub t0, t0, t1
+    seqz t0, t0
+    sd t0, -8(fp)
+    ld t0, -8(fp)
+    beq t0, zero, L14
     li t0, 0
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -16(fp)
     ld t0, -16(fp)
-    beq t0, zero, L14
+    beq t0, zero, L6
     li t0, 0
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -24(fp)
     ld t0, -24(fp)
-    beq t0, zero, L6
-    li t0, 0
-    li t1, 1
-    sub t0, t0, t1
-    seqz t0, t0
-    sd t0, -32(fp)
-    ld t0, -32(fp)
     beq t0, zero, L2
     li t0, 0
+    sd t0, -32(fp)
+  # Apply large__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+  # End loading args on stack
+    call large__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply large__0 with 1 args
+    j L3
+  L2:
+    li t0, 1
     sd t0, -40(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -758,21 +774,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-  # End Apply large__0 with 1 args
-    j L3
-  L2:
-    li t0, 1
-    sd t0, -48(fp)
-  # Apply large__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -48(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call large__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
+    mv t0, a0
   # End Apply large__0 with 1 args
   L3:
     j L7
@@ -781,10 +783,26 @@
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -56(fp)
-    ld t0, -56(fp)
+    sd t0, -48(fp)
+    ld t0, -48(fp)
     beq t0, zero, L4
     li t0, 0
+    sd t0, -56(fp)
+  # Apply large__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -56(fp)
+    sd t0, 0(sp)
+  # End loading args on stack
+    call large__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply large__0 with 1 args
+    j L5
+  L4:
+    li t0, 1
     sd t0, -64(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -796,21 +814,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-  # End Apply large__0 with 1 args
-    j L5
-  L4:
-    li t0, 1
-    sd t0, -72(fp)
-  # Apply large__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -72(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call large__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
+    mv t0, a0
   # End Apply large__0 with 1 args
   L5:
   L7:
@@ -821,24 +825,40 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    sd t0, -72(fp)
+    ld t0, -72(fp)
     sd t0, -80(fp)
-    ld t0, -80(fp)
-    sd t0, -88(fp)
     li t0, 1
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -96(fp)
-    ld t0, -96(fp)
+    sd t0, -88(fp)
+    ld t0, -88(fp)
     beq t0, zero, L12
     li t0, 0
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -104(fp)
-    ld t0, -104(fp)
+    sd t0, -96(fp)
+    ld t0, -96(fp)
     beq t0, zero, L8
     li t0, 0
+    sd t0, -104(fp)
+  # Apply large__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -104(fp)
+    sd t0, 0(sp)
+  # End loading args on stack
+    call large__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply large__0 with 1 args
+    j L9
+  L8:
+    li t0, 1
     sd t0, -112(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -850,21 +870,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-  # End Apply large__0 with 1 args
-    j L9
-  L8:
-    li t0, 1
-    sd t0, -120(fp)
-  # Apply large__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -120(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call large__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
+    mv t0, a0
   # End Apply large__0 with 1 args
   L9:
     j L13
@@ -873,10 +879,26 @@
     li t1, 1
     sub t0, t0, t1
     seqz t0, t0
-    sd t0, -128(fp)
-    ld t0, -128(fp)
+    sd t0, -120(fp)
+    ld t0, -120(fp)
     beq t0, zero, L10
     li t0, 0
+    sd t0, -128(fp)
+  # Apply large__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -128(fp)
+    sd t0, 0(sp)
+  # End loading args on stack
+    call large__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply large__0 with 1 args
+    j L11
+  L10:
+    li t0, 1
     sd t0, -136(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -888,21 +910,7 @@
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-  # End Apply large__0 with 1 args
-    j L11
-  L10:
-    li t0, 1
-    sd t0, -144(fp)
-  # Apply large__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -144(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call large__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
+    mv t0, a0
   # End Apply large__0 with 1 args
   L11:
   L13:
@@ -911,3 +919,16 @@
     li a0, 0
     li a7, 94
     ecall
+
+  $ cat results.txt
+  24
+  -----
+  8
+  -----
+  24
+  -----
+  55
+  -----
+  42
+  0
+  -----

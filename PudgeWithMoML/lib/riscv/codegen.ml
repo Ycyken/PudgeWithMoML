@@ -14,6 +14,7 @@ open Middle_end.Anf
 type location =
   | Stack of int
   | Function of int (* arity of function *)
+  | Global (* bss section *)
 [@@deriving eq]
 
 let word_size = 8
@@ -83,7 +84,15 @@ let imm_of_literal : literal -> int = function
   | Unit_lt -> 1
 ;;
 
-let gen_imm dst = function
+(* Generate code that puts imm value to dst reg *)
+(* Note: gen_imm overwrite **regs t5 and t6** for internal work *)
+let gen_imm dst imm =
+  let* () =
+    match dst with
+    | T 5 | T 6 -> fail "gen_imm use for internal work t5 and t6 regs, choose another"
+    | _ -> return ()
+  in
+  match imm with
   | ImmConst lt ->
     let imm = imm_of_literal lt in
     M.return [ li dst imm ]
@@ -95,14 +104,15 @@ let gen_imm dst = function
      | Some (Function arity) ->
        return
          [ addi Sp Sp (-16)
-         ; la (T 0) x
-         ; li (T 1) arity
-         ; sd (T 0) 0 Sp
-         ; sd (T 1) 8 Sp
+         ; la (T 5) x
+         ; li (T 6) arity
+         ; sd (T 5) 0 Sp
+         ; sd (T 6) 8 Sp
          ; call "alloc_closure"
          ; mv dst (A 0)
          ; addi Sp Sp 16
          ]
+     | Some Global -> return [ la (T 5) x; ld dst 0 (T 5) ]
      | _ -> fail ("unbound variable: " ^ x))
 ;;
 
@@ -130,8 +140,8 @@ let load_args_on_stack (args : imm list) : instr list t =
 let pp_instrs code fmt =
   let open Format in
   Base.List.iter code ~f:(function
-    | Label l when String.starts_with ~prefix:".globl " l -> fprintf fmt "%s\n" l
     | Label l -> fprintf fmt "%s:\n" l
+    | Directive l -> fprintf fmt "%s\n" l
     | Comment c -> fprintf fmt "# %s\n" c
     | i -> fprintf fmt "  %a\n" pp_instr i)
 ;;
@@ -247,10 +257,10 @@ let%expect_test "alloc_closure_test" =
     # Load args on stack
       addi sp, sp, -16
       addi sp, sp, -16
-      la t0, homka
-      li t1, 5
-      sd t0, 0(sp)
-      sd t1, 8(sp)
+      la t5, homka
+      li t6, 5
+      sd t5, 0(sp)
+      sd t6, 8(sp)
       call alloc_closure
       mv t0, a0
       addi sp, sp, 16
@@ -390,47 +400,61 @@ and gen_aexpr (is_top_level : string -> bool * int) dst = function
   | _ -> fail "gen_aexpr case not implemented yet"
 ;;
 
-let gen_astr_item (is_top_level : string -> bool * int) : astr_item -> instr list M.t
+let gen_astr_item ?(is_main = false) (is_top_level : string -> bool * int)
+  : astr_item -> instr list M.t
   = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
     let arity = is_top_level f |> snd in
     let* () = save_fun_on_stack f arity in
     let+ code = gen_cexpr is_top_level (T 0) lam in
-    [ label (Format.asprintf ".globl %s" f); label f ] @ code
+    [ directive (Format.asprintf ".globl %s" f); label f ] @ code
   | Nonrec, (name, e), [] ->
-    let* off = save_var_on_stack name in
-    let+ code = gen_aexpr is_top_level (A 0) e in
-    [ sd (A 0) (-off) fp ] @ code
+    (* let* off = save_var_on_stack name in *)
+    let* () = add_binding name Global in
+    let+ code = gen_aexpr is_top_level (T 0) e in
+    code @ if is_main then [] else [ la (T 1) name; sd (T 0) 0 (T 1) ]
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     fail (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
 ;;
 
-let rec gather is_top_level : aprogram -> instr list M.t = function
-  | [] -> M.return []
-  | [ item ] ->
-    let* code = gen_astr_item is_top_level item in
-    let+ frame = M.get_frame_offset in
-    [ label "_start"; mv fp Sp; addi Sp Sp (-frame) ]
-    @ code
-    @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
-  | item :: rest ->
-    let* code1 = gen_astr_item is_top_level item in
-    let+ code2 = gather is_top_level rest in
-    code1 @ code2
+let gen_bss_section (pr : aprogram) : instr list t =
+  (* get list of global variables that are not functions and generate bss section (local variables) *)
+  let get_globals_variables (pr : aprogram) : ident list t =
+    let rec helper acc (astrs : astr_item list) =
+      (* TODO: now it's wrong if we have program with inner function in ALet expr *)
+      (* Ex: let homka = let x = 5 in fun y -> x + y // it's function that must be on top level *)
+      (* But now we check now without depth in ANF tree *)
+      match astrs with
+      | [ _ ] -> List.rev acc |> return
+      | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
+      | (_, (name, _), []) :: tl -> helper (name :: acc) tl
+      | _ -> fail "Not impelemented"
+    in
+    helper [] pr
+  in
+  let* vars = get_globals_variables pr in
+  if List.length vars = 0
+  then return []
+  else (
+    let local_vars = List.map (fun v -> DWord v) vars in
+    local_vars |> return)
 ;;
 
-let gen_aprogram fmt (pr : aprogram) =
-  let open Format in
-  (* If function top-level or it's just, for example, argument *)
-  let get_list_args arg body =
-    let rec helper acc = function
-      | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
-      | e -> List.rev acc, e
-    in
-    helper [ arg ] body |> fst
-  in
+(* Go through list of astr_item generate three type code *)
+(* 1) Code for initialization variables of bss section (exec after _start) *)
+(* 2) Code for functions *)
+(* 3) Code for main (last astr_item) *)
+let gather pr : instr list t =
   let is_top_level name =
+    (* If function top-level or it's just, for example, argument *)
+    let get_list_args arg body =
+      let rec helper acc = function
+        | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
+        | e -> List.rev acc, e
+      in
+      helper [ arg ] body |> fst
+    in
     let rec helper (astr : astr_item list) =
       match astr with
       | (_, (f, ACExpr (CLambda (arg, body))), []) :: tl ->
@@ -441,9 +465,83 @@ let gen_aprogram fmt (pr : aprogram) =
     in
     helper pr
   in
-  fprintf fmt ".text\n";
-  fprintf fmt ".globl _start\n";
-  match M.run (gather is_top_level pr) M.default |> snd with
+  let is_function = function
+    | _, (_, ACExpr (CLambda (_, _))), [] -> true
+    | _ -> false
+  in
+  let+ bss_code, functions_code, main_code =
+    let rec helper acc = function
+      | [] -> M.return acc
+      | [ item ] ->
+        if is_function item
+        then fail "Why main function is just a another function?"
+        else (
+          let bss_code, functions_code, main_code = acc in
+          let* code = gen_astr_item ~is_main:true is_top_level item in
+          let* frame = M.get_frame_offset in
+          let code =
+            [ mv fp Sp ]
+            @ (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
+            @ code
+            @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
+          in
+          helper (bss_code, functions_code, main_code @ code) [])
+      | item :: rest ->
+        let bss_code, functions_code, main_code = acc in
+        let* code = gen_astr_item is_top_level item in
+        if is_function item
+        then helper (bss_code, functions_code @ code, main_code) rest
+        else helper (bss_code @ code, functions_code, main_code) rest
+    in
+    helper ([], [], []) pr
+  in
+  [ directive ".text" ]
+  @ functions_code
+  @ [ directive ".globl _start"; label "_start" ]
+  @ bss_code
+  @ main_code
+;;
+
+(* I have bug with uninitialized gp pointer *)
+(* Took from https://github.com/bminor/glibc/blob/00d406e77bb0e49d79dc1b13d7077436ee5cdf14/sysdeps/riscv/start.S#L82 *)
+let gp_code =
+  {|
+  load_gp:
+.option push
+.option norelax
+  lla   gp, __global_pointer$
+.option pop
+  ret
+
+  .section .preinit_array,"aw"
+  .align 8
+  .dc.a load_gp
+
+/* Define a symbol for the first piece of initialized data.  */
+  .data
+  .globl __data_start
+__data_start:
+  .weak data_start
+  data_start = __data_start
+|}
+;;
+
+let gen_aprogram fmt (pr : aprogram) =
+  let code =
+    let* bss_section = gen_bss_section pr in
+    let+ main_code = gather pr in
+    main_code, bss_section
+  in
+  (* (match M.run bss_section M.default |> snd with
+   | Error msg -> Error msg
+   | Ok code -> Ok (pp_instrs code fmt)); *)
+  match M.run code M.default |> snd with
   | Error msg -> Error msg
-  | Ok code -> Ok (pp_instrs code fmt)
+  | Ok (main_code, bss_section) ->
+    pp_instrs main_code fmt;
+    if List.length bss_section = 0
+    then Ok ()
+    else (
+      Format.pp_print_string fmt gp_code;
+      Ok (pp_instrs bss_section fmt))
 ;;
