@@ -70,9 +70,8 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
         let* ehole = expr_with_hole (ImmVar temp) in
         mk_alet Nonrec temp (CBinop (f, i1, i2)) ehole |> return))
   | Lambda (PVar arg, body) ->
-    let+ body' = anf body expr_with_hole in
-    let lambda = CLambda (arg, body') in
-    ACExpr lambda
+    let+ body' = anf body (fun i -> ACExpr (CImm i) |> return) in
+    ACExpr (CLambda (arg, body'))
   | Apply ((Apply (_, _) as app), arg1) ->
     let f, args =
       let rec helper e =
