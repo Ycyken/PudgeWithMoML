@@ -46,7 +46,7 @@ let compiler opts =
         (match program |> convert_program |> anf_program with
          | Error e -> eprintf "ANF conversion error: %s\n" e
          | Ok anf ->
-           (match convert_cc_pr anf |> snd with
+           (match convert_cc_pr anf with
             | Error e -> eprintf "ANF closure conversion error: %s\n" e
             | Ok anf ->
               let anf = convert_ll_pr anf in

@@ -45,11 +45,11 @@ and get_fv_aexpr is_top_level = function
     FVSet.union cexpr_fv aexpr_fv
 ;;
 
-let pp_fv_set (set : FVSet.t) =
+(* let pp_fv_set (set : FVSet.t) =
   let open Format in
   let elements = FVSet.elements set in
   printf "[%s]" (String.concat ", " elements)
-;;
+;; *)
 
 (* let%expect_test "homka test" =
   (* let homka = x + y in f x homka *)
@@ -267,5 +267,5 @@ let convert_cc_pr (pr : aprogram) =
       helper ((is_rec, (name, aexpr'), binds) :: acc) tl
     | [] -> return (List.rev acc)
   in
-  run (helper [] pr) default
+  run (helper [] pr) default |> snd
 ;;
