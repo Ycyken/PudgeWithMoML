@@ -922,7 +922,7 @@
     ecall
 
 
-  $ make compile opts=-anf input=bin/tests/012faccps.ml --no-print-directory -C ..
+  $ make compile opts=-anf input=test/manytests/typed/012faccps.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   720
   $ cat ../main.anf
@@ -1119,7 +1119,7 @@
     ecall
 
 
-  $ make compile opts=-anf input=bin/tests/012fibcps.ml --no-print-directory -C ..
+  $ make compile opts=-anf input=test/manytests/typed/012fibcps.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   8
   $ cat ../main.anf
