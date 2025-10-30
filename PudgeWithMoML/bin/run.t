@@ -921,6 +921,466 @@
     li a7, 94
     ecall
 
+
+  $ make compile opts=-anf input=bin/tests/012faccps.ml --no-print-directory -C ..
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  720
+  $ cat ../main.anf
+  let f__0 = fun k__2__new ->
+    fun n__1__new ->
+    fun a__3 ->
+    let anf_t6 = a__3 * n__1__new in
+    k__2__new anf_t6 
+  
+  
+  let rec fac__0 = fun n__1 ->
+    fun k__2 ->
+    let anf_t3 = n__1 < 2 in
+    if anf_t3 then (k__2 1)
+    else let anf_t5 = n__1 - 1 in
+    let arg__0 = f__0 in
+    let anf_t8 = arg__0 k__2 n__1 in
+    fac__0 anf_t5 anf_t8 
+  
+  
+  let f__1 = fun x__5 ->
+    x__5 
+  
+  
+  let main__4 = let anf_t0 = f__1 in
+    let anf_t1 = fac__0 6 anf_t0 in
+    print_int anf_t1 
+
+  $ cat ../main.s
+  .text
+  .globl f__0
+  f__0:
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    ld t0, 16(fp)
+    ld t1, 8(fp)
+    mul t0, t0, t1
+    sd t0, -24(fp)
+  # Apply k__2__new with 1 args
+    ld t0, 0(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    ld t0, -24(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply k__2__new with 1 args
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
+    ret
+  .globl fac__0
+  fac__0:
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
+    ld t0, 0(fp)
+    li t1, 2
+    slt t0, t0, t1
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    beq t0, zero, L3
+  # Apply k__2 with 1 args
+    ld t0, 8(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply k__2 with 1 args
+    j L4
+  L3:
+    ld t0, 0(fp)
+    li t1, 1
+    sub t0, t0, t1
+    sd t0, -40(fp)
+    addi sp, sp, -16
+    la t5, f__0
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, -48(fp)
+  # Apply arg__0 with 2 args
+    ld t0, -48(fp)
+    sd t0, -56(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -56(fp)
+    sd t0, 0(sp)
+    li t0, 2
+    sd t0, 8(sp)
+    ld t0, 8(fp)
+    sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply arg__0 with 2 args
+    sd t0, -64(fp)
+  # Apply fac__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -40(fp)
+    sd t0, 0(sp)
+    ld t0, -64(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fac__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  # End Apply fac__0 with 2 args
+  L4:
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
+    ret
+  .globl f__1
+  f__1:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld a0, 0(fp)
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    addi sp, sp, -16
+    addi sp, sp, -16
+    la t5, f__1
+    li t6, 1
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, -8(fp)
+  # Apply fac__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 6
+    sd t0, 0(sp)
+    ld t0, -8(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fac__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply fac__0 with 2 args
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+
+
+  $ make compile opts=-anf input=bin/tests/012fibcps.ml --no-print-directory -C ..
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  8
+  $ cat ../main.anf
+  let f__0 = fun a__3__new ->
+    fun k__2__new ->
+    fun b__4 ->
+    let anf_t7 = a__3__new + b__4 in
+    k__2__new anf_t7 
+  
+  
+  let f__1 = fun k__2__new ->
+    fun n__1__new ->
+    fun a__3 ->
+    let anf_t6 = n__1__new - 2 in
+    let arg__0 = f__0 in
+    let anf_t9 = arg__0 a__3 k__2__new in
+    fib__0 anf_t6 anf_t9 
+  
+  
+  let rec fib__0 = fun n__1 ->
+    fun k__2 ->
+    let anf_t3 = n__1 < 2 in
+    if anf_t3 then (k__2 n__1)
+    else let anf_t5 = n__1 - 1 in
+    let arg__1 = f__1 in
+    let anf_t11 = arg__1 k__2 n__1 in
+    fib__0 anf_t5 anf_t11 
+  
+  
+  let f__2 = fun x__6 ->
+    x__6 
+  
+  
+  let main__5 = let anf_t0 = f__2 in
+    let anf_t1 = fib__0 6 anf_t0 in
+    print_int anf_t1 
+
+  $ cat ../main.s
+  .text
+  .globl f__0
+  f__0:
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    ld t0, 0(fp)
+    ld t1, 16(fp)
+    add t0, t0, t1
+    sd t0, -24(fp)
+  # Apply k__2__new with 1 args
+    ld t0, 8(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    ld t0, -24(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply k__2__new with 1 args
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
+    ret
+  .globl f__1
+  f__1:
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
+    ld t0, 8(fp)
+    li t1, 2
+    sub t0, t0, t1
+    sd t0, -24(fp)
+    addi sp, sp, -16
+    la t5, f__0
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, -32(fp)
+  # Apply arg__0 with 2 args
+    ld t0, -32(fp)
+    sd t0, -40(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -40(fp)
+    sd t0, 0(sp)
+    li t0, 2
+    sd t0, 8(sp)
+    ld t0, 16(fp)
+    sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply arg__0 with 2 args
+    sd t0, -48(fp)
+  # Apply fib__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -24(fp)
+    sd t0, 0(sp)
+    ld t0, -48(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fib__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  # End Apply fib__0 with 2 args
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
+    ret
+  .globl fib__0
+  fib__0:
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
+    ld t0, 0(fp)
+    li t1, 2
+    slt t0, t0, t1
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    beq t0, zero, L4
+  # Apply k__2 with 1 args
+    ld t0, 8(fp)
+    sd t0, -32(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 1
+    sd t0, 8(sp)
+    ld t0, 0(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+    mv a0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply k__2 with 1 args
+    j L5
+  L4:
+    ld t0, 0(fp)
+    li t1, 1
+    sub t0, t0, t1
+    sd t0, -40(fp)
+    addi sp, sp, -16
+    la t5, f__1
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, -48(fp)
+  # Apply arg__1 with 2 args
+    ld t0, -48(fp)
+    sd t0, -56(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -56(fp)
+    sd t0, 0(sp)
+    li t0, 2
+    sd t0, 8(sp)
+    ld t0, 8(fp)
+    sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Apply arg__1 with 2 args
+    sd t0, -64(fp)
+  # Apply fib__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -40(fp)
+    sd t0, 0(sp)
+    ld t0, -64(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fib__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+  # End Apply fib__0 with 2 args
+  L5:
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
+    ret
+  .globl f__2
+  f__2:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld a0, 0(fp)
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    addi sp, sp, -16
+    addi sp, sp, -16
+    la t5, f__2
+    li t6, 1
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, -8(fp)
+  # Apply fib__0 with 2 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 6
+    sd t0, 0(sp)
+    ld t0, -8(fp)
+    sd t0, 8(sp)
+  # End loading args on stack
+    call fib__0
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply fib__0 with 2 args
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
   24
@@ -933,4 +1393,8 @@
   -----
   42
   0
+  -----
+  720
+  -----
+  8
   -----

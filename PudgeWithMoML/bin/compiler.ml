@@ -11,6 +11,8 @@ open PudgeWithMoML.Frontend.Inferencer
 open PudgeWithMoML.Middle_end.AlphaConversion
 open PudgeWithMoML.Middle_end.Anf
 open PudgeWithMoML.Middle_end.AnfPP
+open PudgeWithMoML.Middle_end.CC
+open PudgeWithMoML.Middle_end.LL
 open PudgeWithMoML.Riscv.Codegen
 open Stdio
 open Format
@@ -44,14 +46,18 @@ let compiler opts =
         (match program |> convert_program |> anf_program with
          | Error e -> eprintf "ANF conversion error: %s\n" e
          | Ok anf ->
-           if opts.dump_anf
-           then
-             Out_channel.with_file "main.anf" ~f:(fun oc ->
-               pp_aprogram (Format.formatter_of_out_channel oc) anf);
-           Out_channel.with_file opts.output_file ~f:(fun oc ->
-             match gen_aprogram (Format.formatter_of_out_channel oc) anf with
-             | Error e -> eprintf "Codegen error: %s\n" e
-             | Ok () -> ())))
+           (match convert_cc_pr anf |> snd with
+            | Error e -> eprintf "ANF closure conversion error: %s\n" e
+            | Ok anf ->
+              let anf = convert_ll_pr anf in
+              if opts.dump_anf
+              then
+                Out_channel.with_file "main.anf" ~f:(fun oc ->
+                  pp_aprogram (Format.formatter_of_out_channel oc) anf);
+              Out_channel.with_file opts.output_file ~f:(fun oc ->
+                match gen_aprogram (Format.formatter_of_out_channel oc) anf with
+                | Error e -> eprintf "Codegen error: %s\n" e
+                | Ok () -> ()))))
 ;;
 
 let () =
