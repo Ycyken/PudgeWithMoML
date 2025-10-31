@@ -7,26 +7,12 @@
 [@@@ocaml.text "/*"]
 
 open Anf
+open Common.Monad.Counter
 
-module M = struct
-  open Base
-
-  type st = { fresh : int }
-
-  include Common.Monad.State (struct
-      type state = st
-    end)
-
-  let default = { fresh = 0 }
-
-  let fresh : string t =
-    let* st = get in
-    let+ _ = put { fresh = st.fresh + 1 } in
-    "f__" ^ Int.to_string st.fresh
-  ;;
-end
-
-open M
+let make_fresh : string t =
+  let+ fresh = make_fresh in
+  "f_" ^ Int.to_string fresh
+;;
 
 (* Now need only to avoid let [arg__0 = f__0 in arg__0 ...] situation *)
 let rec simplify =
@@ -71,7 +57,7 @@ let rec convert_ll_cexpr = function
     let args, body = get_args lam in
     let* body', lams = convert_ll_aexpr body in
     let new_lambda = create_lambda args body' in
-    let+ fresh = fresh in
+    let+ fresh = make_fresh in
     CImm (ImmVar fresh), lams @ [ fresh, new_lambda ]
   | CIte (imm, th, el) ->
     let* th', lams1 = convert_ll_aexpr th in
@@ -113,5 +99,5 @@ let convert_ll_pr (pr : aprogram) : aprogram =
       helper ((is_rec, (name, simplify aexpr'), binds) :: (List.rev lams @ acc)) tl
     | [] -> return (List.rev acc)
   in
-  run (helper [] pr) default |> snd
+  run (helper [] pr) 0 |> snd
 ;;
