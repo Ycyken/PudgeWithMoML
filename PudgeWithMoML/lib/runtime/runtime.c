@@ -18,64 +18,8 @@ typedef struct {
   void *args[];
 } closure;
 
-typedef struct pair {
-  void *first;
-  void *second;
-} pair_t;
-
-static pair_t *map_env;
-static size_t map_env_count = 0;
-
 #define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
 #define INT8 int, int, int, int, int, int, int, int
-// Create env for function f and save it to map
-void init_env(INT8, void *f, size_t env_vars_count, ...) {
-  printf("f: %p, count: %d\n", f, env_vars_count);
-  flush();
-  void **env = malloc(sizeof(void *) * env_vars_count);
-
-  va_list list;
-  va_start(list, env_vars_count);
-  for (size_t i = 0; i < env_vars_count; i++) {
-    void *var = va_arg(list, void *);
-    printf("ARG: %d\n", var);
-    env[i] = var;
-  }
-  va_end(list);
-
-  map_env_count += 1;
-  map_env = realloc(map_env, sizeof(pair_t) * map_env_count);
-  printf("INITED env: %p\n", map_env);
-  map_env[map_env_count - 1].first = f;
-  map_env[map_env_count - 1].second = env;
-}
-
-// Get env that associated with f
-void *get_env(INT8, void *f, void *lol) {
-  void *result = NULL;
-  printf("f: %p, count %d\n", f, lol);
-  flush();
-
-  for (size_t i = 0; i < map_env_count; i++) {
-    pair_t *pair = map_env + i;
-    if (pair->first == f) {
-      printf("RETURNED env: %p\n", pair->second);
-      return pair->second;
-    }
-  }
-
-  fprintf(stderr, "There is no env of function with address %p\n", f);
-  fprintf(stderr, "There is no env of function with address %d\n", f);
-  exit(122);
-}
-
-// Get variable from env with offset
-void *from_env(INT8, void **env, size_t offset) {
-  printf("ENV: %p, offset: %d\n", env, offset);
-  printf("VALUE: %d\n", *(env + offset));
-  flush();
-  return *(env + offset);
-}
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
   closure *clos = malloc(sizeof(closure) + sizeof(void *) * argc);
