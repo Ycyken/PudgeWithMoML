@@ -948,10 +948,6 @@
   > let f = let x = 2 in print_int x
   > let g = print_int x
   > EOF
-
-  $ ls -lah ../main.exe
-  -rwxr-xr-x. 1 homka homka 8.3K Oct 31 18:30 ../main.exe
-  $ cp ../main.exe /home/homka/code/spbu/PudgeWithMoML/PudgeWithMoML/main.exe
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   2
   5
