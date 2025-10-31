@@ -111,16 +111,10 @@ let rec convert_cc_cexpr is_top_level = function
   | CBinop _ as exp -> ACExpr exp |> return
   | CLambda _ as lam ->
     let args, body = get_args lam in
-    (* let open AnfPP in *)
-    (* let open Format in *)
-    (* printf "INITIAL body\n\t%a\n" pp_aexpr body; *)
     let* body' = convert_cc_aexpr is_top_level body in
-    (* printf "CONVERTED body\n\t%a\n" pp_aexpr body; *)
     let fvs =
       FVSet.elements (FVSet.diff (get_fv_aexpr is_top_level body') (FVSet.of_list args))
     in
-    (* printf "FVS: [%s]\n" (String.concat "," fvs); *)
-    (* printf "ARGS: [%s]\n" (String.concat "," args); *)
     let new_fvs = Base.List.map fvs ~f:(fun fv -> fv ^ "__new") in
     let body' = change_fv (Base.List.zip_exn fvs new_fvs) body' in
     let lambda =
@@ -131,7 +125,6 @@ let rec convert_cc_cexpr is_top_level = function
         ~init:(CLambda (last, body'))
         args
     in
-    (* printf "BODY WITH CHANGED FVS: \n\t%a\n" pp_aexpr body'; *)
     (match fvs with
      | [] -> ACExpr lambda |> return
      | _ ->
