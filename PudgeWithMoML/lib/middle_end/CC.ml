@@ -45,57 +45,6 @@ and get_fv_aexpr is_top_level = function
     FVSet.union cexpr_fv aexpr_fv
 ;;
 
-(* let pp_fv_set (set : FVSet.t) =
-  let open Format in
-  let elements = FVSet.elements set in
-  printf "[%s]" (String.concat ", " elements)
-;; *)
-
-(* let%expect_test "homka test" =
-  (* let homka = x + y in f x homka *)
-  let set =
-    get_fv_aexpr
-      (ALet
-         ( Nonrec
-         , "homka"
-         , CBinop ("+", ImmVar "x", ImmVar "y")
-         , ACExpr (CApp (ImmVar "f", ImmVar "x", [ ImmVar "homka" ])) ))
-  in
-  pp_fv_set set;
-  [%expect
-    {|
-  [f, x, y]
-  |}]
-;; *)
-
-(* let%expect_test "big main" =
-  (* let anf_t2 = add5__3 110 in
-     let anf_t3 = print_int anf_t2 in
-     let anf_t1 = print_int homka122__6 in
-     print_int homka__5 *)
-  let set =
-    get_fv_aexpr
-      (ALet
-         ( Nonrec
-         , "anf_t2"
-         , CApp (ImmVar "add5__3", ImmConst (Int_lt 110), [])
-         , ALet
-             ( Nonrec
-             , "anf_t3"
-             , CApp (ImmVar "print_int", ImmVar "anf_t2", [])
-             , ALet
-                 ( Nonrec
-                 , "anf_t1"
-                 , CApp (ImmVar "print_int", ImmVar "homka122__6", [])
-                 , ACExpr (CApp (ImmVar "print_int", ImmVar "homka__5", [])) ) ) ))
-  in
-  pp_fv_set set;
-  [%expect
-    {|
-  [add5__3, homka122__6, homka__5, print_int]
-  |}]
-;; *)
-
 module M = struct
   open Base
 
@@ -224,27 +173,6 @@ and convert_cc_aexpr is_top_level = function
           ALet (is_rec_outer, name_outer, cexpr_outer, ALet (Nonrec, name, e, aexpr))
           |> return))
 ;;
-
-(* let%expect_test "homka test" =
-  (* let anf_t2 = add5__3 110 in
-     let anf_t3 = print_int anf_t2 in
-     let anf_t1 = print_int homka122__6 in
-     print_int homka__5 *)
-  let aexpr =
-    convert_cc_aexpr
-      (ALet
-         ( Nonrec
-         , "homka"
-         , CBinop ("+", ImmVar "x", ImmVar "y")
-         , ACExpr (CApp (ImmVar "f", ImmVar "x", [ ImmVar "homka" ])) ))
-  in
-  pp_aexpr Format.std_formatter aexpr;
-  [%expect
-    {|
-  let homka = x + y in
-  f x homka
-  |}]
-;; *)
 
 (* Apply closure conversion to aprogram. *)
 (* After conversion all function are closed (withour free variables). *)
