@@ -270,12 +270,12 @@ let%expect_test "alloc_closure_test" =
 
 let comment_wrap str code = [ comment str ] @ code @ [ comment ("End " ^ str) ]
 
-let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
+let rec gen_cexpr (var_arity : string -> int) dst = function
   | CImm imm -> gen_imm dst imm
   | CIte (c, th, el) ->
     let* cond_code = gen_imm (T 0) c in
-    let* then_code = gen_aexpr is_top_level dst th in
-    let* else_code = gen_aexpr is_top_level dst el in
+    let* then_code = gen_aexpr var_arity dst th in
+    let* else_code = gen_aexpr var_arity dst el in
     let* l_else = M.fresh in
     let+ l_end = M.fresh in
     cond_code
@@ -310,9 +310,9 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap "Apply print_int"
   | CApp (ImmVar f, arg, args)
-  (* f is top level and it full application *)
-    when let is_top, arity = is_top_level f in
-         is_top && List.length (arg :: args) = arity ->
+  (* it is full application *)
+    when let arity = var_arity f in
+         arity <> 0 && List.length (arg :: args) = arity ->
     let args = arg :: args in
     let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
     let* load_code, free_code =
@@ -324,9 +324,9 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     |> comment_wrap comment
     |> return
   | CApp (ImmVar f, arg, args)
-    when let is_top, arity = is_top_level f in
-         (* f is top level and it partial application *)
-         is_top && List.length (arg :: args) < arity ->
+    when let arity = var_arity f in
+         (* it is partial application *)
+         arity <> 0 && List.length (arg :: args) < arity ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Partial application %s with %d args" f argc in
     let* load_code, free_code =
@@ -381,7 +381,7 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     let* () = get_args_from_stack args in
     (* ra and sp *)
     let* () = M.set_frame_offset 16 in
-    let* body_code = gen_aexpr is_top_level (A 0) body in
+    let* body_code = gen_aexpr var_arity (A 0) body in
     let* locals = M.get_frame_offset in
     let frame = locals + (locals mod 8) in
     let* () = M.set_frame_offset current_sp in
@@ -400,29 +400,27 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     (* TODO: replace it with Anf.pp_cexpr without \n prints *)
     fail (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)
 
-and gen_aexpr (is_top_level : string -> bool * int) dst = function
-  | ACExpr cexpr -> gen_cexpr is_top_level dst cexpr
+and gen_aexpr (var_arity : string -> int) dst = function
+  | ACExpr cexpr -> gen_cexpr var_arity dst cexpr
   | ALet (Nonrec, name, cexpr, body) ->
-    let* cexpr_c = gen_cexpr is_top_level (T 0) cexpr in
+    let* cexpr_c = gen_cexpr var_arity (T 0) cexpr in
     let* off = save_var_on_stack name in
-    let+ body_c = gen_aexpr is_top_level dst body in
+    let+ body_c = gen_aexpr var_arity dst body in
     cexpr_c @ [ sd (T 0) (-off) fp ] @ body_c
   | _ -> fail "gen_aexpr case not implemented yet"
 ;;
 
-let gen_astr_item ?(is_main = false) (is_top_level : string -> bool * int)
-  : astr_item -> instr list M.t
-  = function
+let gen_astr_item (var_arity : string -> int) : astr_item -> instr list M.t = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
-    let arity = is_top_level f |> snd in
+    let arity = var_arity f in
     let* () = save_fun_on_stack f arity in
-    let+ code = gen_cexpr is_top_level (T 0) lam in
+    let+ code = gen_cexpr var_arity (T 0) lam in
     [ directive (Format.asprintf ".globl %s" f); label f ] @ code
   | Nonrec, (name, e), [] ->
     (* let* off = save_var_on_stack name in *)
     let* () = add_binding name Global in
-    let+ code = gen_aexpr is_top_level (T 0) e in
-    code @ if is_main then [] else [ la (T 1) name; sd (T 0) 0 (T 1) ]
+    let+ code = gen_aexpr var_arity (T 0) e in
+    code @ [ la (T 1) name; sd (T 0) 0 (T 1) ]
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
     fail (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
@@ -434,19 +432,16 @@ let gen_bss_section (pr : aprogram) : instr list t =
     let rec helper acc (astrs : astr_item list) =
       (* After lambda lifting we don't have inner functions that make our life mush easy :) *)
       match astrs with
-      | [ _ ] -> List.rev acc |> return (* last astr_item is main *)
+      | [] -> List.rev acc |> return
       | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
       | (_, (name, _), []) :: tl -> helper (name :: acc) tl
-      | _ -> fail "Empty program"
+      | (_, (_, _), _ :: _) :: _ ->
+        fail "Multiple bindings in astr_item not implemented yet"
     in
     helper [] pr
   in
   let* vars = get_globals_variables pr in
-  if Base.List.is_empty vars
-  then return []
-  else (
-    let local_vars = List.map (fun v -> DWord v) vars in
-    local_vars |> return)
+  List.map (fun v -> DWord v) vars |> return
 ;;
 
 let is_function = function
@@ -454,84 +449,53 @@ let is_function = function
   | _ -> false
 ;;
 
-(* Go through list of astr_item, generates three parts of the code:
-  1) Code for variables initialization of the bss section (exec after _start)
-  2) Code for functions
-  3) Code for main (last astr_item) *)
-let gather pr : instr list t =
-  let is_top_level name =
-    (* If function top-level or it's just, for example, argument *)
-    let get_list_args arg body =
-      let rec helper acc = function
-        | ACExpr (CLambda (arg, body)) -> helper (arg :: acc) body
-        | e -> List.rev acc, e
-      in
-      helper [ arg ] body |> fst
-    in
-    let rec helper (astr : astr_item list) =
-      match astr with
-      | (_, (f, ACExpr (CLambda (arg, body))), []) :: tl ->
-        let list = get_list_args arg body in
-        let arity = List.length list in
-        if f = name then true, arity else helper tl
-      | _ -> false, 0
-    in
-    helper pr
+let func_arity =
+  let rec helper acc = function
+    | ACExpr (CLambda (_, body)) -> helper (acc + 1) body
+    | _ -> acc
   in
-  let+ bss_code, functions_code, main_code =
+  helper 0
+;;
+
+let program_arities (pr : aprogram) =
+  let open Base in
+  let binds = pr |> List.concat_map ~f:(fun (_, bind, binds) -> bind :: binds) in
+  let arities =
+    List.fold
+      binds
+      ~init:(Map.empty (module String))
+      ~f:(fun acc -> function
+        | f, ACExpr (CLambda (_, body)) -> Map.set acc ~key:f ~data:(1 + func_arity body)
+        | _ -> acc)
+  in
+  fun name -> Map.find arities name |> Option.value ~default:0
+;;
+
+(* Go through list of astr_item, generates three types of code:
+  1) Code for variables initialization of the bss section (exec in _start)
+  2) Code for functions *)
+let gather pr : instr list t =
+  let* main_code, functions_code =
+    let program_arities = program_arities pr in
     let rec helper acc = function
       | [] -> M.return acc
-      | [ item ] when is_function item ->
-        fail "Why main function is just a another function?"
-      | [ item ] ->
-        let bss_code, functions_code, main_code = acc in
-        let* code = gen_astr_item ~is_main:true is_top_level item in
-        let* frame = M.get_frame_offset in
-        let code =
-          (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
-          @ code
-          @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
-        in
-        helper (bss_code, functions_code, main_code @ code) []
       | item :: rest ->
-        let bss_code, functions_code, main_code = acc in
-        let* code = gen_astr_item is_top_level item in
+        let main_code, functions_code = acc in
+        let* code = gen_astr_item program_arities item in
         if is_function item
-        then helper (bss_code, functions_code @ code, main_code) rest
-        else helper (bss_code @ code, functions_code, main_code) rest
+        then helper (main_code, functions_code @ code) rest
+        else helper (main_code @ code, functions_code) rest
     in
-    helper ([], [], []) pr
+    helper ([], []) pr
   in
+  let+ frame = M.get_frame_offset in
   [ directive ".text" ]
   @ functions_code
   @ [ directive ".globl _start"; label "_start" ]
   @ [ mv fp Sp ]
-  @ bss_code
+  @ [ addi Sp Sp (-frame) ]
   @ main_code
-;;
-
-(* Initialize gp pointer *)
-(* Took from https://github.com/bminor/glibc/blob/00d406e77bb0e49d79dc1b13d7077436ee5cdf14/sysdeps/riscv/start.S#L82 *)
-let gp_code =
-  {|
-load_gp:
-.option push
-.option norelax
-  lla   gp, __global_pointer$
-.option pop
-  ret
-
-  .section .preinit_array,"aw"
-  .align 8
-  .dc.a load_gp
-
-/* Define a symbol for the first piece of initialized data.  */
-  .data
-  .globl __data_start
-__data_start:
-  .weak data_start
-  data_start = __data_start
-|}
+  @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
 ;;
 
 let gen_aprogram fmt (pr : aprogram) =
@@ -546,7 +510,5 @@ let gen_aprogram fmt (pr : aprogram) =
     pp_instrs main_code fmt;
     if Base.List.is_empty bss_section
     then Ok ()
-    else (
-      Format.pp_print_string fmt gp_code;
-      Ok (pp_instrs bss_section fmt))
+    else Ok (pp_instrs (Directive ".data" :: bss_section) fmt)
 ;;

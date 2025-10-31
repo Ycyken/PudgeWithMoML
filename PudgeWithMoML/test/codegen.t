@@ -13,15 +13,20 @@
   .globl _start
   _start:
     mv fp, sp
+    addi sp, sp, 0
   # Apply print_int
     li a0, 5
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__0
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__0: .dword 0
 
 ( just add )
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -78,10 +83,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__3
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__3: .dword 0
 
 ( a lot of variables )
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -167,10 +176,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__13
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__13: .dword 0
 
 (just id)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -225,10 +238,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__3
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__3: .dword 0
 
 (function as argument)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -325,10 +342,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__5
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__5: .dword 0
 
 (shadowing is correct)
   $ make compile --no-print-directory -C .. << 'EOF'
@@ -360,10 +381,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, res__0
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  res__0: .dword 0
 
 (simple partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -452,10 +477,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__3
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__3: .dword 0
 
 (double partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -573,10 +602,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__3
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__3: .dword 0
 
 (Global variables and .data section)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -601,6 +634,7 @@
   .globl _start
   _start:
     mv fp, sp
+    addi sp, sp, 0
     li t0, 4
     la t1, x__0
     sd t0, 0(t1)
@@ -612,30 +646,16 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__2
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  
-  load_gp:
-  .option push
-  .option norelax
-    lla   gp, __global_pointer$
-  .option pop
-    ret
-  
-    .section .preinit_array,"aw"
-    .align 8
-    .dc.a load_gp
-  
-  /* Define a symbol for the first piece of initialized data.  */
-    .data
-    .globl __data_start
-  __data_start:
-    .weak data_start
-    data_start = __data_start
+  .data
   x__0: .dword 0
   x__1: .dword 0
+  main__2: .dword 0
 
 (Global variables with partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -676,6 +696,7 @@
   .globl _start
   _start:
     mv fp, sp
+    addi sp, sp, -16
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -701,7 +722,6 @@
   # End Partial application add__0 with 1 args
     la t1, add5__3
     sd t0, 0(t1)
-    addi sp, sp, -16
   # Apply add5__3 with 1 args
     la t5, add5__3
     ld t0, 0(t5)
@@ -727,29 +747,15 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__4
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  
-  load_gp:
-  .option push
-  .option norelax
-    lla   gp, __global_pointer$
-  .option pop
-    ret
-  
-    .section .preinit_array,"aw"
-    .align 8
-    .dc.a load_gp
-  
-  /* Define a symbol for the first piece of initialized data.  */
-    .data
-    .globl __data_start
-  __data_start:
-    .weak data_start
-    data_start = __data_start
+  .data
   add5__3: .dword 0
+  main__4: .dword 0
 
 (A lot of global variables with partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -806,6 +812,7 @@
   .globl _start
   _start:
     mv fp, sp
+    addi sp, sp, -32
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -875,7 +882,6 @@
   # End Apply add__0 with 2 args
     la t1, homka122__6
     sd t0, 0(t1)
-    addi sp, sp, -32
   # Apply add5__3 with 1 args
     la t5, add5__3
     ld t0, 0(t5)
@@ -915,32 +921,18 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__7
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  
-  load_gp:
-  .option push
-  .option norelax
-    lla   gp, __global_pointer$
-  .option pop
-    ret
-  
-    .section .preinit_array,"aw"
-    .align 8
-    .dc.a load_gp
-  
-  /* Define a symbol for the first piece of initialized data.  */
-    .data
-    .globl __data_start
-  __data_start:
-    .weak data_start
-    data_start = __data_start
+  .data
   add5__3: .dword 0
   inc__4: .dword 0
   homka__5: .dword 0
   homka122__6: .dword 0
+  main__7: .dword 0
 
 ( global and local x )
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -966,6 +958,7 @@
   .globl _start
   _start:
     mv fp, sp
+    addi sp, sp, -8
     li t0, 5
     la t1, x__0
     sd t0, 0(t1)
@@ -978,37 +971,84 @@
   # End Apply print_int
     la t1, f__1
     sd t0, 0(t1)
-    addi sp, sp, -8
   # Apply print_int
     la t5, x__0
     ld a0, 0(t5)
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, g__3
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  
-  load_gp:
-  .option push
-  .option norelax
-    lla   gp, __global_pointer$
-  .option pop
-    ret
-  
-    .section .preinit_array,"aw"
-    .align 8
-    .dc.a load_gp
-  
-  /* Define a symbol for the first piece of initialized data.  */
-    .data
-    .globl __data_start
-  __data_start:
-    .weak data_start
-    data_start = __data_start
+  .data
   x__0: .dword 0
   f__1: .dword 0
+  g__3: .dword 0
+
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let t = if true then 1 else 2         
+  > let _ = print_int t
+  > let f x = print_int x
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  1
+  $ cat ../main.anf
+  let t__0 = if true then (1)
+    else 2 
+  
+  
+  let _ = print_int t__0 
+  
+  
+  let f__1 = fun x__2 ->
+    print_int x__2 
+  $ cat ../main.s
+  .text
+  .globl f__1
+  f__1:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+  # Apply print_int
+    ld a0, 0(fp)
+    call print_int
+  # End Apply print_int
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    addi sp, sp, 0
+    li t0, 1
+    beq t0, zero, L0
+    li t0, 1
+    j L1
+  L0:
+    li t0, 2
+  L1:
+    la t1, t__0
+    sd t0, 0(t1)
+  # Apply print_int
+    la t5, t__0
+    ld a0, 0(t5)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    la t1, _
+    sd t0, 0(t1)
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  .data
+  t__0: .dword 0
+  _: .dword 0
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
@@ -1040,4 +1080,6 @@
   -----
   2
   5
+  -----
+  1
   -----
