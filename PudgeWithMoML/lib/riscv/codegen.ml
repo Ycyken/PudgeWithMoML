@@ -372,24 +372,6 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
       | _ -> [ mv dst (A 0) ]
     in
     result @ load_result |> comment_wrap comment |> return
-  (* | CApp ((ImmVar f as imm), arg, args) ->
-    let argc = List.length (arg :: args) in
-    let comment = Format.asprintf "Apply %s with %d args" f argc in
-    let* temp = fresh in
-    let* get_closure_code =
-      let* get_f = gen_imm (T 0) imm in
-      let+ off = save_var_on_stack temp in
-      get_f @ [ sd (T 0) (-off) fp ]
-    in
-    let* load_code, free_code =
-      let args = ImmVar temp :: ImmConst (Int_lt argc) :: arg :: args in
-      let* load_code = load_args_on_stack args in
-      let+ free_code = free_args_on_stack args in
-      load_code, free_code
-    in
-    get_closure_code @ load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
-    |> comment_wrap comment
-    |> return *)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
