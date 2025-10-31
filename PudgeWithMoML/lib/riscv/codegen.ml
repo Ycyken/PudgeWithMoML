@@ -87,8 +87,7 @@ let imm_of_literal : literal -> int = function
 
 (* Generate code that puts imm value to dst reg *)
 (* Note: gen_imm overwrite **regs t5 and t6** for internal work *)
-let gen_imm dst imm =
-  match imm with
+let gen_imm dst = function
   | ImmConst lt ->
     let imm = imm_of_literal lt in
     M.return [ li dst imm ]
@@ -447,7 +446,7 @@ let gen_bss_section (pr : aprogram) : instr list t =
     helper [] pr
   in
   let* vars = get_globals_variables pr in
-  if List.length vars = 0
+  if Base.List.is_empty vars
   then return []
   else (
     let local_vars = List.map (fun v -> DWord v) vars in
@@ -485,20 +484,19 @@ let gather pr : instr list t =
   let+ bss_code, functions_code, main_code =
     let rec helper acc = function
       | [] -> M.return acc
+      | [ item ] when is_function item ->
+        fail "Why main function is just a another function?"
       | [ item ] ->
-        if is_function item
-        then fail "Why main function is just a another function?"
-        else (
-          let bss_code, functions_code, main_code = acc in
-          let* code = gen_astr_item ~is_main:true is_top_level item in
-          let* frame = M.get_frame_offset in
-          let code =
-            [ mv fp Sp ]
-            @ (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
-            @ code
-            @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
-          in
-          helper (bss_code, functions_code, main_code @ code) [])
+        let bss_code, functions_code, main_code = acc in
+        let* code = gen_astr_item ~is_main:true is_top_level item in
+        let* frame = M.get_frame_offset in
+        let code =
+          [ mv fp Sp ]
+          @ (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
+          @ code
+          @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
+        in
+        helper (bss_code, functions_code, main_code @ code) []
       | item :: rest ->
         let bss_code, functions_code, main_code = acc in
         let* code = gen_astr_item is_top_level item in
@@ -552,7 +550,7 @@ let gen_aprogram fmt (pr : aprogram) =
   | Error msg -> Error msg
   | Ok (main_code, bss_section) ->
     pp_instrs main_code fmt;
-    if List.length bss_section = 0
+    if Base.List.is_empty bss_section
     then Ok ()
     else (
       Format.pp_print_string fmt gp_code;

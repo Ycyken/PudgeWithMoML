@@ -14,7 +14,8 @@ module FVSet = Stdlib.Set.Make (String)
 
 let get_fv_imm is_top_level = function
   | ImmConst _ -> FVSet.empty
-  | ImmVar v -> if is_top_level v then FVSet.empty else FVSet.singleton v
+  | ImmVar v when is_top_level v -> FVSet.empty
+  | ImmVar v -> FVSet.singleton v
 ;;
 
 let rec get_fv_cexpr is_top_level = function
@@ -93,10 +94,7 @@ let change_fv (map : (string * string) list) =
     | CBinop (name, imm1, imm2) -> CBinop (name, change_fv_imm imm1, change_fv_imm imm2)
     | CNot imm -> CNot (change_fv_imm imm)
     | CApp (imm1, imm2, imms) ->
-      CApp
-        ( change_fv_imm imm1
-        , change_fv_imm imm2
-        , Base.List.map imms ~f:(fun imm -> change_fv_imm imm) )
+      CApp (change_fv_imm imm1, change_fv_imm imm2, Base.List.map imms ~f:change_fv_imm)
     | CIte (imm, th, el) ->
       CIte (change_fv_imm imm, change_fv_aexpr th, change_fv_aexpr el)
     | CLambda (name, aexpr) -> CLambda (name, change_fv_aexpr aexpr)
@@ -108,8 +106,7 @@ let change_fv (map : (string * string) list) =
   change_fv_aexpr
 ;;
 
-let rec convert_cc_cexpr is_top_level cexpr =
-  match cexpr with
+let rec convert_cc_cexpr is_top_level = function
   | CImm _ as exp -> ACExpr exp |> return
   | CBinop _ as exp -> ACExpr exp |> return
   | CLambda _ as lam ->
@@ -184,7 +181,7 @@ let convert_cc_pr (pr : aprogram) =
     | _ ->
       let rec helper (astr : astr_item list) =
         match astr with
-        | (_, (f, ACExpr (CLambda _)), []) :: tl -> if f = name then true else helper tl
+        | (_, (f, ACExpr (CLambda _)), []) :: tl -> f = name || helper tl
         | _ -> false
       in
       helper pr
