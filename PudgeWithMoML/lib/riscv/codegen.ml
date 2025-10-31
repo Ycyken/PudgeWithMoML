@@ -312,7 +312,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in
-         arity <> 0 && List.length (arg :: args) = arity ->
+         List.length (arg :: args) = arity ->
     let args = arg :: args in
     let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
     let* load_code, free_code =
@@ -326,7 +326,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
   | CApp (ImmVar f, arg, args)
     when let arity = var_arity f in
          (* it is partial application *)
-         arity <> 0 && List.length (arg :: args) < arity ->
+         List.length (arg :: args) < arity ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Partial application %s with %d args" f argc in
     let* load_code, free_code =
