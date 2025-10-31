@@ -6,7 +6,7 @@
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   720
   $ cat ../main.anf
-  let f__0 = fun k__2__new ->
+  let f_0 = fun k__2__new ->
     fun n__1__new ->
     fun a__3 ->
     let anf_t6 = a__3 * n__1__new in
@@ -18,23 +18,23 @@
     let anf_t3 = n__1 < 2 in
     if anf_t3 then (k__2 1)
     else let anf_t5 = n__1 - 1 in
-    let arg__0 = f__0 in
+    let arg__0 = f_0 in
     let anf_t8 = arg__0 k__2 n__1 in
     fac__0 anf_t5 anf_t8 
   
   
-  let f__1 = fun x__5 ->
+  let f_1 = fun x__5 ->
     x__5 
   
   
-  let main__4 = let anf_t0 = f__1 in
+  let main__4 = let anf_t0 = f_1 in
     let anf_t1 = fac__0 6 anf_t0 in
     print_int anf_t1 
 
   $ cat ../main.s
   .text
-  .globl f__0
-  f__0:
+  .globl f_0
+  f_0:
     addi sp, sp, -32
     sd ra, 24(sp)
     sd fp, 16(sp)
@@ -100,7 +100,7 @@
     sub t0, t0, t1
     sd t0, -40(fp)
     addi sp, sp, -16
-    la t5, f__0
+    la t5, f_0
     li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
@@ -160,8 +160,8 @@
     ld fp, 56(sp)
     addi sp, sp, 72
     ret
-  .globl f__1
-  f__1:
+  .globl f_1
+  f_1:
     addi sp, sp, -16
     sd ra, 8(sp)
     sd fp, 0(sp)
@@ -176,7 +176,7 @@
     mv fp, sp
     addi sp, sp, -16
     addi sp, sp, -16
-    la t5, f__1
+    la t5, f_1
     li t6, 1
     sd t5, 0(sp)
     sd t6, 8(sp)
@@ -218,18 +218,18 @@
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   8
   $ cat ../main.anf
-  let f__0 = fun a__3__new ->
+  let f_0 = fun a__3__new ->
     fun k__2__new ->
     fun b__4 ->
     let anf_t7 = a__3__new + b__4 in
     k__2__new anf_t7 
   
   
-  let f__1 = fun k__2__new ->
+  let f_1 = fun k__2__new ->
     fun n__1__new ->
     fun a__3 ->
     let anf_t6 = n__1__new - 2 in
-    let arg__0 = f__0 in
+    let arg__0 = f_0 in
     let anf_t9 = arg__0 a__3 k__2__new in
     fib__0 anf_t6 anf_t9 
   
@@ -239,23 +239,23 @@
     let anf_t3 = n__1 < 2 in
     if anf_t3 then (k__2 n__1)
     else let anf_t5 = n__1 - 1 in
-    let arg__1 = f__1 in
+    let arg__1 = f_1 in
     let anf_t11 = arg__1 k__2 n__1 in
     fib__0 anf_t5 anf_t11 
   
   
-  let f__2 = fun x__6 ->
+  let f_2 = fun x__6 ->
     x__6 
   
   
-  let main__5 = let anf_t0 = f__2 in
+  let main__5 = let anf_t0 = f_2 in
     let anf_t1 = fib__0 6 anf_t0 in
     print_int anf_t1 
 
   $ cat ../main.s
   .text
-  .globl f__0
-  f__0:
+  .globl f_0
+  f_0:
     addi sp, sp, -32
     sd ra, 24(sp)
     sd fp, 16(sp)
@@ -285,8 +285,8 @@
     ld fp, 16(sp)
     addi sp, sp, 32
     ret
-  .globl f__1
-  f__1:
+  .globl f_1
+  f_1:
     addi sp, sp, -56
     sd ra, 48(sp)
     sd fp, 40(sp)
@@ -296,7 +296,7 @@
     sub t0, t0, t1
     sd t0, -24(fp)
     addi sp, sp, -16
-    la t5, f__0
+    la t5, f_0
     li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
@@ -391,7 +391,7 @@
     sub t0, t0, t1
     sd t0, -40(fp)
     addi sp, sp, -16
-    la t5, f__1
+    la t5, f_1
     li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
@@ -451,8 +451,8 @@
     ld fp, 56(sp)
     addi sp, sp, 72
     ret
-  .globl f__2
-  f__2:
+  .globl f_2
+  f_2:
     addi sp, sp, -16
     sd ra, 8(sp)
     sd fp, 0(sp)
@@ -467,7 +467,7 @@
     mv fp, sp
     addi sp, sp, -16
     addi sp, sp, -16
-    la t5, f__2
+    la t5, f_2
     li t6, 1
     sd t5, 0(sp)
     sd t6, 8(sp)
