@@ -186,10 +186,14 @@
   # End Apply print_int
     sd t0, -16(fp)
     li t0, 0
+    la t1, main__9
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__9: .dword 0
 
   $ make compile opts=-anf input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -467,10 +471,14 @@
     ld t0, -16(fp)
     sd t0, -24(fp)
     li t0, 0
+    la t1, main__14
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__14: .dword 0
 
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )

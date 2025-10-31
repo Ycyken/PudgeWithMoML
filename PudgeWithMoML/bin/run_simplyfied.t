@@ -87,10 +87,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__4
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__4: .dword 0
 
   $ make compile opts=-anf input=bin/tests/fib --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -189,10 +193,14 @@
     call print_int
     mv t0, a0
   # End Apply print_int
+    la t1, main__2
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__2: .dword 0
 
   $ make compile opts=-anf input=bin/tests/large_if --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -454,10 +462,14 @@
   L11:
   L13:
   L15:
+    la t1, main__2
+    sd t0, 0(t1)
     call flush
     li a0, 0
     li a7, 94
     ecall
+  .data
+  main__2: .dword 0
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
