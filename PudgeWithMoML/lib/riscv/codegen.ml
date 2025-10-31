@@ -491,8 +491,7 @@ let gather pr : instr list t =
         let* code = gen_astr_item ~is_main:true is_top_level item in
         let* frame = M.get_frame_offset in
         let code =
-          [ mv fp Sp ]
-          @ (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
+          (if frame = 0 then [] else [ addi Sp Sp (-frame) ])
           @ code
           @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
         in
@@ -509,6 +508,7 @@ let gather pr : instr list t =
   [ directive ".text" ]
   @ functions_code
   @ [ directive ".globl _start"; label "_start" ]
+  @ [ mv fp Sp ]
   @ bss_code
   @ main_code
 ;;

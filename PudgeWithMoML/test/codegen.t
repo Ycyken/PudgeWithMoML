@@ -600,13 +600,13 @@
   .text
   .globl _start
   _start:
+    mv fp, sp
     li t0, 4
     la t1, x__0
     sd t0, 0(t1)
     li t0, 5
     la t1, x__1
     sd t0, 0(t1)
-    mv fp, sp
   # Apply print_int
     li a0, 5
     call print_int
@@ -675,6 +675,7 @@
     ret
   .globl _start
   _start:
+    mv fp, sp
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -700,7 +701,6 @@
   # End Partial application add__0 with 1 args
     la t1, add5__3
     sd t0, 0(t1)
-    mv fp, sp
     addi sp, sp, -16
   # Apply add5__3 with 1 args
     la t5, add5__3
@@ -805,6 +805,7 @@
     ret
   .globl _start
   _start:
+    mv fp, sp
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -874,7 +875,6 @@
   # End Apply add__0 with 2 args
     la t1, homka122__6
     sd t0, 0(t1)
-    mv fp, sp
     addi sp, sp, -32
   # Apply add5__3 with 1 args
     la t5, add5__3
@@ -942,6 +942,78 @@
     homka__5: .dword 0
     homka122__6: .dword 0
 
+( global and local x )
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let x = 5
+  > let f = let x = 2 in print_int x
+  > let g = print_int x
+  > EOF
+
+  $ ls -lah ../main.exe
+  -rwxr-xr-x. 1 homka homka 8.3K Oct 31 18:30 ../main.exe
+  $ cp ../main.exe /home/homka/code/spbu/PudgeWithMoML/PudgeWithMoML/main.exe
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
+  2
+  5
+  $ cat ../main.anf
+  let x__0 = 5 
+  
+  
+  let f__1 = let x__2 = 2 in
+    print_int x__2 
+  
+  
+  let g__3 = print_int x__0 
+
+  $ cat ../main.s
+  .text
+  .globl _start
+  _start:
+    mv fp, sp
+    li t0, 5
+    la t1, x__0
+    sd t0, 0(t1)
+    li t0, 2
+    sd t0, -8(fp)
+  # Apply print_int
+    ld a0, -8(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    la t1, f__1
+    sd t0, 0(t1)
+    addi sp, sp, -8
+  # Apply print_int
+    la t5, x__0
+    ld a0, 0(t5)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  
+    load_gp:
+  .option push
+  .option norelax
+    lla   gp, __global_pointer$
+  .option pop
+    ret
+  
+    .section .preinit_array,"aw"
+    .align 8
+    .dc.a load_gp
+  
+  /* Define a symbol for the first piece of initialized data.  */
+    .data
+    .globl __data_start
+  __data_start:
+    .weak data_start
+    data_start = __data_start
+    x__0: .dword 0
+    f__1: .dword 0
+
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
   5
@@ -969,4 +1041,7 @@
   115
   122
   17
+  -----
+  2
+  5
   -----
