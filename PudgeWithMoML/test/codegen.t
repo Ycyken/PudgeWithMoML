@@ -617,7 +617,7 @@
     li a7, 94
     ecall
   
-    load_gp:
+  load_gp:
   .option push
   .option norelax
     lla   gp, __global_pointer$
@@ -634,8 +634,8 @@
   __data_start:
     .weak data_start
     data_start = __data_start
-    x__0: .dword 0
-    x__1: .dword 0
+  x__0: .dword 0
+  x__1: .dword 0
 
 (Global variables with partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -732,7 +732,7 @@
     li a7, 94
     ecall
   
-    load_gp:
+  load_gp:
   .option push
   .option norelax
     lla   gp, __global_pointer$
@@ -749,7 +749,7 @@
   __data_start:
     .weak data_start
     data_start = __data_start
-    add5__3: .dword 0
+  add5__3: .dword 0
 
 (A lot of global variables with partial application)
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -920,7 +920,7 @@
     li a7, 94
     ecall
   
-    load_gp:
+  load_gp:
   .option push
   .option norelax
     lla   gp, __global_pointer$
@@ -937,10 +937,10 @@
   __data_start:
     .weak data_start
     data_start = __data_start
-    add5__3: .dword 0
-    inc__4: .dword 0
-    homka__5: .dword 0
-    homka122__6: .dword 0
+  add5__3: .dword 0
+  inc__4: .dword 0
+  homka__5: .dword 0
+  homka122__6: .dword 0
 
 ( global and local x )
   $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
@@ -990,7 +990,7 @@
     li a7, 94
     ecall
   
-    load_gp:
+  load_gp:
   .option push
   .option norelax
     lla   gp, __global_pointer$
@@ -1007,8 +1007,8 @@
   __data_start:
     .weak data_start
     data_start = __data_start
-    x__0: .dword 0
-    f__1: .dword 0
+  x__0: .dword 0
+  f__1: .dword 0
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt

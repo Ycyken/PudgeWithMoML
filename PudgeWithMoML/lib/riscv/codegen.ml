@@ -136,9 +136,7 @@ let load_args_on_stack (args : imm list) : instr list t =
 let pp_instrs code fmt =
   let open Format in
   Base.List.iter code ~f:(function
-    | Label l -> fprintf fmt "%s:\n" l
-    | Directive l -> fprintf fmt "%s\n" l
-    | Comment c -> fprintf fmt "# %s\n" c
+    | (Label _ | Directive _ | Comment _ | DWord _) as i -> fprintf fmt "%a\n" pp_instr i
     | i -> fprintf fmt "  %a\n" pp_instr i)
 ;;
 
@@ -434,7 +432,7 @@ let gen_bss_section (pr : aprogram) : instr list t =
   (* get list of global variables that are not functions and generate bss section (local variables) *)
   let get_globals_variables (pr : aprogram) : ident list t =
     let rec helper acc (astrs : astr_item list) =
-      (* After lambda lifting we don't have inner functions that make out life mush easy :) *)
+      (* After lambda lifting we don't have inner functions that make our life mush easy :) *)
       match astrs with
       | [ _ ] -> List.rev acc |> return (* last astr_item is main *)
       | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
@@ -451,10 +449,15 @@ let gen_bss_section (pr : aprogram) : instr list t =
     local_vars |> return)
 ;;
 
-(* Go through list of astr_item generate three type code *)
-(* 1) Code for initialization variables of bss section (exec after _start) *)
-(* 2) Code for functions *)
-(* 3) Code for main (last astr_item) *)
+let is_function = function
+  | _, (_, ACExpr (CLambda (_, _))), [] -> true
+  | _ -> false
+;;
+
+(* Go through list of astr_item, generates three parts of the code:
+  1) Code for variables initialization of the bss section (exec after _start)
+  2) Code for functions
+  3) Code for main (last astr_item) *)
 let gather pr : instr list t =
   let is_top_level name =
     (* If function top-level or it's just, for example, argument *)
@@ -474,10 +477,6 @@ let gather pr : instr list t =
       | _ -> false, 0
     in
     helper pr
-  in
-  let is_function = function
-    | _, (_, ACExpr (CLambda (_, _))), [] -> true
-    | _ -> false
   in
   let+ bss_code, functions_code, main_code =
     let rec helper acc = function
@@ -511,11 +510,11 @@ let gather pr : instr list t =
   @ main_code
 ;;
 
-(* I have bug with uninitialized gp pointer *)
+(* Initialize gp pointer *)
 (* Took from https://github.com/bminor/glibc/blob/00d406e77bb0e49d79dc1b13d7077436ee5cdf14/sysdeps/riscv/start.S#L82 *)
 let gp_code =
   {|
-  load_gp:
+load_gp:
 .option push
 .option norelax
   lla   gp, __global_pointer$
@@ -541,9 +540,6 @@ let gen_aprogram fmt (pr : aprogram) =
     let+ main_code = gather pr in
     main_code, bss_section
   in
-  (* (match M.run bss_section M.default |> snd with
-   | Error msg -> Error msg
-   | Ok code -> Ok (pp_instrs code fmt)); *)
   match M.run code M.default |> snd with
   | Error msg -> Error msg
   | Ok (main_code, bss_section) ->
