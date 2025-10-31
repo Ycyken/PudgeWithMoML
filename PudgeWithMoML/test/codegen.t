@@ -587,7 +587,6 @@
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   5
-  $ cp ../main.exe /home/homka/code/asm/homka.exe
   $ cat ../main.anf
   let x__0 = 4 
   
@@ -647,7 +646,6 @@
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
   122
-  $ cp ../main.exe /home/homka/code/asm/homka.exe
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -767,7 +765,6 @@
   115
   122
   17
-  $ cp ../main.exe /home/homka/code/asm/homka.exe
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
