@@ -434,14 +434,12 @@ let gen_bss_section (pr : aprogram) : instr list t =
   (* get list of global variables that are not functions and generate bss section (local variables) *)
   let get_globals_variables (pr : aprogram) : ident list t =
     let rec helper acc (astrs : astr_item list) =
-      (* TODO: now it's wrong if we have program with inner function in ALet expr *)
-      (* Ex: let homka = let x = 5 in fun y -> x + y // it's function that must be on top level *)
-      (* But now we check now without depth in ANF tree *)
+      (* After lambda lifting we don't have inner functions that make out life mush easy :) *)
       match astrs with
-      | [ _ ] -> List.rev acc |> return
+      | [ _ ] -> List.rev acc |> return (* last astr_item is main *)
       | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
       | (_, (name, _), []) :: tl -> helper (name :: acc) tl
-      | _ -> fail "Not impelemented"
+      | _ -> fail "Empty program"
     in
     helper [] pr
   in
