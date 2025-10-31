@@ -273,7 +273,6 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv a0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
@@ -442,10 +441,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
+    mv t0, a0
   # End Apply inc__4 with 1 args
     sd t0, -32(fp)
   # Apply print_int
@@ -538,10 +537,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
+    mv t0, a0
   # End Apply inc__4 with 1 args
     sd t0, -32(fp)
   # Apply print_int
@@ -563,10 +562,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
+    mv t0, a0
   # End Apply inc__4 with 1 args
     sd t0, -56(fp)
   # Apply print_int
@@ -719,10 +718,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
+    mv t0, a0
   # End Apply add5__3 with 1 args
     sd t0, -16(fp)
   # Apply print_int
@@ -894,10 +893,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
-    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
+    mv t0, a0
   # End Apply add5__3 with 1 args
     sd t0, -16(fp)
   # Apply print_int

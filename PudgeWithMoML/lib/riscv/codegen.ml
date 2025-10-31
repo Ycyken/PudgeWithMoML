@@ -12,6 +12,7 @@ open Middle_end
 open Middle_end.Anf
 
 type location =
+  | Reg of reg
   | Stack of int
   | Function of int (* arity of function *)
   | Global (* bss section *)
@@ -108,6 +109,7 @@ let gen_imm dst imm =
          ; addi Sp Sp 16
          ]
      | Some Global -> return [ la (T 5) x; ld dst 0 (T 5) ]
+     | Some (Reg reg) -> return [ mv dst reg ]
      | _ -> fail ("unbound variable: " ^ x))
 ;;
 
@@ -324,7 +326,10 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap comment
     |> return
-  | CApp (ImmVar f, arg, args) when is_top_level f |> fst ->
+  | CApp (ImmVar f, arg, args)
+    when let is_top, arity = is_top_level f in
+         (* f is top level and it partial application *)
+         is_top && List.length (arg :: args) < arity ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Partial application %s with %d args" f argc in
     let* load_code, free_code =
@@ -336,7 +341,38 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
     |> comment_wrap comment
     |> return
-  | CApp ((ImmVar f as imm), arg, args) ->
+  | CApp ((ImmVar f as imm), arg, args)
+  (* f is not top level, so apply arguments one by one *) ->
+    (* TODO: closure keep argc, so we can group them by that number *)
+    let argc = List.length (arg :: args) in
+    let comment = Format.asprintf "Apply %s with %d args" f argc in
+    let rec helper imm acc = function
+      | [] -> return acc
+      | arg :: args ->
+        let* temp = fresh in
+        let* get_closure_code =
+          let* get_f = gen_imm (T 0) imm in
+          let+ off = save_var_on_stack temp in
+          get_f @ [ sd (T 0) (-off) fp ]
+        in
+        let* load_code, free_code =
+          let args = [ ImmVar temp; ImmConst (Int_lt 1); arg ] in
+          let* load_code = load_args_on_stack args in
+          let+ free_code = free_args_on_stack args in
+          load_code, free_code
+        in
+        let code = get_closure_code @ load_code @ [ call "apply_closure" ] @ free_code in
+        let* () = add_binding temp (Reg (A 0)) in
+        helper (ImmVar temp) (acc @ code) args
+    in
+    let* result = helper imm [] (arg :: args) in
+    let load_result =
+      match dst with
+      | A 0 -> []
+      | _ -> [ mv dst (A 0) ]
+    in
+    result @ load_result |> comment_wrap comment |> return
+  (* | CApp ((ImmVar f as imm), arg, args) ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Apply %s with %d args" f argc in
     let* temp = fresh in
@@ -353,7 +389,7 @@ let rec gen_cexpr (is_top_level : string -> bool * int) dst = function
     in
     get_closure_code @ load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
     |> comment_wrap comment
-    |> return
+    |> return *)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function

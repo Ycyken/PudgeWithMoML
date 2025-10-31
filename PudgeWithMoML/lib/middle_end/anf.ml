@@ -60,6 +60,9 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
   | LetIn (rec_flag, (PVar name, value), body) ->
     let* body = anf body expr_with_hole in
     anf value (fun immv -> mk_alet rec_flag name (CImm immv) body |> return)
+  | LetIn (_, (PConst Unit_lt, value), body) ->
+    let* body = anf body expr_with_hole in
+    anf value (fun _ -> body |> return)
   | LetIn (_, (Wild, value), body) ->
     let* body = anf body expr_with_hole in
     anf value (fun _ -> body |> return)
