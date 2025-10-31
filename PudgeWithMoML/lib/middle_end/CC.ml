@@ -46,26 +46,12 @@ and get_fv_aexpr is_top_level = function
     FVSet.union cexpr_fv aexpr_fv
 ;;
 
-module M = struct
-  open Base
+open Common.Monad.CounterR
 
-  type st = { fresh : int }
-
-  include Common.Monad.StateR (struct
-      type state = st
-      type error = string
-    end)
-
-  let default = { fresh = 0 }
-
-  let fresh : string t =
-    let* st = get in
-    let+ _ = put { fresh = st.fresh + 1 } in
-    "arg__" ^ Int.to_string st.fresh
-  ;;
-end
-
-open M
+let make_fresh : string t =
+  let+ fresh = make_fresh in
+  "arg_" ^ Int.to_string fresh
+;;
 
 (* Return args of cexpr. Otherwise return empty array *)
 let get_args cexpr =
@@ -134,7 +120,7 @@ let rec convert_cc_cexpr is_top_level = function
            ~init:lambda
            new_fvs
        in
-       let+ fresh = fresh in
+       let+ fresh = make_fresh in
        let arg, args = Base.List.nth_exn fvs 0, Base.List.drop fvs 1 in
        let imms = Base.List.map args ~f:(fun i -> ImmVar i) in
        ALet (Nonrec, fresh, homka, ACExpr (CApp (ImmVar fresh, ImmVar arg, imms))))
@@ -185,5 +171,5 @@ let convert_cc_pr (pr : aprogram) =
       helper ((is_rec, (name, aexpr'), binds) :: acc) tl
     | [] -> return (List.rev acc)
   in
-  run (helper [] pr) default |> snd
+  run (helper [] pr) 0 |> snd
 ;;

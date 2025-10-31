@@ -18,8 +18,8 @@
     let anf_t3 = n__1 < 2 in
     if anf_t3 then (k__2 1)
     else let anf_t5 = n__1 - 1 in
-    let arg__0 = f_0 in
-    let anf_t8 = arg__0 k__2 n__1 in
+    let arg_0 = f_0 in
+    let anf_t8 = arg_0 k__2 n__1 in
     fac__0 anf_t5 anf_t8 
   
   
@@ -108,7 +108,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, -48(fp)
-  # Apply arg__0 with 2 args
+  # Apply arg_0 with 2 args
     ld t0, -48(fp)
     sd t0, -56(fp)
   # Load args on stack
@@ -140,7 +140,7 @@
     addi sp, sp, 32
   # End free args on stack
     mv t0, a0
-  # End Apply arg__0 with 2 args
+  # End Apply arg_0 with 2 args
     sd t0, -72(fp)
   # Apply fac__0 with 2 args
   # Load args on stack
@@ -229,8 +229,8 @@
     fun n__1__new ->
     fun a__3 ->
     let anf_t6 = n__1__new - 2 in
-    let arg__0 = f_0 in
-    let anf_t9 = arg__0 a__3 k__2__new in
+    let arg_0 = f_0 in
+    let anf_t9 = arg_0 a__3 k__2__new in
     fib__0 anf_t6 anf_t9 
   
   
@@ -239,8 +239,8 @@
     let anf_t3 = n__1 < 2 in
     if anf_t3 then (k__2 n__1)
     else let anf_t5 = n__1 - 1 in
-    let arg__1 = f_1 in
-    let anf_t11 = arg__1 k__2 n__1 in
+    let arg_1 = f_1 in
+    let anf_t11 = arg_1 k__2 n__1 in
     fib__0 anf_t5 anf_t11 
   
   
@@ -304,7 +304,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, -32(fp)
-  # Apply arg__0 with 2 args
+  # Apply arg_0 with 2 args
     ld t0, -32(fp)
     sd t0, -40(fp)
   # Load args on stack
@@ -336,7 +336,7 @@
     addi sp, sp, 32
   # End free args on stack
     mv t0, a0
-  # End Apply arg__0 with 2 args
+  # End Apply arg_0 with 2 args
     sd t0, -56(fp)
   # Apply fib__0 with 2 args
   # Load args on stack
@@ -399,7 +399,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, -48(fp)
-  # Apply arg__1 with 2 args
+  # Apply arg_1 with 2 args
     ld t0, -48(fp)
     sd t0, -56(fp)
   # Load args on stack
@@ -431,7 +431,7 @@
     addi sp, sp, 32
   # End free args on stack
     mv t0, a0
-  # End Apply arg__1 with 2 args
+  # End Apply arg_1 with 2 args
     sd t0, -72(fp)
   # Apply fib__0 with 2 args
   # Load args on stack
