@@ -13,7 +13,6 @@ type reg =
   | A of int
   | S of int
   | T of int
-[@@deriving eq]
 
 let fp = S 0
 
@@ -129,3 +128,77 @@ let label l = Label l
 let directive l = Directive l
 let comment c = Comment c
 let dword name = DWord name
+
+let%expect_test "Print all regs and instructions" =
+  let open Format in
+  let print_program (instr : instr list) : unit =
+    pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "\n") pp_instr std_formatter instr
+  in
+  let program =
+    [ addi (A 0) (A 2) 2
+    ; add (T 0) (T 1) (T 2)
+    ; sub (S 0) (S 1) (A 0)
+    ; mul (A 1) (A 2) (A 3)
+    ; div (A 4) (A 5) (A 6)
+    ; li (A 7) 42
+    ; ld (A 0) 8 Sp
+    ; la (A 1) "msg"
+    ; slt (T 3) (T 4) (T 5)
+    ; seqz (A 2) (A 3)
+    ; snez (A 4) (A 5)
+    ; mv (A 6) (A 7)
+    ; sd (A 0) 16 Sp
+    ; xori (A 1) (A 2) 5
+    ; xor (A 3) (A 4) (A 5)
+    ; andi (A 6) (A 7) 7
+    ; and_ (A 0) (A 1) (A 2)
+    ; ori (A 3) (A 4) 9
+    ; or_ (S 0) (S 1) (A 0)
+    ; beq (A 0) (A 1) "label1"
+    ; ble (A 2) (A 3) "label2"
+    ; j "main"
+    ; jalr Ra Sp 0
+    ; ecall
+    ; call "print_int"
+    ; ret
+    ; label "loop"
+    ; directive ".text"
+    ; comment "done"
+    ; dword "val"
+    ]
+  in
+  print_program program;
+  [%expect
+    {|
+  addi a0, a2, 2
+  add t0, t1, t2
+  sub fp, s1, a0
+  mul a1, a2, a3
+  div a4, a5, a6
+  li a7, 42
+  ld a0, 8(sp)
+  la a1, msg
+  slt t3, t4, t5
+  seqz a2, a3
+  snez a4, a5
+  mv a6, a7
+  sd a0, 16(sp)
+  xori a1, a2, 5
+  xor a3, a4, a5
+  andi a6, a7, 7
+  and a0, a1, a2
+  ori a3, a4, 9
+  or fp, s1, a0
+  beq a0, a1, label1
+  ble a2, a3, label2
+  j main
+  jalr ra, sp, 0
+  ecall
+  call print_int
+  ret
+  loop:
+  .text
+  # done
+  val: .dword 0
+    |}]
+;;

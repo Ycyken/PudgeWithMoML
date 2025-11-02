@@ -16,7 +16,6 @@ type location =
   | Stack of int
   | Function of int (* arity of function *)
   | Global (* bss section *)
-[@@deriving eq]
 
 let word_size = 8
 
