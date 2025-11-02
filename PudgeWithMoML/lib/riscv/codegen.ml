@@ -300,10 +300,6 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
      | "&&" -> c1 @ c2 @ [ and_ dst (T 0) (T 1) ] |> return
      | "||" -> c1 @ c2 @ [ or_ dst (T 0) (T 1) ] |> return
      | _ -> fail ("std binop is not implemented yet: " ^ op))
-  | CBinop (op, e1, e2) ->
-    let* e1_c = gen_imm (A 0) e1 in
-    let+ e2_c = gen_imm (A 1) e2 in
-    e1_c @ e2_c @ [ call op ] @ if dst = A 0 then [] else [ mv dst (A 0) ]
   | CApp (ImmVar "print_int", arg, []) ->
     let+ arg_c = gen_imm (A 0) arg in
     (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
