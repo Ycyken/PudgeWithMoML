@@ -166,3 +166,99 @@ let convert_program (program : program) =
   in
   run prg_w_ctx 0 |> snd |> fst |> List.rev
 ;;
+
+let%expect_test "test_pattern" =
+  let open Stdlib.Format in
+  let open Frontend.AstPP in
+  let all_patterns : pattern list =
+    [ Wild
+    ; PList [ PConst (Int_lt 1); PVar "x" ]
+    ; PCons (PConst (Int_lt 1), PVar "xs")
+    ; PTuple (PVar "a", PVar "b", [ PConst (Int_lt 2) ])
+    ; PConst (Int_lt 42)
+    ; PVar "x"
+    ; POption None
+    ; POption (Some (PVar "y"))
+    ; PConstraint (PVar "z", Primitive "t")
+    ]
+  in
+  List.iter
+    ~f:(fun pattern ->
+      let result = convert_pat default pattern in
+      let result = run result 0 |> snd |> fst in
+      printf "%a\n" pp_pattern result)
+    all_patterns;
+  [%expect
+    {|
+    _
+    [1; x__0 ]
+    (1) :: (xs__0 )
+    (a__0 , b__1 , 2)
+    42
+    x__0
+    None
+    Some (y__0 )
+    (z__0  : t) |}]
+;;
+
+let%expect_test "test_expr" =
+  let open Stdlib.Format in
+  let open Frontend.AstPP in
+  let all_exprs : expr list =
+    [ Const (Int_lt 1)
+    ; Tuple (Const (Int_lt 1), Const (Int_lt 2), [ Const (Int_lt 3) ])
+    ; List [ Const (Int_lt 1); Const (Int_lt 2) ]
+    ; Variable "x"
+    ; If_then_else (Const (Bool_lt true), Const (Int_lt 1), Some (Const (Int_lt 0)))
+    ; If_then_else (Const (Bool_lt false), Const (Int_lt 2), None)
+    ; Lambda (PVar "x", Variable "x")
+    ; Apply (Apply (Variable "+", Const (Int_lt 3)), Const (Int_lt 4))
+    ; Apply (Variable "f", Const (Int_lt 5))
+    ; Function
+        ((PConst (Int_lt 1), Const (Int_lt 1)), [ PConst (Int_lt 2), Const (Int_lt 2) ])
+    ; Match
+        ( Variable "v"
+        , (PConst (Int_lt 0), Const (Int_lt 0))
+        , [ PConst (Int_lt 1), Const (Int_lt 1) ] )
+    ; Option None
+    ; Option (Some (Const (Int_lt 9)))
+    ; EConstraint (Variable "x", Primitive "t")
+    ; LetIn (Nonrec, (PVar "z", Const (Int_lt 9)), Variable "z")
+    ; LetIn
+        ( Rec
+        , (PVar "f", Lambda (PVar "x", Variable "x"))
+        , Apply (Variable "f", Const (Int_lt 1)) )
+    ]
+  in
+  List.iter
+    ~f:(fun expr ->
+      let result = convert_expr default expr in
+      let result = run result 0 |> snd in
+      printf "%a\n" pp_expr result)
+    all_exprs;
+  [%expect {|
+    1
+    ((1), (2), (3))
+    [1; 2]
+    x
+    if (true) then (1) else 0
+    if (false) then (2)
+    fun (x__0 ) -> x__0
+    (3) + (4)
+    (f ) (5)
+    fun (function_arg__0__1 ) -> match (function_arg__0__1 ) with
+    | 1 -> (1)
+    | 2 -> (2)
+
+    match (v ) with
+    | 0 -> (0)
+    | 1 -> (1)
+
+    None
+    Some (9)
+    (x  : t)
+    let z__0  = 9 in
+    z__0
+    let rec f__0  = fun (x__1 ) -> x__1  in
+    (f__0 ) (1) |}]
+;;
