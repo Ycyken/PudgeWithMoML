@@ -1061,8 +1061,38 @@
   >   let homka2 = homka > homka in
   >   let homka3 = (homka / homka) in
   >   let homka4 = true || true in
+  >   let homka5 = not true in
   >   false && false
   > EOF
+  $ cat ../main.anf
+  let homka__0 = fun a__1 ->
+    () 
+  
+  
+  let homka__2 = fun a__3 ->
+    false 
+  
+  
+  let homka__4 = fun a__5 ->
+    true 
+  
+  
+  let homka__6 = fun a__7 ->
+    5 
+  
+  
+  let homka__8 = fun homka__9 ->
+    let anf_t5 = homka__9 >= homka__9 in
+    let homka1__10 = anf_t5 in
+    let anf_t4 = homka__9 > homka__9 in
+    let homka2__11 = anf_t4 in
+    let anf_t3 = homka__9 / homka__9 in
+    let homka3__12 = anf_t3 in
+    let anf_t2 = true || true in
+    let homka4__13 = anf_t2 in
+    let anf_t1 = not true in
+    let homka5__14 = anf_t1 in
+    false && false 
   $ cat ../main.s
   .text
   .globl homka__0
@@ -1111,10 +1141,10 @@
     ret
   .globl homka__8
   homka__8:
-    addi sp, sp, -80
-    sd ra, 72(sp)
-    sd fp, 64(sp)
-    addi fp, sp, 80
+    addi sp, sp, -96
+    sd ra, 88(sp)
+    sd fp, 80(sp)
+    addi fp, sp, 96
     ld t0, 0(fp)
     ld t1, 0(fp)
     slt t0, t0, t1
@@ -1140,12 +1170,17 @@
     sd t0, -72(fp)
     ld t0, -72(fp)
     sd t0, -80(fp)
+    li t0, 1
+    xori t0, t0, -1
+    sd t0, -88(fp)
+    ld t0, -88(fp)
+    sd t0, -96(fp)
     li t0, 0
     li t1, 0
     and a0, t0, t1
-    ld ra, 72(sp)
-    ld fp, 64(sp)
-    addi sp, sp, 80
+    ld ra, 88(sp)
+    ld fp, 80(sp)
+    addi sp, sp, 96
     ret
   .globl _start
   _start:

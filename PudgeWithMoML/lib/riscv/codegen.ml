@@ -391,6 +391,9 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
       [ ld Ra (frame - 8) Sp; ld fp (frame - 16) Sp; addi Sp Sp frame; ret ]
     in
     prologue @ body_code @ epilogue |> return
+  | CNot imm ->
+    let* code = gen_imm (T 0) imm in
+    code @ [ xori dst (T 0) (-1) ] |> return
   | cexpr ->
     (* TODO: replace it with Anf.pp_cexpr without \n prints *)
     fail (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)

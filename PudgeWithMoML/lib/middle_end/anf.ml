@@ -66,6 +66,11 @@ let rec anf (e : expr) (expr_with_hole : imm -> aexpr t) : aexpr t =
   | LetIn (_, (Wild, value), body) ->
     let* body = anf body expr_with_hole in
     anf value (fun _ -> body |> return)
+  | Apply (Variable "not", arg) ->
+    anf_as_imm arg (fun i ->
+      let* temp = make_temp in
+      let* ehole = expr_with_hole (ImmVar temp) in
+      mk_alet Nonrec temp (CNot i) ehole |> return)
   | Apply (Apply (Variable f, arg1), arg2) when is_op f ->
     anf_as_imm arg1 (fun i1 ->
       anf_as_imm arg2 (fun i2 ->
