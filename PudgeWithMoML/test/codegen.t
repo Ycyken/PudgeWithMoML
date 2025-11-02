@@ -1050,6 +1050,112 @@
   t__0: .dword 0
   _: .dword 0
 
+(literals and bin operators)
+  $ make compile opts=-anf --no-print-directory -C .. << 'EOF'
+  > let homka = fun a -> ()
+  > let homka = fun a -> false
+  > let homka = fun a -> true
+  > let homka = fun a -> 5
+  > let homka = fun homka ->
+  >   let homka1 = homka >= homka in
+  >   let homka2 = homka > homka in
+  >   let homka3 = (homka / homka) in
+  >   let homka4 = true || true in
+  >   false && false
+  > EOF
+  $ cat ../main.s
+  .text
+  .globl homka__0
+  homka__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    li a0, 1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl homka__2
+  homka__2:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    li a0, 0
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl homka__4
+  homka__4:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    li a0, 1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl homka__6
+  homka__6:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    li a0, 5
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl homka__8
+  homka__8:
+    addi sp, sp, -80
+    sd ra, 72(sp)
+    sd fp, 64(sp)
+    addi fp, sp, 80
+    ld t0, 0(fp)
+    ld t1, 0(fp)
+    slt t0, t0, t1
+    xori t0, t0, 1
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    sd t0, -32(fp)
+    ld t0, 0(fp)
+    ld t1, 0(fp)
+    slt t0, t1, t0
+    sd t0, -40(fp)
+    ld t0, -40(fp)
+    sd t0, -48(fp)
+    ld t0, 0(fp)
+    ld t1, 0(fp)
+    div t0, t0, t1
+    sd t0, -56(fp)
+    ld t0, -56(fp)
+    sd t0, -64(fp)
+    li t0, 1
+    li t1, 1
+    or t0, t0, t1
+    sd t0, -72(fp)
+    ld t0, -72(fp)
+    sd t0, -80(fp)
+    li t0, 0
+    li t1, 0
+    and a0, t0, t1
+    ld ra, 72(sp)
+    ld fp, 64(sp)
+    addi sp, sp, 80
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    addi sp, sp, 0
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
   5
