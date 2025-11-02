@@ -115,3 +115,121 @@ let pp_structure_item fmt : structure_item -> unit = function
 let pp_program fmt (program : program) =
   pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "\n\n") pp_structure_item fmt program
 ;;
+
+let%expect_test "pp god ast" =
+  let sample_program : program =
+    [ Nonrec, (PVar "x", Const (Int_lt 42)), [ PVar "extra", Const (Int_lt 100) ]
+    ; ( Nonrec
+      , (PList [ PVar "a"; PVar "b" ], List [ Const (Int_lt 1); Const (Int_lt 2) ])
+      , [] )
+    ; Nonrec, (PCons (PConst (Int_lt 1), PVar "tail"), Variable "tail"), []
+    ; ( Nonrec
+      , ( PTuple (PVar "p1", PVar "p2", [ PVar "p3"; PVar "+++" ])
+        , Tuple (Variable "p1", Variable "p2", [ Variable "p3"; Variable "+++" ]) )
+      , [] )
+    ; Nonrec, (PConst (Bool_lt true), Const (Bool_lt false)), []
+    ; ( Nonrec
+      , ( Wild
+        , If_then_else (Const (Bool_lt true), Const (Int_lt 1), Some (Const (Int_lt 0)))
+        )
+      , [] )
+    ; Nonrec, (Wild, If_then_else (Const (Bool_lt true), Const (Int_lt 1), None)), []
+    ; ( Nonrec
+      , ( PVar "if_no_else"
+        , If_then_else (Const (Bool_lt false), Const (Int_lt 2), Some (Const Unit_lt)) )
+      , [] )
+    ; Nonrec, (PVar "lam", Lambda (PVar "x", Variable "x")), []
+    ; ( Nonrec
+      , (PVar "apply_op", Apply (Apply (Variable "+", Const (Int_lt 3)), Const (Int_lt 4)))
+      , [] )
+    ; Nonrec, (PVar "apply_norm", Apply (Variable "f", Const (Int_lt 5))), []
+    ; ( Nonrec
+      , ( PVar "fn"
+        , Function
+            ( (PConst (Int_lt 1), Const (Int_lt 1))
+            , [ PConst (Int_lt 2), Const (Int_lt 2) ] ) )
+      , [] )
+    ; ( Nonrec
+      , ( PVar "mt"
+        , Match
+            ( Variable "v"
+            , (PConst (Int_lt 0), Const (Int_lt 0))
+            , [ PConst (Int_lt 1), Const (Int_lt 1) ] ) )
+      , [] )
+    ; Nonrec, (PVar "opt_some", Option (Some (Const (Int_lt 7)))), []
+    ; Nonrec, (PVar "opt_none", Option None), []
+    ; ( Nonrec
+      , (PVar "letin", LetIn (Nonrec, (PVar "z", Const (Int_lt 9)), Variable "z"))
+      , [] )
+    ; ( Nonrec
+      , ( PVar "big_tuple"
+        , Tuple
+            ( Tuple (Const (Int_lt 1), Const (Int_lt 2), [])
+            , Const (Int_lt 3)
+            , [ Const (Int_lt 4) ] ) )
+      , [] )
+    ; Nonrec, (POption None, Const (Int_lt 0)), []
+    ; Nonrec, (POption (Some (PConst (Int_lt 8))), Const (Int_lt 8)), []
+    ; Nonrec, (PVar "normal_name", Variable "normal_name"), []
+    ; Nonrec, (PVar "constr_pattern", Const (Int_lt 0)), []
+    ; ( Nonrec
+      , ( PConstraint (PVar "constr_pattern", Primitive "Homka")
+        , EConstraint (Const (Int_lt 0), Primitive "Homka") )
+      , [] )
+    ]
+  in
+  pp_program std_formatter sample_program;
+  [%expect
+    {|
+    let x  = 42
+
+    and extra  = 100
+
+    let [a ; b ] = [1; 2]
+
+    let (1) :: (tail )  = tail
+
+    let (p1 , p2 , p3 , (+++) ) = ((p1 ), (p2 ), (p3 ), ((+++) ))
+
+    let true = false
+
+    let _  = if (true) then (1) else 0
+
+    let _  = if (true) then (1)
+
+    let if_no_else  = if (false) then (2) else ()
+
+    let lam  = fun (x ) -> x
+
+    let apply_op  = (3) + (4)
+
+    let apply_norm  = (f ) (5)
+
+    let fn  = function | 1 -> (1)
+    | 2 -> (2)
+
+
+    let mt  = match (v ) with
+    | 0 -> (0)
+    | 1 -> (1)
+
+
+    let opt_some  = Some (7)
+
+    let opt_none  = None
+
+    let letin  = let z  = 9 in
+    z
+
+    let big_tuple  = ((((1), (2))), (3), (4))
+
+    let None  = 0
+
+    let Some (8)  = 8
+
+    let normal_name  = normal_name
+
+    let constr_pattern  = 0
+
+    let (constr_pattern  : Homka)  = (0 : Homka) |}]
+;;
