@@ -153,3 +153,73 @@ let anf_program program : (aprogram, error) Base.Result.t =
   in
   run program' 0 |> snd
 ;;
+
+let%expect_test "pp anf program" =
+  let example_program : aprogram =
+    [ Nonrec, ("homka", ACExpr (CImm (ImmConst (Int_lt 42)))), []
+    ; Nonrec, ("x", ACExpr (CBinop ("+", ImmConst (Int_lt 1), ImmConst (Int_lt 2)))), []
+    ; Nonrec, ("y", ACExpr (CNot (ImmVar "flag"))), []
+    ; Nonrec, ("f", ACExpr (CLambda ("arg", ACExpr (CImm (ImmConst (Bool_lt true)))))), []
+    ; ( Nonrec
+      , ("z", ACExpr (CApp (ImmVar "f", ImmVar "a", [ ImmVar "b"; ImmVar "c" ])))
+      , [] )
+    ; ( Nonrec
+      , ( "cond"
+        , ACExpr
+            (CIte
+               ( ImmVar "flag"
+               , ACExpr (CBinop ("*", ImmConst (Int_lt 2), ImmConst (Int_lt 3)))
+               , ACExpr (CNot (ImmVar "flag")) )) )
+      , [] )
+    ; ( Rec
+      , ( "fact"
+        , ALet
+            ( Nonrec
+            , "x"
+            , CBinop ("+", ImmConst (Int_lt 1), ImmConst (Int_lt 2))
+            , ACExpr
+                (CIte
+                   ( ImmVar "n"
+                   , ACExpr (CBinop ("*", ImmVar "n", ImmVar "x"))
+                   , ACExpr (CImm (ImmConst (Int_lt 1))) )) ) )
+      , [ "homka", ACExpr (CImm (ImmConst (Int_lt 42))) ] )
+    ]
+  in
+  let open Stdlib.Format in
+  printf "%a" pp_aprogram example_program;
+  [%expect
+    {|
+    [(Nonrec, ("homka", (ACExpr (CImm (ImmConst (Int_lt 42))))), []);
+      (Nonrec,
+       ("x",
+        (ACExpr (CBinop ("+", (ImmConst (Int_lt 1)), (ImmConst (Int_lt 2)))))),
+       []);
+      (Nonrec, ("y", (ACExpr (CNot (ImmVar "flag")))), []);
+      (Nonrec,
+       ("f",
+        (ACExpr (CLambda ("arg", (ACExpr (CImm (ImmConst (Bool_lt true)))))))),
+       []);
+      (Nonrec,
+       ("z",
+        (ACExpr (CApp ((ImmVar "f"), (ImmVar "a"), [(ImmVar "b"); (ImmVar "c")])))),
+       []);
+      (Nonrec,
+       ("cond",
+        (ACExpr
+           (CIte ((ImmVar "flag"),
+              (ACExpr
+                 (CBinop ("*", (ImmConst (Int_lt 2)), (ImmConst (Int_lt 3))))),
+              (ACExpr (CNot (ImmVar "flag"))))))),
+       []);
+      (Rec,
+       ("fact",
+        (ALet (Nonrec, "x",
+           (CBinop ("+", (ImmConst (Int_lt 1)), (ImmConst (Int_lt 2)))),
+           (ACExpr
+              (CIte ((ImmVar "n"),
+                 (ACExpr (CBinop ("*", (ImmVar "n"), (ImmVar "x")))),
+                 (ACExpr (CImm (ImmConst (Int_lt 1)))))))
+           ))),
+       [("homka", (ACExpr (CImm (ImmConst (Int_lt 42)))))])
+      ] |}]
+;;
