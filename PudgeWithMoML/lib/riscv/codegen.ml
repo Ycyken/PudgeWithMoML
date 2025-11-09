@@ -496,8 +496,8 @@ let gather pr : instr list t =
   @ functions_code
   @ [ directive ".globl _start"; label "_start" ]
   @ [ mv fp Sp ]
-  @ [ addi Sp Sp (-frame) ]
   @ [ mv (A 0) Sp; call "init_GC" ]
+  @ [ addi Sp Sp (-frame) ]
   @ main_code
   @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
 ;;
