@@ -39,6 +39,11 @@ typedef struct {
 
 static GC_state gc;
 
+// mocked stack and regs
+void **my_stack;
+void **regs;
+void *current_sp;
+
 typedef struct {
   void *code;
   size_t argc;
@@ -79,6 +84,21 @@ void print_gc_status() {
   return;
 }
 
+void print_stack() {
+  printf("=== STACK status ===\n");
+  size_t stack_size = (gc.base_sp - current_sp) / 8;
+  printf("STACK SIZE: %ld\n", stack_size);
+
+  for (size_t i = 0; i < stack_size; i++) {
+    uint64_t *byte = (uint64_t *)gc.base_sp - i;
+    printf("\t0x%x: 0x%x\n", byte, *byte);
+  }
+
+  printf("=== STACK status ===\n");
+
+  return;
+}
+
 // Alloc space for GC, init initial state
 void init_GC(void *base_sp) {
   // I have problems with modify global variables in direct way
@@ -91,132 +111,15 @@ void init_GC(void *base_sp) {
   return;
 }
 
-// if caller function wants to save some regs that my collect_riscv_state
-// function may destroy (for ex. during creating regs[26]) then caller puts
-// their values on stack. so we don't lose any address that points to object in
-// heap
-// TODO: riscv calling conventions
 static void **collect_riscv_state() {
-  // t0-t6 (7), a0-a7 (8), s1-s11 (11)
-  size_t *regs = malloc(sizeof(size_t) * 26);
+  void **_regs = malloc(sizeof(void *) * 26);
 
-  asm volatile("sd t0, 0(%0)\n\t"
-               "sd t1, 8(%0)\n\t"
-               "sd t2, 16(%0)\n\t"
-               "sd t3, 24(%0)\n\t"
-               "sd t4, 32(%0)\n\t"
-               "sd t5, 40(%0)\n\t"
-               "sd t6, 48(%0)\n\t"
-               "sd a0, 56(%0)\n\t"
-               "sd a1, 64(%0)\n\t"
-               "sd a2, 72(%0)\n\t"
-               "sd a3, 80(%0)\n\t"
-               "sd a4, 88(%0)\n\t"
-               "sd a5, 96(%0)\n\t"
-               "sd a6, 104(%0)\n\t"
-               "sd a7, 112(%0)\n\t"
-               "sd s1, 120(%0)\n\t"
-               "sd s2, 128(%0)\n\t"
-               "sd s3, 136(%0)\n\t"
-               "sd s4, 144(%0)\n\t"
-               "sd s5, 152(%0)\n\t"
-               "sd s6, 160(%0)\n\t"
-               "sd s7, 168(%0)\n\t"
-               "sd s8, 176(%0)\n\t"
-               "sd s9, 184(%0)\n\t"
-               "sd s10, 192(%0)\n\t"
-               "sd s11, 200(%0)\n\t"
-               :
-               : "r"(regs)
-               : "memory");
+  regs = _regs;
 
-  return (void **)regs;
+  return _regs;
 }
 
-static void set_riscv_reg(int idx, void *val) {
-  switch (idx) {
-  case 0:
-    asm volatile("mv t0, %0" ::"r"(val));
-    break;
-  case 1:
-    asm volatile("mv t1, %0" ::"r"(val));
-    break;
-  case 2:
-    asm volatile("mv t2, %0" ::"r"(val));
-    break;
-  case 3:
-    asm volatile("mv t3, %0" ::"r"(val));
-    break;
-  case 4:
-    asm volatile("mv t4, %0" ::"r"(val));
-    break;
-  case 5:
-    asm volatile("mv t5, %0" ::"r"(val));
-    break;
-  case 6:
-    asm volatile("mv t6, %0" ::"r"(val));
-    break;
-  case 7:
-    asm volatile("mv a0, %0" ::"r"(val));
-    break;
-  case 8:
-    asm volatile("mv a1, %0" ::"r"(val));
-    break;
-  case 9:
-    asm volatile("mv a2, %0" ::"r"(val));
-    break;
-  case 10:
-    asm volatile("mv a3, %0" ::"r"(val));
-    break;
-  case 11:
-    asm volatile("mv a4, %0" ::"r"(val));
-    break;
-  case 12:
-    asm volatile("mv a5, %0" ::"r"(val));
-    break;
-  case 13:
-    asm volatile("mv a6, %0" ::"r"(val));
-    break;
-  case 14:
-    asm volatile("mv a7, %0" ::"r"(val));
-    break;
-  case 15:
-    asm volatile("mv s1, %0" ::"r"(val));
-    break;
-  case 16:
-    asm volatile("mv s2, %0" ::"r"(val));
-    break;
-  case 17:
-    asm volatile("mv s3, %0" ::"r"(val));
-    break;
-  case 18:
-    asm volatile("mv s4, %0" ::"r"(val));
-    break;
-  case 19:
-    asm volatile("mv s5, %0" ::"r"(val));
-    break;
-  case 20:
-    asm volatile("mv s6, %0" ::"r"(val));
-    break;
-  case 21:
-    asm volatile("mv s7, %0" ::"r"(val));
-    break;
-  case 22:
-    asm volatile("mv s8, %0" ::"r"(val));
-    break;
-  case 23:
-    asm volatile("mv s9, %0" ::"r"(val));
-    break;
-  case 24:
-    asm volatile("mv s10, %0" ::"r"(val));
-    break;
-  case 25:
-    asm volatile("mv s11, %0" ::"r"(val));
-    break;
-  default:
-    break;
-  }
-}
+static void set_riscv_reg(int idx, void *val) { regs[idx] = val; }
 
 // When we exec gc_collect we have on a heap objects:
 // [size 3] [data 0] [data 1] [data 2] [size 1] [data 0] [size 2] ...
@@ -230,10 +133,6 @@ void gc_collect() {
   if (gc.alloc_offset == 0) {
     return;
   }
-
-  void **regs = collect_riscv_state();
-  void *current_sp = NULL;
-  asm volatile("mv %0, sp" : "=r"(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
 
@@ -271,7 +170,7 @@ void gc_collect() {
       }
 
       if (!found) {
-        cur_offset += cur_size;
+        cur_offset += cur_size + 1;
         continue;
       }
 
@@ -294,14 +193,14 @@ void gc_collect() {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i;
+        void **byte = gc.base_sp - i;
         if (*byte == cur_pointer) {
           *byte = new_pointer;
         }
       }
     }
 
-    cur_offset += cur_size;
+    cur_offset += cur_size + 1;
   }
 
   void *temp = gc.new_space;
@@ -353,7 +252,7 @@ void *my_malloc(size_t size) {
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
-  gc_collect();
+  // gc_collect();
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -377,34 +276,61 @@ void *copy_closure(closure *old_clos) {
 
 #define WORD_SIZE (8)
 
-// get closure and apply [argc] arguments to closure
-void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
-  closure *clos = copy_closure(old_clos);
-  // printf("CLOS: 0x%x\n", clos);
-  // print_gc_status();
-  // fflush(stdout);
-  va_list list;
-  va_start(list, argc);
+int main(int argc, char **argv) {
+  my_stack = (void **)malloc(sizeof(void *) * 32);
+  init_GC(my_stack + 32);
+  current_sp = my_stack + 32 - 8;
+  regs = malloc(sizeof(void *) * 26);
 
-  if (clos->argc_recived + argc > clos->argc) {
-    fprintf(stderr,
-            "Runtime error: function accept more arguments than expect\n");
-    exit(122);
+  if (0) {
+    print_gc_status();
+    alloc_closure(ZERO8, (void *)0xFF, 2);
+    alloc_closure(ZERO8, (void *)0xFFF, 3);
+    alloc_closure(ZERO8, (void *)0xFFFF, 4);
+    print_gc_status();
+    gc_collect();
+    // must be empty
+    print_gc_status();
   }
 
-  for (size_t i = 0; i < argc; i++) {
-    void *arg = va_arg(list, void *);
-    clos->args[clos->argc_recived++] = arg;
+  if (0) {
+    print_gc_status();
+    void *clos = alloc_closure(ZERO8, (void *)0xFF, 2);
+    alloc_closure(ZERO8, (void *)0xFFF, 3);
+    alloc_closure(ZERO8, (void *)0xFFFF, 4);
+    print_gc_status();
+    regs[12] = clos;
+    gc_collect();
+    // must has first closure
+    print_gc_status();
   }
-  va_end(list);
 
-  // if application is partial
-  if (clos->argc_recived < clos->argc) {
-    return clos;
+  if (0) {
+    print_gc_status();
+    alloc_closure(ZERO8, (void *)0xFF, 2);
+    alloc_closure(ZERO8, (void *)0xFFF, 3);
+    void *clos = alloc_closure(ZERO8, (void *)0xFFFF, 4);
+    print_gc_status();
+    regs[12] = clos;
+    gc_collect();
+    // must has third closure
+    print_gc_status();
   }
 
-  // full application (we need pass all arguments to stack and exec function)
-  assert(clos->argc_recived == clos->argc);
+  if (1) {
+    print_gc_status();
+    void *clos1 = alloc_closure(ZERO8, (void *)0xFF, 2);
+    alloc_closure(ZERO8, (void *)0xFFF, 3);
+    void *clos2 = alloc_closure(ZERO8, (void *)0xFFFF, 4);
+    print_gc_status();
+    regs[12] = clos1;
+    my_stack[32 - 2] = clos2;
+    print_stack();
+    gc_collect();
+    // must has first and third closure
+    print_gc_status();
+  }
 
-  return call_closure(clos->code, clos->argc, clos->args);
+  printf("Done\n");
+  return 0;
 }
