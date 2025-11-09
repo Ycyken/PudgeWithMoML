@@ -304,6 +304,8 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let+ arg_c = gen_imm (A 0) arg in
     (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap "Apply print_int"
+  | CApp (ImmVar "print_gc_status", ImmConst Unit_lt, []) ->
+    [ call "print_gc_status" ] |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in
@@ -493,6 +495,7 @@ let gather pr : instr list t =
   @ [ directive ".globl _start"; label "_start" ]
   @ [ mv fp Sp ]
   @ [ addi Sp Sp (-frame) ]
+  @ [ mv (A 0) Sp; call "init_GC" ]
   @ main_code
   @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
 ;;

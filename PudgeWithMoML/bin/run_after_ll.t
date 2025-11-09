@@ -157,6 +157,8 @@
   _start:
     mv fp, sp
     addi sp, sp, -16
+    mv a0, sp
+    call init_GC
   # Apply fac_cps__6 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -440,6 +442,8 @@
   _start:
     mv fp, sp
     addi sp, sp, -24
+    mv a0, sp
+    call init_GC
   # Apply fib__11 with 2 args
   # Load args on stack
     addi sp, sp, -16
