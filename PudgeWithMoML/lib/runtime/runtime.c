@@ -16,7 +16,7 @@
 
 extern void *call_closure(void *code, uint64_t argc, void **argv);
 
-void print_int(size_t n) { printf("%d\n", n); }
+void print_int(size_t n) { printf("0x%x\n", n); }
 
 void flush() { fflush(stdout); }
 
@@ -59,33 +59,40 @@ typedef struct {
 #define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
 #define INT8 int, int, int, int, int, int, int, int
 
+void print_stack(void *current_sp);
+
 // Print stats about Garbage Collector work
 void print_gc_status() {
   printf("=== GC status ===\n");
   printf("Base stack pointer: %x\n", gc.base_sp);
   printf("Start address of new space: %x\n", gc.new_space);
-  printf("Current space capacity: %ld\n", gc.space_capacity);
-  printf("Allocate count: %ld\n", gc.alloc_count);
-  printf("Allocated memory count: %ld bytes\n", gc.allocated_bytes_count);
-  printf("Collect count: %ld\n", gc.collect_count);
-  printf("Allocated words in new space: %ld\n", gc.alloc_offset);
+  printf("Allocate count: %ld times\n", gc.alloc_count);
+  printf("Collect count: %ld times\n", gc.collect_count);
+  printf("Current space capacity: %ld words\n", gc.space_capacity);
+  printf("Total allocated memory: %ld words\n",
+         gc.allocated_bytes_count / WORD_SIZE);
+  printf("Allocated words in new space: %ld words\n", gc.alloc_offset);
 
   printf("Current new space:\n");
   size_t offset = 0;
   while (offset < gc.alloc_offset) {
     size_t size = (size_t)gc.new_space[offset];
 
-    printf("\t0x%x: [size: %ld]\n", offset, size);
+    printf("\t(0x%x) 0x%x: [size: %ld]\n", gc.new_space + offset, offset, size);
     offset++;
 
     for (size_t i = 0; i < size; i++) {
-      printf("\t0x%x: ", offset);
+      printf("\t(0x%x) 0x%x: ", gc.new_space + offset, offset);
       printf("[data: 0x%x]\n", gc.new_space[offset]);
       offset++;
     }
   }
 
   printf("=== GC status ===\n");
+
+  void *current_sp = NULL;
+  asm volatile("mv %0, sp" : "=r"(current_sp));
+  LOGF(print_stack(current_sp));
 
   return;
 }
@@ -311,14 +318,15 @@ void _gc_collect(void *current_sp) {
     }
 
     LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer,
-        cur_offset);
+        cur_offset + 1);
 
+    LOGF(print_stack(current_sp));
     // try to find in regs and stack at least one pointer
     {
       bool found = false;
 
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
           LOG("FOUND AT REG: %ld\n", i);
           found = true;
@@ -328,7 +336,7 @@ void _gc_collect(void *current_sp) {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i;
+        void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
           LOG("FOUND AT STACK: %ld. CUR_OFFSET: %x, CUR_POINTER: %x, byte: "
               "%x, *byte: %x\n",
@@ -353,11 +361,10 @@ void _gc_collect(void *current_sp) {
     }
 
     LOG("RUN CHANGING\n");
-    LOGF(print_stack(current_sp));
     // change all occurences
     {
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
           set_riscv_reg(i, new_pointer);
         }
@@ -365,7 +372,7 @@ void _gc_collect(void *current_sp) {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i;
+        void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
           LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte,
               new_pointer);
@@ -398,7 +405,7 @@ void gc_collect() {
 
 // alloc size bytes in gc.memory
 void *my_malloc(size_t size) {
-  // printf("MY MALLOC: %ld\n", size);
+  printf("MY MALLOC: %ld\n", size);
   if (size == 0) {
     return NULL;
   }
@@ -412,6 +419,7 @@ void *my_malloc(size_t size) {
 
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
+    printf("no free space\n");
     gc_collect();
 
     // after collecting we still don't have space
@@ -431,6 +439,7 @@ void *my_malloc(size_t size) {
     }
   }
 
+  printf("words: %ld\n", words);
   gc.new_space[gc.alloc_offset++] = (void *)words;
   void **result = gc.new_space + gc.alloc_offset;
 
@@ -441,6 +450,7 @@ void *my_malloc(size_t size) {
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
+  LOG("alloc_closure(0x%x, %d)\n", f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -455,6 +465,9 @@ void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
+  printf("old clos: 0x%x, new clos: 0x%x\n", clos, new);
+  printf("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
+
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
   }
@@ -465,9 +478,9 @@ void *copy_closure(closure *old_clos) {
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   closure *clos = copy_closure(old_clos);
-  printf("CLOS: 0x%x\n", clos);
-  print_gc_status();
-  fflush(stdout);
+  // printf("CLOS: 0x%x\n", clos);
+  // print_gc_status();
+  // fflush(stdout);
   va_list list;
   va_start(list, argc);
 

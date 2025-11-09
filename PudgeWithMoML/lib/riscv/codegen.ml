@@ -404,6 +404,10 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
 
 and gen_aexpr (var_arity : string -> int) dst = function
   | ACExpr cexpr -> gen_cexpr var_arity dst cexpr
+  | ALet (Nonrec, "_", cexpr, body) ->
+    let* cexpr_c = gen_cexpr var_arity (T 0) cexpr in
+    let+ body_c = gen_aexpr var_arity dst body in
+    cexpr_c @ body_c
   | ALet (Nonrec, name, cexpr, body) ->
     let* cexpr_c = gen_cexpr var_arity (T 0) cexpr in
     let* off = save_var_on_stack name in

@@ -7,15 +7,15 @@
   > let main = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  5
+  0x5
   $ cat ../main.s
   .text
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, 0
     mv a0, sp
     call init_GC
+    addi sp, sp, 0
   # Apply print_int
     li a0, 5
     call print_int
@@ -37,7 +37,7 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  7
+  0x7
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -64,9 +64,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply add__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -103,7 +103,7 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  122
+  0x7a
   $ cat ../main.anf
   let homka__0 = fun x0__1 ->
     fun x1__2 ->
@@ -139,9 +139,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply homka__0 with 12 args
   # Load args on stack
     addi sp, sp, -96
@@ -198,7 +198,7 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  5
+  0x5
   $ cat ../main.anf
   let id__0 = fun x1__1 ->
     fun x2__2 ->
@@ -223,9 +223,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply id__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -263,28 +263,15 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x142d0
-  === GC status ===
-  Base stack pointer: dd28ce28
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 80 bytes
-  Collect count: 0
-  Allocated words in new space: 10
-  Current new space:
-  	0x0: [size: 4]
-  	0x1: [data: 0x106a0]
-  	0x2: [data: 0x1]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [size: 4]
-  	0x6: [data: 0x106a0]
-  	0x7: [data: 0x1]
-  	0x8: [data: 0x0]
-  	0x9: [data: 0x0]
-  === GC status ===
-  6
+  alloc_closure(0x106a0, 1)
+  MY MALLOC: 32
+  words: 4
+  alloc_closure(0x106a0, 1)
+  MY MALLOC: 32
+  words: 4
+  old clos: 0x142a8, new clos: 0x142d0
+  clos.code: 0x106a0, clos argc: 0x1
+  0x6
   $ cat ../main.anf
   let app__0 = fun f__1 ->
     fun x__2 ->
@@ -343,9 +330,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply app__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
@@ -387,16 +374,16 @@
   > let res = let x = 10 in let t = (let x = 20 in print_int x) in print_int x
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  20
-  10
+  0x14
+  0xa
   $ cat ../main.s
   .text
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -32
     mv a0, sp
     call init_GC
+    addi sp, sp, -32
     li t0, 10
     sd t0, -8(fp)
     li t0, 20
@@ -430,59 +417,20 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: a3c3be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: a3c3be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -511,9 +459,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -32
     mv a0, sp
     call init_GC
+    addi sp, sp, -32
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -580,95 +528,26 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x2]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x79]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x1]
-  	0x17: [data: 0x0]
-  === GC status ===
-  123
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14338
+  clos.code: 0x10670, clos argc: 0x2
+  0x7b
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -700,9 +579,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -56
     mv a0, sp
     call init_GC
+    addi sp, sp, -56
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -795,7 +674,7 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  5
+  0x5
   $ cat ../main.anf
   let x__0 = 4 
   
@@ -810,9 +689,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, 0
     mv a0, sp
     call init_GC
+    addi sp, sp, 0
     li t0, 4
     la t1, x__0
     sd t0, 0(t1)
@@ -843,59 +722,20 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: ec7ce20
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: ec7ce20
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x5]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -926,9 +766,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
     mv a0, sp
     call init_GC
+    addi sp, sp, -16
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -1000,108 +840,30 @@
   > EOF
 
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x0]
-  	0x16: [data: 0x0]
-  	0x17: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14368
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 5
-  Allocated memory count: 240 bytes
-  Collect count: 0
-  Allocated words in new space: 30
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x1]
-  	0x17: [data: 0x0]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x1]
-  	0x1c: [data: 0x5]
-  	0x1d: [data: 0x0]
-  === GC status ===
-  115
-  122
-  17
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14308, new clos: 0x14338
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14368
+  clos.code: 0x10670, clos argc: 0x2
+  0x73
+  0x7a
+  0x11
   $ cat ../main.anf
   let add__0 = fun x__1 ->
     fun y__2 ->
@@ -1143,9 +905,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -32
     mv a0, sp
     call init_GC
+    addi sp, sp, -32
   # Partial application add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -1274,8 +1036,8 @@
   > let g = print_int x
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  2
-  5
+  0x2
+  0x5
   $ cat ../main.anf
   let x__0 = 5 
   
@@ -1291,9 +1053,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
     li t0, 5
     la t1, x__0
     sd t0, 0(t1)
@@ -1329,7 +1091,7 @@
   > let f x = print_int x
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  1
+  0x1
   $ cat ../main.anf
   let t__0 = if true then (1)
     else 2 
@@ -1359,9 +1121,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, 0
     mv a0, sp
     call init_GC
+    addi sp, sp, 0
     li t0, 1
     beq t0, zero, L0
     li t0, 1
@@ -1522,9 +1284,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, 0
     mv a0, sp
     call init_GC
+    addi sp, sp, 0
     call flush
     li a0, 0
     li a7, 94
@@ -1535,159 +1297,33 @@
   > let _ = print_int (f 5)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14368
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 5
-  Allocated memory count: 240 bytes
-  Collect count: 0
-  Allocated words in new space: 30
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x2]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x5]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x0]
-  	0x1c: [data: 0x0]
-  	0x1d: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14398
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 6
-  Allocated memory count: 288 bytes
-  Collect count: 0
-  Allocated words in new space: 36
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x2]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x5]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x1]
-  	0x1c: [data: 0x5]
-  	0x1d: [data: 0x0]
-  	0x1e: [size: 5]
-  	0x1f: [data: 0x10670]
-  	0x20: [data: 0x2]
-  	0x21: [data: 0x1]
-  	0x22: [data: 0x5]
-  	0x23: [data: 0x0]
-  === GC status ===
-  8
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x1068c, clos argc: 0x2
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14308, new clos: 0x14338
+  clos.code: 0x1068c, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x14368
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14368, new clos: 0x14398
+  clos.code: 0x10670, clos argc: 0x2
+  0x8
   $ cat ../main.anf
   let f_0 = fun x__1 ->
     fun y__2 ->
@@ -1713,508 +1349,144 @@
   > let _ = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  3
-  5
+  0x3
+  0x5
 
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
-  5
+  0x5
   -----
-  7
+  0x7
   -----
-  122
+  0x7a
   -----
-  5
+  0x5
   -----
-  CLOS: 0x142d0
-  === GC status ===
-  Base stack pointer: dd28ce28
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 80 bytes
-  Collect count: 0
-  Allocated words in new space: 10
-  Current new space:
-  	0x0: [size: 4]
-  	0x1: [data: 0x106a0]
-  	0x2: [data: 0x1]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [size: 4]
-  	0x6: [data: 0x106a0]
-  	0x7: [data: 0x1]
-  	0x8: [data: 0x0]
-  	0x9: [data: 0x0]
-  === GC status ===
-  6
+  alloc_closure(0x106a0, 1)
+  MY MALLOC: 32
+  words: 4
+  alloc_closure(0x106a0, 1)
+  MY MALLOC: 32
+  words: 4
+  old clos: 0x142a8, new clos: 0x142d0
+  clos.code: 0x106a0, clos argc: 0x1
+  0x6
   -----
-  20
-  10
+  0x14
+  0xa
   -----
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: a3c3be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: a3c3be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
   -----
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: 98de0df8
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x1]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x2]
-  	0x10: [data: 0x1]
-  	0x11: [data: 0x79]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x1]
-  	0x17: [data: 0x0]
-  === GC status ===
-  123
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14338
+  clos.code: 0x10670, clos argc: 0x2
+  0x7b
   -----
-  5
+  0x5
   -----
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: ec7ce20
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: ec7ce20
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x5]
-  	0x11: [data: 0x0]
-  === GC status ===
-  122
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x10670, clos argc: 0x2
+  0x7a
   -----
-  CLOS: 0x142d8
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 2
-  Allocated memory count: 96 bytes
-  Collect count: 0
-  Allocated words in new space: 12
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x0]
-  	0x16: [data: 0x0]
-  	0x17: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14368
-  === GC status ===
-  Base stack pointer: 2b23be10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 5
-  Allocated memory count: 240 bytes
-  Collect count: 0
-  Allocated words in new space: 30
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x10670]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x1]
-  	0xa: [data: 0x5]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x10670]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x10670]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x1]
-  	0x17: [data: 0x0]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x1]
-  	0x1c: [data: 0x5]
-  	0x1d: [data: 0x0]
-  === GC status ===
-  115
-  122
-  17
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x142d8
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14308, new clos: 0x14338
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14368
+  clos.code: 0x10670, clos argc: 0x2
+  0x73
+  0x7a
+  0x11
   -----
-  2
-  5
+  0x2
+  0x5
   -----
-  1
+  0x1
   -----
-  CLOS: 0x14308
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 3
-  Allocated memory count: 144 bytes
-  Collect count: 0
-  Allocated words in new space: 18
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x0]
-  	0x10: [data: 0x0]
-  	0x11: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14338
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 4
-  Allocated memory count: 192 bytes
-  Collect count: 0
-  Allocated words in new space: 24
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x1]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14368
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 5
-  Allocated memory count: 240 bytes
-  Collect count: 0
-  Allocated words in new space: 30
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x2]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x5]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x0]
-  	0x1c: [data: 0x0]
-  	0x1d: [data: 0x0]
-  === GC status ===
-  CLOS: 0x14398
-  === GC status ===
-  Base stack pointer: d7ffde10
-  Start address of new space: 142a0
-  Current space capacity: 256
-  Allocate count: 6
-  Allocated memory count: 288 bytes
-  Collect count: 0
-  Allocated words in new space: 36
-  Current new space:
-  	0x0: [size: 5]
-  	0x1: [data: 0x10670]
-  	0x2: [data: 0x2]
-  	0x3: [data: 0x0]
-  	0x4: [data: 0x0]
-  	0x5: [data: 0x0]
-  	0x6: [size: 5]
-  	0x7: [data: 0x1068c]
-  	0x8: [data: 0x2]
-  	0x9: [data: 0x0]
-  	0xa: [data: 0x0]
-  	0xb: [data: 0x0]
-  	0xc: [size: 5]
-  	0xd: [data: 0x1068c]
-  	0xe: [data: 0x2]
-  	0xf: [data: 0x1]
-  	0x10: [data: 0x142a8]
-  	0x11: [data: 0x0]
-  	0x12: [size: 5]
-  	0x13: [data: 0x1068c]
-  	0x14: [data: 0x2]
-  	0x15: [data: 0x2]
-  	0x16: [data: 0x142a8]
-  	0x17: [data: 0x5]
-  	0x18: [size: 5]
-  	0x19: [data: 0x10670]
-  	0x1a: [data: 0x2]
-  	0x1b: [data: 0x1]
-  	0x1c: [data: 0x5]
-  	0x1d: [data: 0x0]
-  	0x1e: [size: 5]
-  	0x1f: [data: 0x10670]
-  	0x20: [data: 0x2]
-  	0x21: [data: 0x1]
-  	0x22: [data: 0x5]
-  	0x23: [data: 0x0]
-  === GC status ===
-  8
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142d8, new clos: 0x14308
+  clos.code: 0x1068c, clos argc: 0x2
+  alloc_closure(0x1068c, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14308, new clos: 0x14338
+  clos.code: 0x1068c, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x142a8, new clos: 0x14368
+  clos.code: 0x10670, clos argc: 0x2
+  alloc_closure(0x10670, 2)
+  MY MALLOC: 40
+  words: 5
+  old clos: 0x14368, new clos: 0x14398
+  clos.code: 0x10670, clos argc: 0x2
+  0x8
   -----
-  3
-  5
+  0x3
+  0x5
   -----

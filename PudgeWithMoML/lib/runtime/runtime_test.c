@@ -129,35 +129,41 @@ static void set_riscv_reg(int idx, void *val) { regs[idx] = val; }
 //   2) save new pointer to old_space
 //   3) iterate through stack\regs and replace all pointer to the new
 //   pointer
-void gc_collect() {
+void _gc_collect(void *current_sp) {
   if (gc.alloc_offset == 0) {
     return;
   }
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
-
-  // printf("STACK: base_sp %x, current_sp %x\n", gc.base_sp, current_sp);
-  // printf("STACK SIZE: %ld\n", stack_size);
-  // fflush(stdout);
-
-  void *new_pointer = NULL;
   size_t cur_offset = 0;
   size_t old_space_offset = 0;
   while (cur_offset < gc.alloc_offset) {
+    void *new_pointer = NULL;
     size_t cur_size = (size_t)gc.new_space[cur_offset];
+    void *cur_pointer = gc.new_space + cur_offset + 1;
+
     if (cur_size == 0) {
+      fprintf(
+          stderr,
+          "You have object on heap with zero size\nBug in malloc function!\n");
       print_gc_status();
       exit(122);
     }
-    void *cur_pointer = gc.new_space + cur_offset + 1;
 
+    LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer,
+        cur_offset + 1);
+
+    LOGF(print_stack());
     // try to find in regs and stack at least one pointer
     {
       bool found = false;
+
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
+          LOG("FOUND AT REG: %ld\n", i);
           found = true;
+          break;
         }
       }
 
@@ -165,7 +171,11 @@ void gc_collect() {
       for (size_t i = 0; i < stack_size; i++) {
         void **byte = (void **)gc.base_sp - i;
         if (*byte == cur_pointer) {
+          LOG("FOUND AT STACK: %ld. CUR_OFFSET: %x, CUR_POINTER: %x, byte: "
+              "%x, *byte: %x\n",
+              i, cur_offset, cur_pointer, byte, *byte);
           found = true;
+          break;
         }
       }
 
@@ -175,17 +185,19 @@ void gc_collect() {
       }
 
       // copy to old space
-      gc.old_space[old_space_offset++] = (void *)cur_size;
       new_pointer = gc.old_space + old_space_offset;
+      gc.old_space[old_space_offset++] = (void *)cur_size;
       for (size_t j = 0; j < cur_size; j++) {
         gc.old_space[old_space_offset++] = gc.new_space[cur_offset + 1 + j];
       }
+      LOG("NEW POINTER: 0x%x\n", new_pointer);
     }
 
+    LOG("RUN CHANGING\n");
     // change all occurences
     {
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
           set_riscv_reg(i, new_pointer);
         }
@@ -193,25 +205,40 @@ void gc_collect() {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = gc.base_sp - i;
+        void **byte = (void **)gc.base_sp - i;
         if (*byte == cur_pointer) {
+          LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte,
+              new_pointer);
           *byte = new_pointer;
         }
       }
     }
+    LOGF(print_stack());
 
     cur_offset += cur_size + 1;
   }
 
   void *temp = gc.new_space;
   gc.new_space = gc.old_space;
-  gc.old_space = gc.new_space;
+  gc.old_space = temp;
   gc.alloc_offset = old_space_offset;
+
+  gc.collect_count++;
+}
+
+// WARNING: if you read stack pointer in _gc_collect function than when you go
+// through stack you can change local variables of _gc_collect fuction
+// So we write wrapper only for reading stack pointer **before** _gc_collect
+// function It took 4 hours for debug this chaos 🐣🐣🐤🐤🐔🐔🦆🦆🐹🐹🐹🐹
+void gc_collect() {
+  void *current_sp = NULL;
+  asm volatile("mv %0, sp" : "=r"(current_sp));
+  _gc_collect(current_sp);
 }
 
 // alloc size bytes in gc.memory
 void *my_malloc(size_t size) {
-  // printf("MY MALLOC: %ld\n", size);
+  printf("MY MALLOC: %ld\n", size);
   if (size == 0) {
     return NULL;
   }
@@ -225,6 +252,7 @@ void *my_malloc(size_t size) {
 
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
+    printf("no free space\n");
     gc_collect();
 
     // after collecting we still don't have space
@@ -244,6 +272,7 @@ void *my_malloc(size_t size) {
     }
   }
 
+  printf("words: %ld\n", words);
   gc.new_space[gc.alloc_offset++] = (void *)words;
   void **result = gc.new_space + gc.alloc_offset;
 
@@ -252,7 +281,7 @@ void *my_malloc(size_t size) {
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
-  // gc_collect();
+  LOG("alloc_closure(0x%x, %d)\n", f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -266,6 +295,9 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
 void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
+
+  printf("old clos: 0x%x, new clos: 0x%x\n", clos, new);
+  printf("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
 
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
