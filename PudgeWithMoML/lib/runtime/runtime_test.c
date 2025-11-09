@@ -13,7 +13,7 @@ void print_int(size_t n) { printf("%d\n", n); }
 void flush() { fflush(stdout); }
 
 // size in words
-#define GC_SPACE_INITIAL_SIZE (256)
+#define GC_SPACE_INITIAL_SIZE (160)
 
 // HEAP structure
 // word: value

@@ -306,6 +306,8 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     |> comment_wrap "Apply print_int"
   | CApp (ImmVar "print_gc_status", ImmConst Unit_lt, []) ->
     [ call "print_gc_status" ] |> return
+  | CApp (ImmVar "gc_collect", ImmConst Unit_lt, []) -> [ call "gc_collect" ] |> return
+  | CApp (ImmVar "clear_regs", ImmConst Unit_lt, []) -> [ call "clear_regs" ] |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in

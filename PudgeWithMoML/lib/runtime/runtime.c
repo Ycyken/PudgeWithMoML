@@ -6,6 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if true
+#define LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#define LOGF(fun) fun
+#else
+#define LOG(fmt, ...) ((void)0)
+#define LOGF(fun) ((void)0)
+#endif
+
 extern void *call_closure(void *code, uint64_t argc, void **argv);
 
 void print_int(size_t n) { printf("%d\n", n); }
@@ -14,6 +22,7 @@ void flush() { fflush(stdout); }
 
 // size in words
 #define GC_SPACE_INITIAL_SIZE (256)
+#define WORD_SIZE (8)
 
 // HEAP structure
 // word: value
@@ -34,6 +43,7 @@ typedef struct {
   size_t alloc_offset; // first free word offset in new space
   void **old_space;
   size_t alloc_count;
+  size_t allocated_bytes_count;
   size_t collect_count;
 } GC_state;
 
@@ -55,22 +65,23 @@ void print_gc_status() {
   printf("Base stack pointer: %x\n", gc.base_sp);
   printf("Start address of new space: %x\n", gc.new_space);
   printf("Current space capacity: %ld\n", gc.space_capacity);
+  printf("Allocate count: %ld\n", gc.alloc_count);
+  printf("Allocated memory count: %ld bytes\n", gc.allocated_bytes_count);
+  printf("Collect count: %ld\n", gc.collect_count);
   printf("Allocated words in new space: %ld\n", gc.alloc_offset);
 
   printf("Current new space:\n");
   size_t offset = 0;
-  while (1) {
+  while (offset < gc.alloc_offset) {
     size_t size = (size_t)gc.new_space[offset];
+
     printf("\t0x%x: [size: %ld]\n", offset, size);
     offset++;
+
     for (size_t i = 0; i < size; i++) {
       printf("\t0x%x: ", offset);
       printf("[data: 0x%x]\n", gc.new_space[offset]);
       offset++;
-    }
-
-    if (offset >= gc.alloc_offset) {
-      break;
     }
   }
 
@@ -91,10 +102,44 @@ void init_GC(void *base_sp) {
   return;
 }
 
+// clear all registers
+void clear_regs() {
+  // t0-t6 (7), a0-a7 (8), s1-s11 (11)
+
+  asm volatile("li t0, 0\n\t"
+               "li t1, 0\n\t"
+               "li t2, 0\n\t"
+               "li t3, 0\n\t"
+               "li t4, 0\n\t"
+               "li t5, 0\n\t"
+               "li t6, 0\n\t"
+               "li a0, 0\n\t"
+               "li a1, 0\n\t"
+               "li a2, 0\n\t"
+               "li a3, 0\n\t"
+               "li a4, 0\n\t"
+               "li a5, 0\n\t"
+               "li a6, 0\n\t"
+               "li a7, 0\n\t"
+               "li s1, 0\n\t"
+               "li s2, 0\n\t"
+               "li s3, 0\n\t"
+               "li s4, 0\n\t"
+               "li s5, 0\n\t"
+               "li s6, 0\n\t"
+               "li s7, 0\n\t"
+               "li s8, 0\n\t"
+               "li s9, 0\n\t"
+               "li s10, 0\n\t"
+               "li s11, 0\n\t");
+
+  return;
+}
+
 // if caller function wants to save some regs that my collect_riscv_state
 // function may destroy (for ex. during creating regs[26]) then caller puts
-// their values on stack. so we don't lose any address that points to object in
-// heap
+// their values on stack. so we don't lose any address that points to object
+// in heap
 // TODO: riscv calling conventions
 static void **collect_riscv_state() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
@@ -218,6 +263,22 @@ static void set_riscv_reg(int idx, void *val) {
   }
 }
 
+void print_stack(void *current_sp) {
+  printf("=== STACK status ===\n");
+  printf("BASE_SP: 0x%x, CURRENT_SP: 0x%x\n", gc.base_sp, current_sp);
+  size_t stack_size = (gc.base_sp - current_sp) / 8;
+  printf("STACK SIZE: %ld\n", stack_size);
+
+  for (size_t i = 0; i < stack_size; i++) {
+    uint64_t *byte = (uint64_t *)gc.base_sp - i;
+    printf("\t0x%x: 0x%x\n", byte, *byte);
+  }
+
+  printf("=== STACK status ===\n");
+
+  return;
+}
+
 // When we exec gc_collect we have on a heap objects:
 // [size 3] [data 0] [data 1] [data 2] [size 1] [data 0] [size 2] ...
 // We iterate through heap and try to find poiters to "data 0" on stack\regs
@@ -226,39 +287,42 @@ static void set_riscv_reg(int idx, void *val) {
 //   2) save new pointer to old_space
 //   3) iterate through stack\regs and replace all pointer to the new
 //   pointer
-void gc_collect() {
+void _gc_collect(void *current_sp) {
   if (gc.alloc_offset == 0) {
     return;
   }
 
   void **regs = collect_riscv_state();
-  void *current_sp = NULL;
-  asm volatile("mv %0, sp" : "=r"(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
-
-  // printf("STACK: base_sp %x, current_sp %x\n", gc.base_sp, current_sp);
-  // printf("STACK SIZE: %ld\n", stack_size);
-  // fflush(stdout);
-
-  void *new_pointer = NULL;
   size_t cur_offset = 0;
   size_t old_space_offset = 0;
   while (cur_offset < gc.alloc_offset) {
+    void *new_pointer = NULL;
     size_t cur_size = (size_t)gc.new_space[cur_offset];
+    void *cur_pointer = gc.new_space + cur_offset + 1;
+
     if (cur_size == 0) {
+      fprintf(
+          stderr,
+          "You have object on heap with zero size\nBug in malloc function!\n");
       print_gc_status();
       exit(122);
     }
-    void *cur_pointer = gc.new_space + cur_offset + 1;
+
+    LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer,
+        cur_offset);
 
     // try to find in regs and stack at least one pointer
     {
       bool found = false;
+
       // regs
       for (size_t i = 0; i < 25; i++) {
         if (regs[i] == cur_pointer) {
+          LOG("FOUND AT REG: %ld\n", i);
           found = true;
+          break;
         }
       }
 
@@ -266,7 +330,11 @@ void gc_collect() {
       for (size_t i = 0; i < stack_size; i++) {
         void **byte = (void **)gc.base_sp - i;
         if (*byte == cur_pointer) {
+          LOG("FOUND AT STACK: %ld. CUR_OFFSET: %x, CUR_POINTER: %x, byte: "
+              "%x, *byte: %x\n",
+              i, cur_offset, cur_pointer, byte, *byte);
           found = true;
+          break;
         }
       }
 
@@ -276,13 +344,16 @@ void gc_collect() {
       }
 
       // copy to old space
-      gc.old_space[old_space_offset++] = (void *)cur_size;
       new_pointer = gc.old_space + old_space_offset;
+      gc.old_space[old_space_offset++] = (void *)cur_size;
       for (size_t j = 0; j < cur_size; j++) {
         gc.old_space[old_space_offset++] = gc.new_space[cur_offset + 1 + j];
       }
+      LOG("NEW POINTER: 0x%x\n", new_pointer);
     }
 
+    LOG("RUN CHANGING\n");
+    LOGF(print_stack(current_sp));
     // change all occurences
     {
       // regs
@@ -296,18 +367,33 @@ void gc_collect() {
       for (size_t i = 0; i < stack_size; i++) {
         void **byte = (void **)gc.base_sp - i;
         if (*byte == cur_pointer) {
+          LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte,
+              new_pointer);
           *byte = new_pointer;
         }
       }
     }
+    LOGF(print_stack(current_sp));
 
     cur_offset += cur_size + 1;
   }
 
   void *temp = gc.new_space;
   gc.new_space = gc.old_space;
-  gc.old_space = gc.new_space;
+  gc.old_space = temp;
   gc.alloc_offset = old_space_offset;
+
+  gc.collect_count++;
+}
+
+// WARNING: if you read stack pointer in _gc_collect function than when you go
+// through stack you can change local variables of _gc_collect fuction
+// So we write wrapper only for reading stack pointer **before** _gc_collect
+// function It took 4 hours for debug this chaos 🐣🐣🐤🐤🐔🐔🦆🦆🐹🐹🐹🐹
+void gc_collect() {
+  void *current_sp = NULL;
+  asm volatile("mv %0, sp" : "=r"(current_sp));
+  _gc_collect(current_sp);
 }
 
 // alloc size bytes in gc.memory
@@ -349,11 +435,12 @@ void *my_malloc(size_t size) {
   void **result = gc.new_space + gc.alloc_offset;
 
   gc.alloc_offset += words;
+  gc.alloc_count++;
+  gc.allocated_bytes_count += size + WORD_SIZE;
   return result;
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
-  gc_collect();
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -375,19 +462,17 @@ void *copy_closure(closure *old_clos) {
   return new;
 }
 
-#define WORD_SIZE (8)
-
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   closure *clos = copy_closure(old_clos);
-  // printf("CLOS: 0x%x\n", clos);
-  // print_gc_status();
-  // fflush(stdout);
+  printf("CLOS: 0x%x\n", clos);
+  print_gc_status();
+  fflush(stdout);
   va_list list;
   va_start(list, argc);
 
   if (clos->argc_recived + argc > clos->argc) {
-    fprintf(stderr,
+    fprintf(stdout,
             "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
