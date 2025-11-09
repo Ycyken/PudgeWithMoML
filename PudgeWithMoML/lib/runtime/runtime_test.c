@@ -317,7 +317,7 @@ int main(int argc, char **argv) {
     print_gc_status();
   }
 
-  if (1) {
+  if (0) {
     print_gc_status();
     void *clos1 = alloc_closure(ZERO8, (void *)0xFF, 2);
     alloc_closure(ZERO8, (void *)0xFFF, 3);
@@ -328,6 +328,16 @@ int main(int argc, char **argv) {
     print_stack();
     gc_collect();
     // must has first and third closure
+    print_gc_status();
+  }
+
+  if (1) {
+    print_gc_status();
+    void *clos1 = alloc_closure(ZERO8, (void *)0xFF, 2);
+    print_gc_status();
+    regs[12] = clos1;
+    print_stack();
+    gc_collect();
     print_gc_status();
   }
 

@@ -271,7 +271,7 @@ void gc_collect() {
       }
 
       if (!found) {
-        cur_offset += cur_size;
+        cur_offset += cur_size + 1;
         continue;
       }
 
@@ -301,7 +301,7 @@ void gc_collect() {
       }
     }
 
-    cur_offset += cur_size;
+    cur_offset += cur_size + 1;
   }
 
   void *temp = gc.new_space;
