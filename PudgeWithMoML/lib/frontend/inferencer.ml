@@ -332,6 +332,8 @@ end = struct
     let print_gs_status_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
     let gc_collect_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
     let clear_regs_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
+    let get_heap_start_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] int_typ) in
+    let get_heap_fin_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] int_typ) in
     ( Map.of_alist_exn
         (module String)
         [ "=", eq_s
@@ -353,6 +355,8 @@ end = struct
         ; "print_gc_status", print_gs_status_s
         ; "gc_collect", gc_collect_s
         ; "clear_regs", clear_regs_s
+        ; "get_heap_start", get_heap_start_s
+        ; "get_heap_fin", get_heap_fin_s
         ]
     , fresh tv )
   ;;

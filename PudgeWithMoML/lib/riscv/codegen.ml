@@ -308,6 +308,10 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     [ call "print_gc_status" ] |> return
   | CApp (ImmVar "gc_collect", ImmConst Unit_lt, []) -> [ call "gc_collect" ] |> return
   | CApp (ImmVar "clear_regs", ImmConst Unit_lt, []) -> [ call "clear_regs" ] |> return
+  | CApp (ImmVar "get_heap_start", ImmConst Unit_lt, []) ->
+    ([ call "get_heap_start" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
+  | CApp (ImmVar "get_heap_fin", ImmConst Unit_lt, []) ->
+    ([ call "get_heap_fin" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in

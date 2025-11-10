@@ -765,3 +765,12 @@
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   panic! overflow memory limits
   [122]
+
+( get current capacity of heap )
+  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  > let start = get_heap_start ()
+  > let end = get_heap_fin ()
+  > let main = print_int (start)
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  4096

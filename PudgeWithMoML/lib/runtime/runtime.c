@@ -458,6 +458,29 @@ void *my_malloc(size_t size) {
   return result;
 }
 
+// get heap start of current new_space
+void **get_heap_start() {
+  if (!STABLE_CI) {
+    return gc.new_space;
+  }
+
+  return gc.new_space == first_new_space
+             ? (void **)0x1000
+             : ((void **)0x1000) + GC_SPACE_INITIAL_SIZE;
+}
+
+// get heap end of current new_space
+void **get_heap_fin() {
+  if (!STABLE_CI) {
+    return gc.new_space + gc.space_capacity;
+  }
+
+  return (gc.new_space == first_new_space
+              ? (void **)0x1000
+              : ((void **)0x1000) + GC_SPACE_INITIAL_SIZE) +
+         gc.space_capacity;
+}
+
 void *alloc_closure(INT8, void *f, uint8_t argc) {
   LOG("alloc_closure(0x%x, %d)\n", f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
