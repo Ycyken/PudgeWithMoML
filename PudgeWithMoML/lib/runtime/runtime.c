@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if true
+#if false
 #define LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #define LOGF(fun) fun
 #else
@@ -59,33 +59,40 @@ typedef struct {
 #define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
 #define INT8 int, int, int, int, int, int, int, int
 
+void print_stack(void *current_sp);
+
 // Print stats about Garbage Collector work
 void print_gc_status() {
   printf("=== GC status ===\n");
   printf("Base stack pointer: %x\n", gc.base_sp);
   printf("Start address of new space: %x\n", gc.new_space);
-  printf("Current space capacity: %ld\n", gc.space_capacity);
-  printf("Allocate count: %ld\n", gc.alloc_count);
-  printf("Allocated memory count: %ld bytes\n", gc.allocated_bytes_count);
-  printf("Collect count: %ld\n", gc.collect_count);
-  printf("Allocated words in new space: %ld\n", gc.alloc_offset);
+  printf("Allocate count: %ld times\n", gc.alloc_count);
+  printf("Collect count: %ld times\n", gc.collect_count);
+  printf("Current space capacity: %ld words\n", gc.space_capacity);
+  printf("Total allocated memory: %ld words\n",
+         gc.allocated_bytes_count / WORD_SIZE);
+  printf("Allocated words in new space: %ld words\n", gc.alloc_offset);
 
   printf("Current new space:\n");
   size_t offset = 0;
   while (offset < gc.alloc_offset) {
     size_t size = (size_t)gc.new_space[offset];
 
-    printf("\t0x%x: [size: %ld]\n", offset, size);
+    printf("\t(0x%x) 0x%x: [size: %ld]\n", gc.new_space + offset, offset, size);
     offset++;
 
     for (size_t i = 0; i < size; i++) {
-      printf("\t0x%x: ", offset);
+      printf("\t(0x%x) 0x%x: ", gc.new_space + offset, offset);
       printf("[data: 0x%x]\n", gc.new_space[offset]);
       offset++;
     }
   }
 
   printf("=== GC status ===\n");
+
+  void *current_sp = NULL;
+  asm volatile("mv %0, sp" : "=r"(current_sp));
+  LOGF(print_stack(current_sp));
 
   return;
 }
