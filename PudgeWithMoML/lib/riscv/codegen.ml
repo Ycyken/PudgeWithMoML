@@ -87,6 +87,9 @@ let imm_of_literal : literal -> int = function
 (* Generate code that puts imm value to dst reg *)
 (* Note: gen_imm overwrite **regs t5 and t6** for internal work *)
 let gen_imm dst = function
+  | ImmConst (Int_lt _ as lt) ->
+    let imm = imm_of_literal lt in
+    M.return [ li dst (Int.shift_left imm 1 + 1) ]
   | ImmConst lt ->
     let imm = imm_of_literal lt in
     M.return [ li dst imm ]
@@ -156,13 +159,13 @@ let%expect_test "even args" =
       {|
     # Load args on stack
       addi sp, sp, -32
-      li t0, 5
+      li t0, 11
       sd t0, 0(sp)
-      li t0, 2
+      li t0, 5
       sd t0, 8(sp)
-      li t0, 1
+      li t0, 3
       sd t0, 16(sp)
-      li t0, 4
+      li t0, 9
       sd t0, 24(sp)
     # End loading args on stack
      |}]
@@ -180,11 +183,11 @@ let%expect_test "not even args" =
       {|
     # Load args on stack
       addi sp, sp, -32
-      li t0, 4
+      li t0, 9
       sd t0, 0(sp)
-      li t0, 2
+      li t0, 5
       sd t0, 8(sp)
-      li t0, 1
+      li t0, 3
       sd t0, 16(sp)
     # End loading args on stack
      |}]
@@ -258,7 +261,7 @@ let%expect_test "alloc_closure_test" =
       mv t0, a0
       addi sp, sp, 16
       sd t0, 0(sp)
-      li t0, 5
+      li t0, 11
       sd t0, 8(sp)
     # End loading args on stack
       call alloc_closure
@@ -291,10 +294,46 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
      | "<" -> c1 @ c2 @ [ slt dst (T 0) (T 1) ] |> return
      | ">=" -> c1 @ c2 @ [ slt dst (T 0) (T 1); xori dst dst 1 ] |> return
      | ">" -> c1 @ c2 @ [ slt dst (T 1) (T 0) ] |> return
-     | "+" -> c1 @ c2 @ [ add dst (T 0) (T 1) ] |> return
-     | "-" -> c1 @ c2 @ [ sub dst (T 0) (T 1) ] |> return
-     | "*" -> c1 @ c2 @ [ mul dst (T 0) (T 1) ] |> return
-     | "/" -> c1 @ c2 @ [ div dst (T 0) (T 1) ] |> return
+     | "+" ->
+       c1
+       @ c2
+       @ [ srai (T 0) (T 0) 1
+         ; srai (T 1) (T 1) 1
+         ; add dst (T 0) (T 1)
+         ; slli dst dst 1
+         ; ori dst dst 1
+         ]
+       |> return
+     | "-" ->
+       c1
+       @ c2
+       @ [ srai (T 0) (T 0) 1
+         ; srai (T 1) (T 1) 1
+         ; sub dst (T 0) (T 1)
+         ; slli dst dst 1
+         ; ori dst dst 1
+         ]
+       |> return
+     | "*" ->
+       c1
+       @ c2
+       @ [ srai (T 0) (T 0) 1
+         ; srai (T 1) (T 1) 1
+         ; mul dst (T 0) (T 1)
+         ; slli dst dst 1
+         ; ori dst dst 1
+         ]
+       |> return
+     | "/" ->
+       c1
+       @ c2
+       @ [ srai (T 0) (T 0) 1
+         ; srai (T 1) (T 1) 1
+         ; div dst (T 0) (T 1)
+         ; slli dst dst 1
+         ; ori dst dst 1
+         ]
+       |> return
      | "<>" -> c1 @ c2 @ [ sub dst (T 0) (T 1); snez dst dst ] |> return
      | "=" -> c1 @ c2 @ [ sub dst (T 0) (T 1); seqz dst dst ] |> return
      | "&&" -> c1 @ c2 @ [ and_ dst (T 0) (T 1) ] |> return
@@ -304,6 +343,14 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let+ arg_c = gen_imm (A 0) arg in
     (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap "Apply print_int"
+  | CApp (ImmVar "print_gc_status", ImmConst Unit_lt, []) ->
+    [ call "print_gc_status" ] |> return
+  | CApp (ImmVar "gc_collect", ImmConst Unit_lt, []) -> [ call "gc_collect" ] |> return
+  | CApp (ImmVar "clear_regs", ImmConst Unit_lt, []) -> [ call "clear_regs" ] |> return
+  | CApp (ImmVar "get_heap_start", ImmConst Unit_lt, []) ->
+    ([ call "get_heap_start" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
+  | CApp (ImmVar "get_heap_fin", ImmConst Unit_lt, []) ->
+    ([ call "get_heap_fin" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in
@@ -492,6 +539,7 @@ let gather pr : instr list t =
   @ functions_code
   @ [ directive ".globl _start"; label "_start" ]
   @ [ mv fp Sp ]
+  @ [ mv (A 0) Sp; call "init_GC" ]
   @ [ addi Sp Sp (-frame) ]
   @ main_code
   @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
