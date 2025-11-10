@@ -780,4 +780,4 @@
   > let main = print_int (end - start)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  32768
+  131072

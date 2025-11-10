@@ -367,7 +367,7 @@ static void *my_malloc(size_t size) {
 void **get_heap_start() {
   LOG("[DEBUG] %s()\n", __func__);
   if (!STABLE_CI) {
-    void **result = gc.new_space;
+    void **result = (void **)(((uintptr_t)gc.new_space) << 1 + 1);
     LOG(" -> 0x%x\n", result);
     return result;
   }
@@ -375,7 +375,7 @@ void **get_heap_start() {
   void **addr = (void **)0x1000;
   addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
 
-  void **result = addr;
+  void **result = (void **)(((uintptr_t)addr) << 1 + 1);
   LOG(" -> 0x%x\n", result);
   return result;
 }
@@ -385,7 +385,7 @@ void **get_heap_fin() {
   LOG("[DEBUG] %s()\n", __func__);
 
   if (!STABLE_CI) {
-    void **result = gc.new_space + gc.space_capacity;
+    void **result = (void **)(((uintptr_t)(gc.new_space + gc.space_capacity)) << 1 + 1);
     LOG(" -> 0x%x", result);
     return result;
   }
@@ -394,7 +394,7 @@ void **get_heap_fin() {
   addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
   addr += gc.space_capacity;
 
-  void **result = addr;
+  void **result = (void **)(((uintptr_t)addr) << 1 + 1);
   LOG(" -> 0x%x", result);
   return result;
 }
