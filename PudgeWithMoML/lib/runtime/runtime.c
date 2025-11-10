@@ -300,6 +300,7 @@ void _gc_collect(void *current_sp) {
   }
 
   void **regs = collect_riscv_state();
+  LOGF(print_stack(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
   size_t cur_offset = 0;
@@ -318,14 +319,14 @@ void _gc_collect(void *current_sp) {
     }
 
     LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer,
-        cur_offset);
+        cur_offset + 1);
 
     // try to find in regs and stack at least one pointer
     {
       bool found = false;
 
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
           LOG("FOUND AT REG: %ld\n", i);
           found = true;
@@ -335,7 +336,7 @@ void _gc_collect(void *current_sp) {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i;
+        void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
           LOG("FOUND AT STACK: %ld. CUR_OFFSET: %x, CUR_POINTER: %x, byte: "
               "%x, *byte: %x\n",
@@ -360,11 +361,10 @@ void _gc_collect(void *current_sp) {
     }
 
     LOG("RUN CHANGING\n");
-    LOGF(print_stack(current_sp));
     // change all occurences
     {
       // regs
-      for (size_t i = 0; i < 25; i++) {
+      for (size_t i = 0; i < 26; i++) {
         if (regs[i] == cur_pointer) {
           set_riscv_reg(i, new_pointer);
         }
@@ -372,7 +372,7 @@ void _gc_collect(void *current_sp) {
 
       // stack
       for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i;
+        void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
           LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte,
               new_pointer);
@@ -380,10 +380,10 @@ void _gc_collect(void *current_sp) {
         }
       }
     }
-    LOGF(print_stack(current_sp));
 
     cur_offset += cur_size + 1;
   }
+  LOGF(print_stack(current_sp));
 
   void *temp = gc.new_space;
   gc.new_space = gc.old_space;
@@ -405,7 +405,7 @@ void gc_collect() {
 
 // alloc size bytes in gc.memory
 void *my_malloc(size_t size) {
-  // printf("MY MALLOC: %ld\n", size);
+  LOG("MY MALLOC: %ld\n", size);
   if (size == 0) {
     return NULL;
   }
@@ -419,6 +419,7 @@ void *my_malloc(size_t size) {
 
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
+    LOG("no free space\n");
     gc_collect();
 
     // after collecting we still don't have space
@@ -426,15 +427,6 @@ void *my_malloc(size_t size) {
       fprintf(stderr, "panic! overflow memory limits\n");
       fflush(stderr);
       exit(122);
-      size_t mult = 1;
-
-      while (gc.alloc_offset + (words + 1) >= (gc.space_capacity * mult)) {
-        mult *= 2;
-      }
-
-      gc.space_capacity *= mult;
-      gc.new_space = realloc(gc.new_space, sizeof(void *) * gc.space_capacity);
-      gc.old_space = realloc(gc.old_space, sizeof(void *) * gc.space_capacity);
     }
   }
 
@@ -448,6 +440,7 @@ void *my_malloc(size_t size) {
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
+  LOG("alloc_closure(0x%x, %d)\n", f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -462,6 +455,9 @@ void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
+  LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
+  LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
+
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
   }
@@ -472,8 +468,8 @@ void *copy_closure(closure *old_clos) {
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   closure *clos = copy_closure(old_clos);
-  printf("CLOS: 0x%x\n", clos);
-  print_gc_status();
+  LOG("CLOS: 0x%x\n", clos);
+  LOGF(print_gc_status());
   fflush(stdout);
   va_list list;
   va_start(list, argc);
