@@ -22,6 +22,11 @@ coverage:
 
 input ?=
 opts ?=
+LDFLAGS =
+
+ifeq ($(FIXADDR),1)
+  LDFLAGS += -no-pie -Wl,-Ttext=0x400000
+endif
 
 compile: 
 	@riscv64-linux-gnu-gcc -S -march=rv64gc lib/runtime/runtime.c -o runtime.s
@@ -32,4 +37,4 @@ compile:
 	@riscv64-linux-gnu-as -march=rv64gc lib/runtime/call_closure.s -o call_closure.o
 	@riscv64-linux-gnu-as -march=rv64gc lib/runtime/load_gp.s -o load_gp.o
 
-	@riscv64-linux-gnu-gcc -nostartfiles main.o runtime.o call_closure.o load_gp.o -o main.exe
+	@riscv64-linux-gnu-gcc $(LDFLAGS) -nostartfiles main.o runtime.o call_closure.o load_gp.o -o main.exe
