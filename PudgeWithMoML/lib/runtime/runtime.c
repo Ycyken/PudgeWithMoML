@@ -24,6 +24,34 @@ void print_int(size_t n) { printf("%d\n", n); }
 
 void flush() { fflush(stdout); }
 
+#define RISCV_REG_LIST                                                         \
+  X(0, t0, 0)                                                                  \
+  X(1, t1, 8)                                                                  \
+  X(2, t2, 16)                                                                 \
+  X(3, t3, 24)                                                                 \
+  X(4, t4, 32)                                                                 \
+  X(5, t5, 40)                                                                 \
+  X(6, t6, 48)                                                                 \
+  X(7, a0, 56)                                                                 \
+  X(8, a1, 64)                                                                 \
+  X(9, a2, 72)                                                                 \
+  X(10, a3, 80)                                                                \
+  X(11, a4, 88)                                                                \
+  X(12, a5, 96)                                                                \
+  X(13, a6, 104)                                                               \
+  X(14, a7, 112)                                                               \
+  X(15, s1, 120)                                                               \
+  X(16, s2, 128)                                                               \
+  X(17, s3, 136)                                                               \
+  X(18, s4, 144)                                                               \
+  X(19, s5, 152)                                                               \
+  X(20, s6, 160)                                                               \
+  X(21, s7, 168)                                                               \
+  X(22, s8, 176)                                                               \
+  X(23, s9, 184)                                                               \
+  X(24, s10, 192)                                                              \
+  X(25, s11, 200)
+
 // size in words
 #define GC_SPACE_INITIAL_SIZE (8192)
 #define WORD_SIZE (8)
@@ -132,32 +160,13 @@ void init_GC(void *base_sp) {
 void clear_regs() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
 
-  asm volatile("li t0, 0\n\t"
-               "li t1, 0\n\t"
-               "li t2, 0\n\t"
-               "li t3, 0\n\t"
-               "li t4, 0\n\t"
-               "li t5, 0\n\t"
-               "li t6, 0\n\t"
-               "li a0, 0\n\t"
-               "li a1, 0\n\t"
-               "li a2, 0\n\t"
-               "li a3, 0\n\t"
-               "li a4, 0\n\t"
-               "li a5, 0\n\t"
-               "li a6, 0\n\t"
-               "li a7, 0\n\t"
-               "li s1, 0\n\t"
-               "li s2, 0\n\t"
-               "li s3, 0\n\t"
-               "li s4, 0\n\t"
-               "li s5, 0\n\t"
-               "li s6, 0\n\t"
-               "li s7, 0\n\t"
-               "li s8, 0\n\t"
-               "li s9, 0\n\t"
-               "li s10, 0\n\t"
-               "li s11, 0\n\t");
+// li t0, 0\n\t
+// li t1, 0\n\t
+// li t2, 0\n\t
+// ...
+#define X(i, reg, offset) "li " #reg ", 0\n\t"
+  asm volatile(RISCV_REG_LIST);
+#undef X
 
   return;
 }
@@ -171,119 +180,28 @@ static void **collect_riscv_state() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
   size_t *regs = malloc(sizeof(size_t) * 26);
 
-  asm volatile("sd t0, 0(%0)\n\t"
-               "sd t1, 8(%0)\n\t"
-               "sd t2, 16(%0)\n\t"
-               "sd t3, 24(%0)\n\t"
-               "sd t4, 32(%0)\n\t"
-               "sd t5, 40(%0)\n\t"
-               "sd t6, 48(%0)\n\t"
-               "sd a0, 56(%0)\n\t"
-               "sd a1, 64(%0)\n\t"
-               "sd a2, 72(%0)\n\t"
-               "sd a3, 80(%0)\n\t"
-               "sd a4, 88(%0)\n\t"
-               "sd a5, 96(%0)\n\t"
-               "sd a6, 104(%0)\n\t"
-               "sd a7, 112(%0)\n\t"
-               "sd s1, 120(%0)\n\t"
-               "sd s2, 128(%0)\n\t"
-               "sd s3, 136(%0)\n\t"
-               "sd s4, 144(%0)\n\t"
-               "sd s5, 152(%0)\n\t"
-               "sd s6, 160(%0)\n\t"
-               "sd s7, 168(%0)\n\t"
-               "sd s8, 176(%0)\n\t"
-               "sd s9, 184(%0)\n\t"
-               "sd s10, 192(%0)\n\t"
-               "sd s11, 200(%0)\n\t"
-               :
-               : "r"(regs)
-               : "memory");
+  // sd t0, 0(%0)\n\t
+  // sd t1, 8(%0)\n\t
+  // sd t2, 16(%0)\n\t
+  // ...
+#define X(i, reg, offset) "sd " #reg ", " #offset "(%0)\n\t"
+  asm volatile(RISCV_REG_LIST : : "r"(regs) : "memory");
+#undef X
 
   return (void **)regs;
 }
 
+// case 0: mv t0, %0 :: "r"(val)
+// case 1: mv t1, %0 :: "r"(val)
+// case 2: mv t2, %0 :: "r"(val)
+// ...
 static void set_riscv_reg(int idx, void *val) {
   switch (idx) {
-  case 0:
-    asm volatile("mv t0, %0" ::"r"(val));
-    break;
-  case 1:
-    asm volatile("mv t1, %0" ::"r"(val));
-    break;
-  case 2:
-    asm volatile("mv t2, %0" ::"r"(val));
-    break;
-  case 3:
-    asm volatile("mv t3, %0" ::"r"(val));
-    break;
-  case 4:
-    asm volatile("mv t4, %0" ::"r"(val));
-    break;
-  case 5:
-    asm volatile("mv t5, %0" ::"r"(val));
-    break;
-  case 6:
-    asm volatile("mv t6, %0" ::"r"(val));
-    break;
-  case 7:
-    asm volatile("mv a0, %0" ::"r"(val));
-    break;
-  case 8:
-    asm volatile("mv a1, %0" ::"r"(val));
-    break;
-  case 9:
-    asm volatile("mv a2, %0" ::"r"(val));
-    break;
-  case 10:
-    asm volatile("mv a3, %0" ::"r"(val));
-    break;
-  case 11:
-    asm volatile("mv a4, %0" ::"r"(val));
-    break;
-  case 12:
-    asm volatile("mv a5, %0" ::"r"(val));
-    break;
-  case 13:
-    asm volatile("mv a6, %0" ::"r"(val));
-    break;
-  case 14:
-    asm volatile("mv a7, %0" ::"r"(val));
-    break;
-  case 15:
-    asm volatile("mv s1, %0" ::"r"(val));
-    break;
-  case 16:
-    asm volatile("mv s2, %0" ::"r"(val));
-    break;
-  case 17:
-    asm volatile("mv s3, %0" ::"r"(val));
-    break;
-  case 18:
-    asm volatile("mv s4, %0" ::"r"(val));
-    break;
-  case 19:
-    asm volatile("mv s5, %0" ::"r"(val));
-    break;
-  case 20:
-    asm volatile("mv s6, %0" ::"r"(val));
-    break;
-  case 21:
-    asm volatile("mv s7, %0" ::"r"(val));
-    break;
-  case 22:
-    asm volatile("mv s8, %0" ::"r"(val));
-    break;
-  case 23:
-    asm volatile("mv s9, %0" ::"r"(val));
-    break;
-  case 24:
-    asm volatile("mv s10, %0" ::"r"(val));
-    break;
-  case 25:
-    asm volatile("mv s11, %0" ::"r"(val));
-    break;
+#define X(i, reg, offset)                                                      \
+  case i:                                                                      \
+    asm volatile("mv " #reg ", %0" ::"r"(val));
+    RISCV_REG_LIST
+#undef X
   default:
     break;
   }
