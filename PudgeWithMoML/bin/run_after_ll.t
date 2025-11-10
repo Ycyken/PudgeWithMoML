@@ -4,25 +4,7 @@
 
   $ make compile opts=-gen_mid input=test/manytests/typed/010faccps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe | tee -a results.txt && echo "-----" >> results.txt
-  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
-  [DEBUG] my_malloc(size: 32)
-   -> 0x152a8
-   -> 0x152a8
-  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
-  [DEBUG] my_malloc(size: 48)
-   -> 0x152d0
-   -> 0x152d0
-  [Debug] apply_closure(old_clos = {
-  	code: 0x106d2,
-  	argc: 3
-  	argc_recived: 0
-  	args = []
-  }, argc: 5, args: [0x9, 0x152a8, 0x152a8, 0x7, 0xa1f2b3b0])
-  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
-  [DEBUG] my_malloc(size: 48)
-   -> 0x15308
-   -> 0x15308
-  Runtime error: function accept more arguments than expect
+  24
   $ cat ../main.anf
   let id__0 = fun x__1 ->
     x__1 
@@ -209,7 +191,6 @@
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
-    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -226,29 +207,7 @@
 
   $ make compile opts=-gen_mid input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
-  [DEBUG] my_malloc(size: 32)
-   -> 0x152a8
-   -> 0x152a8
-  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
-  [DEBUG] my_malloc(size: 56)
-   -> 0x152d0
-   -> 0x152d0
-  [DEBUG] alloc_closure(f: 0x107c0, argc: 2)
-  [DEBUG] my_malloc(size: 40)
-   -> 0x15310
-   -> 0x15310
-  [Debug] apply_closure(old_clos = {
-  	code: 0x1071e,
-  	argc: 4
-  	argc_recived: 0
-  	args = []
-  }, argc: 7, args: [0xd, 0x152a8, 0x15310, 0x10000, 0x152a8, 0xb, 0xcab1d3b0])
-  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
-  [DEBUG] my_malloc(size: 56)
-   -> 0x15340
-   -> 0x15340
-  Runtime error: function accept more arguments than expect
+  8
   $ cat ../main.anf
   let id__0 = fun x__1 ->
     x__1 
@@ -529,7 +488,6 @@
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
-    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -549,47 +507,7 @@
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
-  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
-  [DEBUG] my_malloc(size: 32)
-   -> 0x152a8
-   -> 0x152a8
-  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
-  [DEBUG] my_malloc(size: 48)
-   -> 0x152d0
-   -> 0x152d0
-  [Debug] apply_closure(old_clos = {
-  	code: 0x106d2,
-  	argc: 3
-  	argc_recived: 0
-  	args = []
-  }, argc: 5, args: [0x9, 0x152a8, 0x152a8, 0x7, 0xa1f2b3b0])
-  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
-  [DEBUG] my_malloc(size: 48)
-   -> 0x15308
-   -> 0x15308
-  Runtime error: function accept more arguments than expect
+  24
   -----
-  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
-  [DEBUG] my_malloc(size: 32)
-   -> 0x152a8
-   -> 0x152a8
-  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
-  [DEBUG] my_malloc(size: 56)
-   -> 0x152d0
-   -> 0x152d0
-  [DEBUG] alloc_closure(f: 0x107c0, argc: 2)
-  [DEBUG] my_malloc(size: 40)
-   -> 0x15310
-   -> 0x15310
-  [Debug] apply_closure(old_clos = {
-  	code: 0x1071e,
-  	argc: 4
-  	argc_recived: 0
-  	args = []
-  }, argc: 7, args: [0xd, 0x152a8, 0x15310, 0x10000, 0x152a8, 0xb, 0xcab1d3b0])
-  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
-  [DEBUG] my_malloc(size: 56)
-   -> 0x15340
-   -> 0x15340
-  Runtime error: function accept more arguments than expect
+  8
   -----

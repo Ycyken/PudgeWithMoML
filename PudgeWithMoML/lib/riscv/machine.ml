@@ -50,6 +50,10 @@ type instr =
   | And of reg * reg * reg
   | Ori of reg * reg * int
   | Or of reg * reg * reg
+  | Slli of reg * reg * offset
+  | Srli of reg * reg * offset
+  | Slai of reg * reg * offset
+  | Srai of reg * reg * offset
   | Beq of reg * reg * string
   | Ble of reg * reg * string
   | J of string
@@ -85,6 +89,10 @@ let pp_instr fmt =
   | And (rd, rs1, rs2) -> fprintf fmt "and %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
   | Ori (rd, rs, n) -> fprintf fmt "ori %a, %a, %d" pp_reg rd pp_reg rs n
   | Or (rd, rs1, rs2) -> fprintf fmt "or %a, %a, %a" pp_reg rd pp_reg rs1 pp_reg rs2
+  | Slli (rd, rs1, imm) -> fprintf fmt "slli %a, %a, %d" pp_reg rd pp_reg rs1 imm
+  | Srli (rd, rs1, imm) -> fprintf fmt "srli %a, %a, %d" pp_reg rd pp_reg rs1 imm
+  | Slai (rd, rs1, imm) -> fprintf fmt "slai %a, %a, %d" pp_reg rd pp_reg rs1 imm
+  | Srai (rd, rs1, imm) -> fprintf fmt "srai %a, %a, %d" pp_reg rd pp_reg rs1 imm
   | Beq (rs1, rs2, label) -> fprintf fmt "beq %a, %a, %s" pp_reg rs1 pp_reg rs2 label
   | Ble (rs1, rs2, label) -> fprintf fmt "ble %a, %a, %s" pp_reg rs1 pp_reg rs2 label
   | J label -> fprintf fmt "j %s" label
@@ -117,6 +125,10 @@ let andi r1 r2 n = Andi (r1, r2, n)
 let and_ r1 r2 r3 = And (r1, r2, r3)
 let ori r1 r2 n = Ori (r1, r2, n)
 let or_ r1 r2 r3 = Or (r1, r2, r3)
+let slli rd rs1 imm = Slli (rd, rs1, imm)
+let srli rd rs1 imm = Srli (rd, rs1, imm)
+let slai rd rs1 imm = Slai (rd, rs1, imm)
+let srai rd rs1 imm = Srai (rd, rs1, imm)
 let beq r1 r2 label = Beq (r1, r2, label)
 let ble r1 r2 label = Ble (r1, r2, label)
 let j label = J label
@@ -154,6 +166,10 @@ let%expect_test "Print all regs and instructions" =
     ; and_ (A 0) (A 1) (A 2)
     ; ori (A 3) (A 4) 9
     ; or_ (S 0) (S 1) (A 0)
+    ; slai (S 0) (S 1) 4
+    ; srai (S 0) (S 1) 4
+    ; slli (S 0) (S 1) 4
+    ; srli (S 0) (S 1) 4
     ; beq (A 0) (A 1) "label1"
     ; ble (A 2) (A 3) "label2"
     ; j "main"
@@ -189,6 +205,10 @@ let%expect_test "Print all regs and instructions" =
   and a0, a1, a2
   ori a3, a4, 9
   or fp, s1, a0
+  slai fp, s1, 4
+  srai fp, s1, 4
+  slli fp, s1, 4
+  srli fp, s1, 4
   beq a0, a1, label1
   ble a2, a3, label2
   j main

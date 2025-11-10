@@ -27,18 +27,22 @@
     sd fp, 40(sp)
     addi fp, sp, 56
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
     slt t0, t1, t0
     xori t0, t0, 1
     sd t0, -24(fp)
     ld t0, -24(fp)
     beq t0, zero, L0
-    li a0, 1
+    li a0, 3
     j L1
   L0:
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -32(fp)
     ld t0, -32(fp)
     sd t0, -40(fp)
@@ -59,7 +63,11 @@
     sd t0, -56(fp)
     ld t0, 0(fp)
     ld t1, -56(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     mul a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
   L1:
     ld ra, 48(sp)
     ld fp, 40(sp)
@@ -74,7 +82,7 @@
   # Apply fac__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 4
+    li t0, 9
     sd t0, 0(sp)
   # End loading args on stack
     call fac__0
@@ -123,7 +131,7 @@
     sd fp, 40(sp)
     addi fp, sp, 56
     ld t0, 0(fp)
-    li t1, 2
+    li t1, 5
     slt t0, t0, t1
     sd t0, -24(fp)
     ld t0, -24(fp)
@@ -132,8 +140,12 @@
     j L1
   L0:
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -32(fp)
   # Apply fib__0 with 1 args
   # Load args on stack
@@ -149,8 +161,12 @@
   # End Apply fib__0 with 1 args
     sd t0, -40(fp)
     ld t0, 0(fp)
-    li t1, 2
+    li t1, 5
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -48(fp)
   # Apply fib__0 with 1 args
   # Load args on stack
@@ -167,7 +183,11 @@
     sd t0, -56(fp)
     ld t0, -40(fp)
     ld t1, -56(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
   L1:
     ld ra, 48(sp)
     ld fp, 40(sp)
@@ -182,7 +202,7 @@
   # Apply fib__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 10
+    li t0, 21
     sd t0, 0(sp)
   # End loading args on stack
     call fib__0
@@ -250,7 +270,7 @@
     sd ra, 16(sp)
     sd fp, 8(sp)
     addi fp, sp, 24
-    li t0, 0
+    li t0, 1
     ld t1, 0(fp)
     sub t0, t0, t1
     snez t0, t0
@@ -258,13 +278,13 @@
     ld t0, -24(fp)
     beq t0, zero, L0
   # Apply print_int
-    li a0, 0
+    li a0, 1
     call print_int
   # End Apply print_int
     j L1
   L0:
   # Apply print_int
-    li a0, 1
+    li a0, 3
     call print_int
   # End Apply print_int
   L1:
@@ -278,28 +298,28 @@
     mv a0, sp
     call init_GC
     addi sp, sp, -136
-    li t0, 0
-    li t1, 1
+    li t0, 1
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -8(fp)
     ld t0, -8(fp)
     beq t0, zero, L14
-    li t0, 0
-    li t1, 1
+    li t0, 1
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -16(fp)
     ld t0, -16(fp)
     beq t0, zero, L6
-    li t0, 0
-    li t1, 1
+    li t0, 1
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -24(fp)
     ld t0, -24(fp)
     beq t0, zero, L2
-    li t0, 0
+    li t0, 1
     sd t0, -32(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -315,7 +335,7 @@
   # End Apply large__0 with 1 args
     j L3
   L2:
-    li t0, 1
+    li t0, 3
     sd t0, -40(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -332,14 +352,14 @@
   L3:
     j L7
   L6:
-    li t0, 1
-    li t1, 1
+    li t0, 3
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -48(fp)
     ld t0, -48(fp)
     beq t0, zero, L4
-    li t0, 0
+    li t0, 1
     sd t0, -56(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -355,7 +375,7 @@
   # End Apply large__0 with 1 args
     j L5
   L4:
-    li t0, 1
+    li t0, 3
     sd t0, -64(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -374,28 +394,28 @@
     j L15
   L14:
   # Apply print_int
-    li a0, 42
+    li a0, 85
     call print_int
     mv t0, a0
   # End Apply print_int
     sd t0, -72(fp)
     ld t0, -72(fp)
     sd t0, -80(fp)
-    li t0, 1
-    li t1, 1
+    li t0, 3
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -88(fp)
     ld t0, -88(fp)
     beq t0, zero, L12
-    li t0, 0
-    li t1, 1
+    li t0, 1
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -96(fp)
     ld t0, -96(fp)
     beq t0, zero, L8
-    li t0, 0
+    li t0, 1
     sd t0, -104(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -411,7 +431,7 @@
   # End Apply large__0 with 1 args
     j L9
   L8:
-    li t0, 1
+    li t0, 3
     sd t0, -112(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -428,14 +448,14 @@
   L9:
     j L13
   L12:
-    li t0, 1
-    li t1, 1
+    li t0, 3
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -120(fp)
     ld t0, -120(fp)
     beq t0, zero, L10
-    li t0, 0
+    li t0, 1
     sd t0, -128(fp)
   # Apply large__0 with 1 args
   # Load args on stack
@@ -451,7 +471,7 @@
   # End Apply large__0 with 1 args
     j L11
   L10:
-    li t0, 1
+    li t0, 3
     sd t0, -136(fp)
   # Apply large__0 with 1 args
   # Load args on stack

@@ -17,7 +17,7 @@
     call init_GC
     addi sp, sp, 0
   # Apply print_int
-    li a0, 5
+    li a0, 11
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -56,7 +56,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -70,9 +74,9 @@
   # Apply add__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 5
+    li t0, 11
     sd t0, 0(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 8(sp)
   # End loading args on stack
     call add__0
@@ -145,29 +149,29 @@
   # Apply homka__0 with 12 args
   # Load args on stack
     addi sp, sp, -96
-    li t0, 122
+    li t0, 245
     sd t0, 0(sp)
-    li t0, 1
-    sd t0, 8(sp)
-    li t0, 2
-    sd t0, 16(sp)
     li t0, 3
-    sd t0, 24(sp)
-    li t0, 4
-    sd t0, 32(sp)
+    sd t0, 8(sp)
     li t0, 5
-    sd t0, 40(sp)
-    li t0, 6
-    sd t0, 48(sp)
+    sd t0, 16(sp)
     li t0, 7
-    sd t0, 56(sp)
-    li t0, 8
-    sd t0, 64(sp)
+    sd t0, 24(sp)
     li t0, 9
-    sd t0, 72(sp)
-    li t0, 10
-    sd t0, 80(sp)
+    sd t0, 32(sp)
     li t0, 11
+    sd t0, 40(sp)
+    li t0, 13
+    sd t0, 48(sp)
+    li t0, 15
+    sd t0, 56(sp)
+    li t0, 17
+    sd t0, 64(sp)
+    li t0, 19
+    sd t0, 72(sp)
+    li t0, 21
+    sd t0, 80(sp)
+    li t0, 23
     sd t0, 88(sp)
   # End loading args on stack
     call homka__0
@@ -229,9 +233,9 @@
   # Apply id__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 5
+    li t0, 11
     sd t0, 0(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 8(sp)
   # End loading args on stack
     call id__0
@@ -292,7 +296,7 @@
     addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, 8(fp)
     sd t0, 16(sp)
@@ -313,8 +317,12 @@
     sd fp, 0(sp)
     addi fp, sp, 16
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -337,7 +345,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 8(sp)
   # End loading args on stack
     call app__0
@@ -376,9 +384,9 @@
     mv a0, sp
     call init_GC
     addi sp, sp, -32
-    li t0, 10
+    li t0, 21
     sd t0, -8(fp)
-    li t0, 20
+    li t0, 41
     sd t0, -16(fp)
   # Apply print_int
     ld a0, -16(fp)
@@ -430,7 +438,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -453,9 +465,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -474,9 +486,9 @@
     addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 121
+    li t0, 243
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -532,7 +544,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -555,9 +571,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -576,9 +592,9 @@
     addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 121
+    li t0, 243
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -601,9 +617,9 @@
     addi sp, sp, -32
     ld t0, -48(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 122
+    li t0, 245
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -653,14 +669,14 @@
     mv a0, sp
     call init_GC
     addi sp, sp, 0
-    li t0, 4
+    li t0, 9
     la t1, x__0
     sd t0, 0(t1)
-    li t0, 5
+    li t0, 11
     la t1, x__1
     sd t0, 0(t1)
   # Apply print_int
-    li a0, 5
+    li a0, 11
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -706,7 +722,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -729,9 +749,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -750,9 +770,9 @@
     addi sp, sp, -32
     ld t0, -8(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 117
+    li t0, 235
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -824,7 +844,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -847,9 +871,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -872,9 +896,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -885,15 +909,15 @@
   # End Partial application add__0 with 1 args
     la t1, inc__4
     sd t0, 0(t1)
-    li t0, 17
+    li t0, 35
     la t1, homka__5
     sd t0, 0(t1)
   # Apply add__0 with 2 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 120
+    li t0, 241
     sd t0, 0(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 8(sp)
   # End loading args on stack
     call add__0
@@ -912,9 +936,9 @@
     addi sp, sp, -32
     ld t0, -8(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 110
+    li t0, 221
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -983,10 +1007,10 @@
     mv a0, sp
     call init_GC
     addi sp, sp, -8
-    li t0, 5
+    li t0, 11
     la t1, x__0
     sd t0, 0(t1)
-    li t0, 2
+    li t0, 5
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
@@ -1053,10 +1077,10 @@
     addi sp, sp, 0
     li t0, 1
     beq t0, zero, L0
-    li t0, 1
+    li t0, 3
     j L1
   L0:
-    li t0, 2
+    li t0, 5
   L1:
     la t1, t__0
     sd t0, 0(t1)
@@ -1160,7 +1184,7 @@
     sd ra, 8(sp)
     sd fp, 0(sp)
     addi fp, sp, 16
-    li a0, 5
+    li a0, 11
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -1186,7 +1210,11 @@
     sd t0, -48(fp)
     ld t0, 0(fp)
     ld t1, 0(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     div t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -56(fp)
     ld t0, -56(fp)
     sd t0, -64(fp)

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if true
+#if false
 #define LOG(fmt, ...)                                                                                                  \
   {                                                                                                                    \
     printf(fmt, ##__VA_ARGS__);                                                                                        \
@@ -24,7 +24,10 @@
 
 extern void *call_closure(void *code, uint64_t argc, void **argv);
 
-void print_int(size_t n) { printf("%d\n", n); }
+void print_int(size_t n) {
+  n >>= 1;
+  printf("%d\n", n);
+}
 
 void flush() { fflush(stdout); }
 
@@ -441,6 +444,7 @@ static void *copy_closure(closure *old_clos) {
 
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
+  argc = argc >> 1;
   void **args = malloc(sizeof(void *) * argc);
 
   va_list list;
@@ -473,13 +477,13 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
 
   for (size_t i = 0; i < argc; i++) {
     clos->args[clos->argc_recived++] = args[i];
-    free(args);
   }
+  free(args);
 
   // if application is partial
   if (clos->argc_recived < clos->argc) {
     void *result = clos;
-    LOG(" -> 0x%x\n", result)
+    LOG(" -> 0x%x\n", result);
     return result;
   }
 
