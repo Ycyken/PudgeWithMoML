@@ -160,21 +160,6 @@ void init_GC(void *base_sp) {
   return;
 }
 
-// clear all registers
-void clear_regs() {
-  // t0-t6 (7), a0-a7 (8), s1-s11 (11)
-
-// li t0, 0\n\t
-// li t1, 0\n\t
-// li t2, 0\n\t
-// ...
-#define X(i, reg, offset) "li " #reg ", 0\n\t"
-  asm volatile(RISCV_REG_LIST);
-#undef X
-
-  return;
-}
-
 // if caller function wants to save some regs that my collect_riscv_state
 // function may destroy (for ex. during creating regs[26]) then caller puts
 // their values on stack. so we don't lose any address that points to object

@@ -442,9 +442,8 @@
   > let _5  = print_gc_status ()
   > let _6 = gc_collect ()
   > let _7 = print_gc_status ()
-  > let _8 = clear_regs ()
-  > let _9 = gc_collect ()
-  > let _10 = print_gc_status ()
+  > let _8 = gc_collect ()
+  > let _9 = print_gc_status ()
   > let main = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
