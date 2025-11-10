@@ -339,7 +339,7 @@ void gc_collect() {
 
 // alloc size bytes in gc.memory
 void *my_malloc(size_t size) {
-  LOG("MY MALLOC: %ld\n", size);
+  LOG("[DEBUG] %s(size: %ld)\n", __func__, size);
   if (size == 0) {
     return NULL;
   }
@@ -370,36 +370,49 @@ void *my_malloc(size_t size) {
   gc.alloc_offset += words;
   gc.alloc_count++;
   gc.allocated_bytes_count += size + WORD_SIZE;
+
+  LOG(" -> 0x%x\n", result);
   return result;
 }
 
 // get heap start of current new_space
 void **get_heap_start() {
+  LOG("[DEBUG] %s()\n", __func__);
   if (!STABLE_CI) {
-    return gc.new_space;
+    void **result = gc.new_space;
+    LOG(" -> 0x%x\n", result);
+    return result;
   }
 
   void **addr = (void **)0x1000;
   addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
 
-  return addr;
+  void **result = addr;
+  LOG(" -> 0x%x\n", result);
+  return result;
 }
 
 // get heap end of current new_space
 void **get_heap_fin() {
+  LOG("[DEBUG] %s()\n", __func__);
+
   if (!STABLE_CI) {
-    return gc.new_space + gc.space_capacity;
+    void **result = gc.new_space + gc.space_capacity;
+    LOG(" -> 0x%x", result);
+    return result;
   }
 
   void **addr = (void **)0x1000;
   addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
   addr += gc.space_capacity;
 
-  return addr;
+  void **result = addr;
+  LOG(" -> 0x%x", result);
+  return result;
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
-  LOG("alloc_closure(0x%x, %d)\n", f, argc);
+  LOG("[DEBUG] %s(f: 0x%x, argc: %d)\n", __func__, f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
   clos->code = f;
@@ -407,15 +420,17 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   clos->argc_recived = 0;
   memset(clos->args, 0, sizeof(void *) * argc);
 
-  return clos;
+  void *result = clos;
+  LOG(" -> 0x%x\n", result);
+  return result;
 }
 
 void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
-  LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
-  LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
+  // LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
+  // LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
 
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
@@ -436,7 +451,7 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   }
   va_end(list);
 
-  LOG("[Debug] apply_closure(old_clos = {\n\tcode: 0x%x,\n\targc: %d\n\targc_recived: %d\n\targs = [", old_clos->code,
+  LOG("[Debug] %s(old_clos = {\n\tcode: 0x%x,\n\targc: %d\n\targc_recived: %d\n\targs = [", __func__, old_clos->code,
       old_clos->argc, old_clos->argc_recived);
   for (size_t i = 0; i < old_clos->argc_recived; i++) {
     LOG(i == 0 ? "0x%x" : ", 0x%x", old_clos->args[i]);
@@ -463,11 +478,14 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
 
   // if application is partial
   if (clos->argc_recived < clos->argc) {
-    return clos;
+    void *result = clos;
+    LOG(" -> 0x%x\n", result)
+    return result;
   }
 
   // full application (we need pass all arguments to stack and exec function)
   assert(clos->argc_recived == clos->argc);
 
+  LOG(" -> *exec 0x%x*\n", old_clos->code);
   return call_closure(clos->code, clos->argc, clos->args);
 }

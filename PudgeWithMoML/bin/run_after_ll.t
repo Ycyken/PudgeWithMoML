@@ -4,7 +4,25 @@
 
   $ make compile opts=-gen_mid input=test/manytests/typed/010faccps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe | tee -a results.txt && echo "-----" >> results.txt
-  24
+  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
+  [DEBUG] my_malloc(size: 32)
+   -> 0x152a8
+   -> 0x152a8
+  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
+  [DEBUG] my_malloc(size: 48)
+   -> 0x152d0
+   -> 0x152d0
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106d2,
+  	argc: 3
+  	argc_recived: 0
+  	args = []
+  }, argc: 5, args: [0x9, 0x152a8, 0x152a8, 0x7, 0xa1f2b3b0])
+  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
+  [DEBUG] my_malloc(size: 48)
+   -> 0x15308
+   -> 0x15308
+  Runtime error: function accept more arguments than expect
   $ cat ../main.anf
   let id__0 = fun x__1 ->
     x__1 
@@ -50,7 +68,11 @@
     addi fp, sp, 32
     ld t0, 16(fp)
     ld t1, 0(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     mul t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -24(fp)
   # Apply k__4 with 1 args
     ld t0, 8(fp)
@@ -59,7 +81,7 @@
     addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, -24(fp)
     sd t0, 16(sp)
@@ -80,7 +102,7 @@
     sd fp, 32(sp)
     addi fp, sp, 48
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
     sub t0, t0, t1
     seqz t0, t0
     sd t0, -24(fp)
@@ -93,9 +115,9 @@
     addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -106,8 +128,12 @@
     j L3
   L2:
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -40(fp)
   # Partial application fresh_1__2 with 2 args
   # Load args on stack
@@ -121,7 +147,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 8(sp)
     ld t0, 0(fp)
     sd t0, 16(sp)
@@ -162,7 +188,7 @@
   # Apply fac_cps__6 with 2 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 4
+    li t0, 9
     sd t0, 0(sp)
     addi sp, sp, -16
     la t5, id__0
@@ -183,11 +209,12 @@
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
+    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
     sd t0, -16(fp)
-    li t0, 0
+    li t0, 1
     la t1, main__9
     sd t0, 0(t1)
     call flush
@@ -199,7 +226,29 @@
 
   $ make compile opts=-gen_mid input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
-  8
+  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
+  [DEBUG] my_malloc(size: 32)
+   -> 0x152a8
+   -> 0x152a8
+  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
+  [DEBUG] my_malloc(size: 56)
+   -> 0x152d0
+   -> 0x152d0
+  [DEBUG] alloc_closure(f: 0x107c0, argc: 2)
+  [DEBUG] my_malloc(size: 40)
+   -> 0x15310
+   -> 0x15310
+  [Debug] apply_closure(old_clos = {
+  	code: 0x1071e,
+  	argc: 4
+  	argc_recived: 0
+  	args = []
+  }, argc: 7, args: [0xd, 0x152a8, 0x15310, 0x10000, 0x152a8, 0xb, 0xcab1d3b0])
+  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
+  [DEBUG] my_malloc(size: 56)
+   -> 0x15340
+   -> 0x15340
+  Runtime error: function accept more arguments than expect
   $ cat ../main.anf
   let id__0 = fun x__1 ->
     x__1 
@@ -255,7 +304,11 @@
     addi fp, sp, 32
     ld t0, 0(fp)
     ld t1, 16(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -24(fp)
   # Apply k__4 with 1 args
     ld t0, 8(fp)
@@ -264,7 +317,7 @@
     addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, -24(fp)
     sd t0, 16(sp)
@@ -285,8 +338,12 @@
     sd fp, 32(sp)
     addi fp, sp, 48
     ld t0, 0(fp)
-    li t1, 2
+    li t1, 5
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -24(fp)
   # Partial application fresh_2__2 with 2 args
   # Load args on stack
@@ -300,7 +357,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 8(sp)
     ld t0, 24(fp)
     sd t0, 16(sp)
@@ -321,7 +378,7 @@
     addi sp, sp, -32
     ld t0, -40(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, -24(fp)
     sd t0, 16(sp)
@@ -336,7 +393,7 @@
     addi sp, sp, -32
     ld t0, -48(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, -32(fp)
     sd t0, 16(sp)
@@ -357,7 +414,7 @@
     sd fp, 32(sp)
     addi fp, sp, 48
     ld t0, 0(fp)
-    li t1, 2
+    li t1, 5
     slt t0, t0, t1
     sd t0, -24(fp)
     ld t0, -24(fp)
@@ -369,7 +426,7 @@
     addi sp, sp, -32
     ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, 0(fp)
     sd t0, 16(sp)
@@ -382,8 +439,12 @@
     j L5
   L4:
     ld t0, 0(fp)
-    li t1, 1
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
     sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
     sd t0, -40(fp)
   # Partial application fresh_1__6 with 3 args
   # Load args on stack
@@ -397,7 +458,7 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 7
     sd t0, 8(sp)
     ld t0, 0(fp)
     sd t0, 16(sp)
@@ -447,7 +508,7 @@
   # Apply fib__11 with 2 args
   # Load args on stack
     addi sp, sp, -16
-    li t0, 6
+    li t0, 13
     sd t0, 0(sp)
     addi sp, sp, -16
     la t5, id__0
@@ -468,13 +529,14 @@
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
+    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
     sd t0, -16(fp)
     ld t0, -16(fp)
     sd t0, -24(fp)
-    li t0, 0
+    li t0, 1
     la t1, main__14
     sd t0, 0(t1)
     call flush
@@ -487,7 +549,47 @@
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
-  24
+  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
+  [DEBUG] my_malloc(size: 32)
+   -> 0x152a8
+   -> 0x152a8
+  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
+  [DEBUG] my_malloc(size: 48)
+   -> 0x152d0
+   -> 0x152d0
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106d2,
+  	argc: 3
+  	argc_recived: 0
+  	args = []
+  }, argc: 5, args: [0x9, 0x152a8, 0x152a8, 0x7, 0xa1f2b3b0])
+  [DEBUG] alloc_closure(f: 0x106d2, argc: 3)
+  [DEBUG] my_malloc(size: 48)
+   -> 0x15308
+   -> 0x15308
+  Runtime error: function accept more arguments than expect
   -----
-  8
+  [DEBUG] alloc_closure(f: 0x106c0, argc: 1)
+  [DEBUG] my_malloc(size: 32)
+   -> 0x152a8
+   -> 0x152a8
+  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
+  [DEBUG] my_malloc(size: 56)
+   -> 0x152d0
+   -> 0x152d0
+  [DEBUG] alloc_closure(f: 0x107c0, argc: 2)
+  [DEBUG] my_malloc(size: 40)
+   -> 0x15310
+   -> 0x15310
+  [Debug] apply_closure(old_clos = {
+  	code: 0x1071e,
+  	argc: 4
+  	argc_recived: 0
+  	args = []
+  }, argc: 7, args: [0xd, 0x152a8, 0x15310, 0x10000, 0x152a8, 0xb, 0xcab1d3b0])
+  [DEBUG] alloc_closure(f: 0x1071e, argc: 4)
+  [DEBUG] my_malloc(size: 56)
+   -> 0x15340
+   -> 0x15340
+  Runtime error: function accept more arguments than expect
   -----
