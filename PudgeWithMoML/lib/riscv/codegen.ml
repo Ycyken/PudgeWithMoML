@@ -343,14 +343,12 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let+ arg_c = gen_imm (A 0) arg in
     (arg_c @ [ call "print_int" ] @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap "Apply print_int"
-  | CApp (ImmVar "print_gc_status", ImmConst Unit_lt, []) ->
-    [ call "print_gc_status" ] |> return
-  | CApp (ImmVar "gc_collect", ImmConst Unit_lt, []) -> [ call "gc_collect" ] |> return
-  | CApp (ImmVar "clear_regs", ImmConst Unit_lt, []) -> [ call "clear_regs" ] |> return
-  | CApp (ImmVar "get_heap_start", ImmConst Unit_lt, []) ->
-    ([ call "get_heap_start" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
-  | CApp (ImmVar "get_heap_fin", ImmConst Unit_lt, []) ->
-    ([ call "get_heap_fin" ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
+  | CApp (ImmVar name, ImmConst Unit_lt, [])
+    when Base.List.mem [ "print_gc_status"; "gc_collect" ] name ~equal:String.equal ->
+    [ call name ] |> return
+  | CApp (ImmVar name, ImmConst Unit_lt, [])
+    when Base.List.mem [ "get_heap_start"; "get_heap_fin" ] name ~equal:String.equal ->
+    ([ call name ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
     when let arity = var_arity f in
@@ -521,8 +519,8 @@ let program_arities (pr : aprogram) =
   1) Code for variables initialization of the bss section (exec in _start)
   2) Code for functions *)
 let gather pr : instr list t =
+  let program_arities = program_arities pr in
   let* main_code, functions_code =
-    let program_arities = program_arities pr in
     let rec helper acc = function
       | [] -> M.return acc
       | item :: rest ->
