@@ -96,7 +96,7 @@ typedef struct {
 #define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
 #define INT8 int, int, int, int, int, int, int, int
 
-void print_stack(void *current_sp);
+static void print_stack(void *current_sp);
 
 // Print stats about Garbage Collector work
 void print_gc_status() {
@@ -208,7 +208,7 @@ static void set_riscv_reg(int idx, void *val) {
   }
 }
 
-void print_stack(void *current_sp) {
+static void print_stack(void *current_sp) {
   printf("=== STACK status ===\n");
   printf("BASE_SP: 0x%x, CURRENT_SP: 0x%x\n", gc.base_sp, current_sp);
   size_t stack_size = (gc.base_sp - current_sp) / 8;
@@ -232,7 +232,7 @@ void print_stack(void *current_sp) {
 //   2) save new pointer to old_space
 //   3) iterate through stack\regs and replace all pointer to the new
 //   pointer
-void _gc_collect(void *current_sp) {
+static void _gc_collect(void *current_sp) {
   if (gc.alloc_offset == 0) {
     return;
   }
@@ -338,7 +338,7 @@ void gc_collect() {
 }
 
 // alloc size bytes in gc.memory
-void *my_malloc(size_t size) {
+static void *my_malloc(size_t size) {
   LOG("[DEBUG] %s(size: %ld)\n", __func__, size);
   if (size == 0) {
     return NULL;
@@ -425,7 +425,7 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return result;
 }
 
-void *copy_closure(closure *old_clos) {
+static void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
