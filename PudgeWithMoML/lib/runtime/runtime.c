@@ -344,8 +344,8 @@ void _gc_collect(void *current_sp) {
       }
 
       // copy to old space
-      new_pointer = gc.old_space + old_space_offset;
       gc.old_space[old_space_offset++] = (void *)cur_size;
+      new_pointer = gc.old_space + old_space_offset;
       for (size_t j = 0; j < cur_size; j++) {
         gc.old_space[old_space_offset++] = gc.new_space[cur_offset + 1 + j];
       }
