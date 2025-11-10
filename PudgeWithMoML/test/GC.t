@@ -781,3 +781,49 @@
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   131072
+
+( numbers can't be equal existings addresses on heap )
+  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  > let add x y = x + y
+  > let homka = add 122
+  > let _ = print_gc_status ()
+  > let homka122 = 
+  >   let start = get_heap_start () in
+  >   let _ = print_int start in
+  >   let _ = gc_collect () in
+  >   let _ = print_gc_status () in
+  >   5
+  > let main = 5
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  === GC status ===
+  Start address of new space: 1000
+  Allocate count: 2 times
+  Collect count: 0 times
+  Current space capacity: 8192 words
+  Total allocated memory: 12 words
+  Allocated words in new space: 12 words
+  Current new space:
+  	(0x1000) 0x0: [size: 5]
+  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1010) 0x2: [data: 0x2]
+  	(0x1018) 0x3: [data: 0x0]
+  	(0x1020) 0x4: [data: 0x0]
+  	(0x1028) 0x5: [data: 0x0]
+  	(0x1030) 0x6: [size: 5]
+  	(0x1038) 0x7: [data: 0x106c0]
+  	(0x1040) 0x8: [data: 0x2]
+  	(0x1048) 0x9: [data: 0x1]
+  	(0x1050) 0xa: [data: 0xf5]
+  	(0x1058) 0xb: [data: 0x0]
+  === GC status ===
+  8192
+  === GC status ===
+  Start address of new space: 11000
+  Allocate count: 2 times
+  Collect count: 1 times
+  Current space capacity: 8192 words
+  Total allocated memory: 12 words
+  Allocated words in new space: 0 words
+  Current new space:
+  === GC status ===
