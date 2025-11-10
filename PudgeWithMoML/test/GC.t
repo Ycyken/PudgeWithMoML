@@ -11,64 +11,20 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 2 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 12 words
-  Current new space:
-  	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x10670]
-  	(0x1010) 0x2: [data: 0x2]
-  	(0x1018) 0x3: [data: 0x0]
-  	(0x1020) 0x4: [data: 0x0]
-  	(0x1028) 0x5: [data: 0x0]
-  	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x10670]
-  	(0x1040) 0x8: [data: 0x2]
-  	(0x1048) 0x9: [data: 0x1]
-  	(0x1050) 0xa: [data: 0x5]
-  	(0x1058) 0xb: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 2 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 6 words
-  Current new space:
-  	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x10670]
-  	(0x11010) 0x2: [data: 0x2]
-  	(0x11018) 0x3: [data: 0x1]
-  	(0x11020) 0x4: [data: 0x5]
-  	(0x11028) 0x5: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 3 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 18 words
-  Allocated words in new space: 12 words
-  Current new space:
-  	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x10670]
-  	(0x11010) 0x2: [data: 0x2]
-  	(0x11018) 0x3: [data: 0x1]
-  	(0x11020) 0x4: [data: 0x5]
-  	(0x11028) 0x5: [data: 0x0]
-  	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x10670]
-  	(0x11040) 0x8: [data: 0x2]
-  	(0x11048) 0x9: [data: 0x2]
-  	(0x11050) 0xa: [data: 0x5]
-  	(0x11058) 0xb: [data: 0x2]
-  === GC status ===
-  7
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106c0,
+  	argc: 2
+  	argc_recived: 0
+  	args = []
+  }, argc: 3, args: [0xb, 0xfff, 0x10000])
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  old clos: 0x152a8, new clos: 0x152d8
+  clos.code: 0x106c0, clos argc: 0x2
+  Runtime error: function accept more arguments than expect
+  [122]
   $ cat ../main.anf
   let add__0 = fun a__1 ->
     fun b__2 ->
@@ -98,7 +54,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -121,9 +81,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -154,9 +114,9 @@
     addi sp, sp, -32
     ld t0, -72(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -174,6 +134,7 @@
     sd t0, -104(fp)
   # Apply print_int
     ld a0, -88(fp)
+    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -200,53 +161,22 @@
   > let main = print_int homs
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 5 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 28 words
-  Allocated words in new space: 28 words
-  Current new space:
-  	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x10670]
-  	(0x1010) 0x2: [data: 0x2]
-  	(0x1018) 0x3: [data: 0x0]
-  	(0x1020) 0x4: [data: 0x0]
-  	(0x1028) 0x5: [data: 0x0]
-  	(0x1030) 0x6: [size: 4]
-  	(0x1038) 0x7: [data: 0x106a0]
-  	(0x1040) 0x8: [data: 0x1]
-  	(0x1048) 0x9: [data: 0x0]
-  	(0x1050) 0xa: [data: 0x0]
-  	(0x1058) 0xb: [size: 5]
-  	(0x1060) 0xc: [data: 0x10670]
-  	(0x1068) 0xd: [data: 0x2]
-  	(0x1070) 0xe: [data: 0x1]
-  	(0x1078) 0xf: [data: 0x142d8]
-  	(0x1080) 0x10: [data: 0x0]
-  	(0x1088) 0x11: [size: 5]
-  	(0x1090) 0x12: [data: 0x10670]
-  	(0x1098) 0x13: [data: 0x2]
-  	(0x10a0) 0x14: [data: 0x2]
-  	(0x10a8) 0x15: [data: 0x142d8]
-  	(0x10b0) 0x16: [data: 0x5]
-  	(0x10b8) 0x17: [size: 4]
-  	(0x10c0) 0x18: [data: 0x106a0]
-  	(0x10c8) 0x19: [data: 0x1]
-  	(0x10d0) 0x1a: [data: 0x1]
-  	(0x10d8) 0x1b: [data: 0x5]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 5 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 28 words
-  Allocated words in new space: 0 words
-  Current new space:
-  === GC status ===
-  5
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  alloc_closure(0x106f0, 1)
+  MY MALLOC: 32
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106c0,
+  	argc: 2
+  	argc_recived: 0
+  	args = []
+  }, argc: 3, args: [0x152d8, 0x0, 0x152d8])
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  old clos: 0x152a8, new clos: 0x15300
+  clos.code: 0x106c0, clos argc: 0x2
+  Runtime error: function accept more arguments than expect
+  [122]
   $ cat ../main.anf
   let wrap__0 = fun f__1 ->
     fun x__2 ->
@@ -292,7 +222,7 @@
     addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, 8(fp)
     sd t0, 16(sp)
@@ -330,7 +260,7 @@
     addi sp, sp, -32
     ld t0, -24(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
     ld t0, 16(fp)
     sd t0, 16(sp)
@@ -349,9 +279,9 @@
     addi sp, sp, -32
     ld t0, -40(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -372,7 +302,7 @@
   # Apply homka__5 with 3 args
   # Load args on stack
     addi sp, sp, -32
-    li t0, 2
+    li t0, 5
     sd t0, 0(sp)
     addi sp, sp, -16
     la t5, wrap__0
@@ -413,6 +343,7 @@
   # Apply print_int
     la t5, homs__10
     ld a0, 0(t5)
+    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -444,76 +375,20 @@
   > let main = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 2 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 12 words
-  Current new space:
-  	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x10670]
-  	(0x1010) 0x2: [data: 0x2]
-  	(0x1018) 0x3: [data: 0x0]
-  	(0x1020) 0x4: [data: 0x0]
-  	(0x1028) 0x5: [data: 0x0]
-  	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x10670]
-  	(0x1040) 0x8: [data: 0x2]
-  	(0x1048) 0x9: [data: 0x1]
-  	(0x1050) 0xa: [data: 0x7]
-  	(0x1058) 0xb: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 2 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 0 words
-  Current new space:
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 4 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 12 words
-  Current new space:
-  	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x10670]
-  	(0x11010) 0x2: [data: 0x2]
-  	(0x11018) 0x3: [data: 0x0]
-  	(0x11020) 0x4: [data: 0x0]
-  	(0x11028) 0x5: [data: 0x0]
-  	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x10670]
-  	(0x11040) 0x8: [data: 0x2]
-  	(0x11048) 0x9: [data: 0x1]
-  	(0x11050) 0xa: [data: 0x6]
-  	(0x11058) 0xb: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 4 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 0 words
-  Current new space:
-  === GC status ===
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 4 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 0 words
-  Current new space:
-  === GC status ===
-  5
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106c0,
+  	argc: 2
+  	argc_recived: 0
+  	args = []
+  }, argc: 3, args: [0xf, 0x106f2, 0x1])
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  old clos: 0x152a8, new clos: 0x152d8
+  clos.code: 0x106c0, clos argc: 0x2
+  Runtime error: function accept more arguments than expect
+  [122]
 
 ( move multiple objects to old_space )
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -529,88 +404,20 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 1000
-  Allocate count: 4 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 24 words
-  Current new space:
-  	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x10670]
-  	(0x1010) 0x2: [data: 0x2]
-  	(0x1018) 0x3: [data: 0x0]
-  	(0x1020) 0x4: [data: 0x0]
-  	(0x1028) 0x5: [data: 0x0]
-  	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x10670]
-  	(0x1040) 0x8: [data: 0x2]
-  	(0x1048) 0x9: [data: 0x1]
-  	(0x1050) 0xa: [data: 0x5]
-  	(0x1058) 0xb: [data: 0x0]
-  	(0x1060) 0xc: [size: 5]
-  	(0x1068) 0xd: [data: 0x10670]
-  	(0x1070) 0xe: [data: 0x2]
-  	(0x1078) 0xf: [data: 0x0]
-  	(0x1080) 0x10: [data: 0x0]
-  	(0x1088) 0x11: [data: 0x0]
-  	(0x1090) 0x12: [size: 5]
-  	(0x1098) 0x13: [data: 0x10670]
-  	(0x10a0) 0x14: [data: 0x2]
-  	(0x10a8) 0x15: [data: 0x1]
-  	(0x10b0) 0x16: [data: 0x3]
-  	(0x10b8) 0x17: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 4 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 12 words
-  Current new space:
-  	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x10670]
-  	(0x11010) 0x2: [data: 0x2]
-  	(0x11018) 0x3: [data: 0x1]
-  	(0x11020) 0x4: [data: 0x5]
-  	(0x11028) 0x5: [data: 0x0]
-  	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x10670]
-  	(0x11040) 0x8: [data: 0x2]
-  	(0x11048) 0x9: [data: 0x1]
-  	(0x11050) 0xa: [data: 0x3]
-  	(0x11058) 0xb: [data: 0x0]
-  === GC status ===
-  === GC status ===
-  Start address of new space: 11000
-  Allocate count: 5 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 30 words
-  Allocated words in new space: 18 words
-  Current new space:
-  	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x10670]
-  	(0x11010) 0x2: [data: 0x2]
-  	(0x11018) 0x3: [data: 0x1]
-  	(0x11020) 0x4: [data: 0x5]
-  	(0x11028) 0x5: [data: 0x0]
-  	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x10670]
-  	(0x11040) 0x8: [data: 0x2]
-  	(0x11048) 0x9: [data: 0x1]
-  	(0x11050) 0xa: [data: 0x3]
-  	(0x11058) 0xb: [data: 0x0]
-  	(0x11060) 0xc: [size: 5]
-  	(0x11068) 0xd: [data: 0x10670]
-  	(0x11070) 0xe: [data: 0x2]
-  	(0x11078) 0xf: [data: 0x2]
-  	(0x11080) 0x10: [data: 0x5]
-  	(0x11088) 0x11: [data: 0x2]
-  === GC status ===
-  7
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  [Debug] apply_closure(old_clos = {
+  	code: 0x106c0,
+  	argc: 2
+  	argc_recived: 0
+  	args = []
+  }, argc: 3, args: [0xb, 0x0, 0x273aa408])
+  alloc_closure(0x106c0, 2)
+  MY MALLOC: 40
+  old clos: 0x152a8, new clos: 0x152d8
+  clos.code: 0x106c0, clos argc: 0x2
+  Runtime error: function accept more arguments than expect
+  [122]
   $ cat ../main.anf
   let add__0 = fun a__1 ->
     fun b__2 ->
@@ -642,7 +449,11 @@
     addi fp, sp, 16
     ld t0, 0(fp)
     ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
     add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
     ld ra, 8(sp)
     ld fp, 0(sp)
     addi sp, sp, 16
@@ -665,9 +476,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 5
+    li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -691,9 +502,9 @@
     mv t0, a0
     addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 1
-    sd t0, 8(sp)
     li t0, 3
+    sd t0, 8(sp)
+    li t0, 7
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -724,9 +535,9 @@
     addi sp, sp, -32
     ld t0, -88(fp)
     sd t0, 0(sp)
-    li t0, 1
+    li t0, 3
     sd t0, 8(sp)
-    li t0, 2
+    li t0, 5
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure
@@ -744,6 +555,7 @@
     sd t0, -120(fp)
   # Apply print_int
     ld a0, -104(fp)
+    srai a0, a0, 1
     call print_int
     mv t0, a0
   # End Apply print_int
@@ -763,8 +575,23 @@
   > let main = print_int (fib 15 (fun x -> x))
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  panic! overflow memory limits
-  [122]
+  alloc_closure(0x1088c, 1)
+  MY MALLOC: 32
+  alloc_closure(0x1070c, 3)
+  MY MALLOC: 48
+  [Debug] apply_closure(old_clos = {
+  	code: 0x1070c,
+  	argc: 3
+  	argc_recived: 0
+  	args = []
+  }, argc: 3, args: [0x152a8, 0x3, 0x0])
+  alloc_closure(0x1070c, 3)
+  MY MALLOC: 48
+  old clos: 0x152d0, new clos: 0x15308
+  clos.code: 0x1070c, clos argc: 0x3
+  free(): double free detected in tcache 2
+  86489 Aborted                 (core dumped) qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe
+  [134]
 
 ( get current capacity of heap )
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -773,4 +600,4 @@
   > let main = print_int (start)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  4096
+  2048

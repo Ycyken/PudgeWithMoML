@@ -6,8 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if false
-#define LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#if true
+#define LOG(fmt, ...)                                                                                                  \
+  {                                                                                                                    \
+    printf(fmt, ##__VA_ARGS__);                                                                                        \
+    fflush(stdout);                                                                                                    \
+  }
 #define LOGF(fun) fun
 #else
 #define LOG(fmt, ...) ((void)0)
@@ -24,32 +28,32 @@ void print_int(size_t n) { printf("%d\n", n); }
 
 void flush() { fflush(stdout); }
 
-#define RISCV_REG_LIST                                                         \
-  X(0, t0, 0)                                                                  \
-  X(1, t1, 8)                                                                  \
-  X(2, t2, 16)                                                                 \
-  X(3, t3, 24)                                                                 \
-  X(4, t4, 32)                                                                 \
-  X(5, t5, 40)                                                                 \
-  X(6, t6, 48)                                                                 \
-  X(7, a0, 56)                                                                 \
-  X(8, a1, 64)                                                                 \
-  X(9, a2, 72)                                                                 \
-  X(10, a3, 80)                                                                \
-  X(11, a4, 88)                                                                \
-  X(12, a5, 96)                                                                \
-  X(13, a6, 104)                                                               \
-  X(14, a7, 112)                                                               \
-  X(15, s1, 120)                                                               \
-  X(16, s2, 128)                                                               \
-  X(17, s3, 136)                                                               \
-  X(18, s4, 144)                                                               \
-  X(19, s5, 152)                                                               \
-  X(20, s6, 160)                                                               \
-  X(21, s7, 168)                                                               \
-  X(22, s8, 176)                                                               \
-  X(23, s9, 184)                                                               \
-  X(24, s10, 192)                                                              \
+#define RISCV_REG_LIST                                                                                                 \
+  X(0, t0, 0)                                                                                                          \
+  X(1, t1, 8)                                                                                                          \
+  X(2, t2, 16)                                                                                                         \
+  X(3, t3, 24)                                                                                                         \
+  X(4, t4, 32)                                                                                                         \
+  X(5, t5, 40)                                                                                                         \
+  X(6, t6, 48)                                                                                                         \
+  X(7, a0, 56)                                                                                                         \
+  X(8, a1, 64)                                                                                                         \
+  X(9, a2, 72)                                                                                                         \
+  X(10, a3, 80)                                                                                                        \
+  X(11, a4, 88)                                                                                                        \
+  X(12, a5, 96)                                                                                                        \
+  X(13, a6, 104)                                                                                                       \
+  X(14, a7, 112)                                                                                                       \
+  X(15, s1, 120)                                                                                                       \
+  X(16, s2, 128)                                                                                                       \
+  X(17, s3, 136)                                                                                                       \
+  X(18, s4, 144)                                                                                                       \
+  X(19, s5, 152)                                                                                                       \
+  X(20, s6, 160)                                                                                                       \
+  X(21, s7, 168)                                                                                                       \
+  X(22, s8, 176)                                                                                                       \
+  X(23, s9, 184)                                                                                                       \
+  X(24, s10, 192)                                                                                                      \
   X(25, s11, 200)
 
 // size in words
@@ -99,15 +103,12 @@ void print_gc_status() {
   printf("=== GC status ===\n");
   // printf("Base stack pointer: %x\n", STABLE_CI ? (void *)0x122 : gc.base_sp);
   printf("Start address of new space: %x\n",
-         STABLE_CI ? (gc.new_space == first_new_space
-                          ? (void *)0x1000
-                          : (void *)(0x1000 + GC_SPACE_INITIAL_SIZE * 8))
+         STABLE_CI ? (gc.new_space == first_new_space ? (void *)0x1000 : (void *)(0x1000 + GC_SPACE_INITIAL_SIZE * 8))
                    : gc.new_space);
   printf("Allocate count: %ld times\n", gc.alloc_count);
   printf("Collect count: %ld times\n", gc.collect_count);
   printf("Current space capacity: %ld words\n", gc.space_capacity);
-  printf("Total allocated memory: %ld words\n",
-         gc.allocated_bytes_count / WORD_SIZE);
+  printf("Total allocated memory: %ld words\n", gc.allocated_bytes_count / WORD_SIZE);
   printf("Allocated words in new space: %ld words\n", gc.alloc_offset);
 
   printf("Current new space:\n");
@@ -197,8 +198,8 @@ static void **collect_riscv_state() {
 // ...
 static void set_riscv_reg(int idx, void *val) {
   switch (idx) {
-#define X(i, reg, offset)                                                      \
-  case i:                                                                      \
+#define X(i, reg, offset)                                                                                              \
+  case i:                                                                                                              \
     asm volatile("mv " #reg ", %0" ::"r"(val));
     RISCV_REG_LIST
 #undef X
@@ -248,15 +249,12 @@ void _gc_collect(void *current_sp) {
     void *cur_pointer = gc.new_space + cur_offset + 1;
 
     if (cur_size == 0) {
-      fprintf(
-          stderr,
-          "You have object on heap with zero size\nBug in malloc function!\n");
+      fprintf(stderr, "You have object on heap with zero size\nBug in malloc function!\n");
       print_gc_status();
       exit(122);
     }
 
-    LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer,
-        cur_offset + 1);
+    LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer, cur_offset + 1);
 
     // try to find in regs and stack at least one pointer
     {
@@ -311,8 +309,7 @@ void _gc_collect(void *current_sp) {
       for (size_t i = 0; i < stack_size; i++) {
         void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
-          LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte,
-              new_pointer);
+          LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte, new_pointer);
           *byte = new_pointer;
         }
       }
@@ -382,9 +379,10 @@ void **get_heap_start() {
     return gc.new_space;
   }
 
-  return gc.new_space == first_new_space
-             ? (void **)0x1000
-             : ((void **)0x1000) + GC_SPACE_INITIAL_SIZE;
+  void **addr = (void **)0x1000;
+  addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
+
+  return addr;
 }
 
 // get heap end of current new_space
@@ -393,10 +391,11 @@ void **get_heap_fin() {
     return gc.new_space + gc.space_capacity;
   }
 
-  return (gc.new_space == first_new_space
-              ? (void **)0x1000
-              : ((void **)0x1000) + GC_SPACE_INITIAL_SIZE) +
-         gc.space_capacity;
+  void **addr = (void **)0x1000;
+  addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
+  addr += gc.space_capacity;
+
+  return addr;
 }
 
 void *alloc_closure(INT8, void *f, uint8_t argc) {
@@ -427,24 +426,40 @@ void *copy_closure(closure *old_clos) {
 
 // get closure and apply [argc] arguments to closure
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
-  closure *clos = copy_closure(old_clos);
-  LOG("CLOS: 0x%x\n", clos);
-  LOGF(print_gc_status());
-  fflush(stdout);
+  void **args = malloc(sizeof(void *) * argc);
+
   va_list list;
   va_start(list, argc);
+  for (size_t i = 0; i < argc; i++) {
+    void *arg = va_arg(list, void *);
+    args[i] = arg;
+  }
+  va_end(list);
+
+  LOG("[Debug] apply_closure(old_clos = {\n\tcode: 0x%x,\n\targc: %d\n\targc_recived: %d\n\targs = [", old_clos->code,
+      old_clos->argc, old_clos->argc_recived);
+  for (size_t i = 0; i < old_clos->argc_recived; i++) {
+    LOG(i == 0 ? "0x%x" : ", 0x%x", old_clos->args[i]);
+  }
+  LOG("]\n}, argc: %d, args: [", argc);
+  for (size_t i = 0; i < argc; i++) {
+    LOG(i == 0 ? "0x%x" : ", 0x%x", args[i]);
+  }
+  LOG("])\n");
+  fflush(stdout);
+
+  closure *clos = copy_closure(old_clos);
+  // LOGF(print_gc_status());
 
   if (clos->argc_recived + argc > clos->argc) {
-    fprintf(stdout,
-            "Runtime error: function accept more arguments than expect\n");
+    fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
 
   for (size_t i = 0; i < argc; i++) {
-    void *arg = va_arg(list, void *);
-    clos->args[clos->argc_recived++] = arg;
+    clos->args[clos->argc_recived++] = args[i];
+    free(args);
   }
-  va_end(list);
 
   // if application is partial
   if (clos->argc_recived < clos->argc) {
