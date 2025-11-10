@@ -68,9 +68,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply fac__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
@@ -176,9 +176,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -8
     mv a0, sp
     call init_GC
+    addi sp, sp, -8
   # Apply fib__0 with 1 args
   # Load args on stack
     addi sp, sp, -16
@@ -275,9 +275,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -136
     mv a0, sp
     call init_GC
+    addi sp, sp, -136
     li t0, 0
     li t1, 1
     sub t0, t0, t1

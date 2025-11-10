@@ -174,9 +174,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
     mv a0, sp
     call init_GC
+    addi sp, sp, -16
     addi sp, sp, -16
     la t5, f_1
     li t6, 1
@@ -467,9 +467,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -16
     mv a0, sp
     call init_GC
+    addi sp, sp, -16
     addi sp, sp, -16
     la t5, f_2
     li t6, 1
@@ -668,9 +668,9 @@
   .globl _start
   _start:
     mv fp, sp
-    addi sp, sp, -160
     mv a0, sp
     call init_GC
+    addi sp, sp, -160
   # Apply wrap__0 with 11 args
     addi sp, sp, -16
     la t5, wrap__0

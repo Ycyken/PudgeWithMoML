@@ -14,6 +14,10 @@
 #define LOGF(fun) ((void)0)
 #endif
 
+// each run of tests change, for example, initial sp address or address of heap
+// so when we want stable ci tests -- we mock that value
+#define STABLE_CI true
+
 extern void *call_closure(void *code, uint64_t argc, void **argv);
 
 void print_int(size_t n) { printf("%d\n", n); }
@@ -21,7 +25,7 @@ void print_int(size_t n) { printf("%d\n", n); }
 void flush() { fflush(stdout); }
 
 // size in words
-#define GC_SPACE_INITIAL_SIZE (256)
+#define GC_SPACE_INITIAL_SIZE (8192)
 #define WORD_SIZE (8)
 
 // HEAP structure
@@ -48,6 +52,7 @@ typedef struct {
 } GC_state;
 
 static GC_state gc;
+void *first_new_space; // for stable CI
 
 typedef struct {
   void *code;
@@ -64,8 +69,12 @@ void print_stack(void *current_sp);
 // Print stats about Garbage Collector work
 void print_gc_status() {
   printf("=== GC status ===\n");
-  printf("Base stack pointer: %x\n", gc.base_sp);
-  printf("Start address of new space: %x\n", gc.new_space);
+  // printf("Base stack pointer: %x\n", STABLE_CI ? (void *)0x122 : gc.base_sp);
+  printf("Start address of new space: %x\n",
+         STABLE_CI ? (gc.new_space == first_new_space
+                          ? (void *)0x1000
+                          : (void *)(0x1000 + GC_SPACE_INITIAL_SIZE * 8))
+                   : gc.new_space);
   printf("Allocate count: %ld times\n", gc.alloc_count);
   printf("Collect count: %ld times\n", gc.collect_count);
   printf("Current space capacity: %ld words\n", gc.space_capacity);
@@ -78,11 +87,20 @@ void print_gc_status() {
   while (offset < gc.alloc_offset) {
     size_t size = (size_t)gc.new_space[offset];
 
-    printf("\t(0x%x) 0x%x: [size: %ld]\n", gc.new_space + offset, offset, size);
+    void **addr = gc.new_space + offset;
+    if (STABLE_CI) {
+      if (gc.new_space == first_new_space) {
+        addr = ((void **)0x1000) + offset;
+      } else {
+        addr = ((void **)0x1000) + GC_SPACE_INITIAL_SIZE + offset;
+      }
+    }
+
+    printf("\t(0x%x) 0x%x: [size: %ld]\n", addr, offset, size);
     offset++;
 
     for (size_t i = 0; i < size; i++) {
-      printf("\t(0x%x) 0x%x: ", gc.new_space + offset, offset);
+      printf("\t(0x%x) 0x%x: ", addr + i + 1, offset);
       printf("[data: 0x%x]\n", gc.new_space[offset]);
       offset++;
     }
@@ -103,6 +121,7 @@ void init_GC(void *base_sp) {
   gc.base_sp = base_sp;
   gc.space_capacity = GC_SPACE_INITIAL_SIZE;
   gc.new_space = malloc(sizeof(void *) * GC_SPACE_INITIAL_SIZE);
+  first_new_space = gc.new_space;
   gc.alloc_offset = 0;
   gc.old_space = malloc(sizeof(void *) * GC_SPACE_INITIAL_SIZE);
 
