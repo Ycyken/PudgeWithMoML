@@ -100,122 +100,82 @@ let gen_imm dst = function
      (* if we meet function (it's top level) -- call alloc_closure function *)
      | Some (Function arity) ->
        return
-         [ addi Sp Sp (-16)
-         ; la (T 5) x
-         ; li (T 6) arity
-         ; sd (T 5) 0 Sp
-         ; sd (T 6) 8 Sp
-         ; call "alloc_closure"
-         ; mv dst (A 0)
-         ; addi Sp Sp 16
-         ]
+         ([ addi Sp Sp (-16)
+          ; sd (A 0) 0 Sp
+          ; sd (A 1) 8 Sp
+          ; la (A 0) x
+          ; li (A 1) arity
+          ; call "alloc_closure"
+          ; mv dst (A 0)
+          ]
+          @
+          match dst with
+          | A 0 -> [ ld (A 1) 8 Sp ]
+          | A 1 -> [ ld (A 0) 0 Sp ]
+          | _ -> [ ld (A 0) 0 Sp; ld (A 1) 8 Sp ])
      | Some Global -> return [ la (T 5) x; ld dst 0 (T 5) ]
      | Some (Reg reg) -> return [ mv dst reg ]
      | _ -> fail ("unbound variable: " ^ x))
 ;;
 
-(* Get args list and put these args on stack for future function exec *)
-let load_args_on_stack (args : imm list) : instr list t =
+(* Get args list and put these args on A0-A7 and stack for function call *)
+let load_args (args : imm list) : instr list t =
   let argc = List.length args in
   let* current_stack = get_frame_offset in
-  let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
-  let* () = set_frame_offset (current_stack + stack_size) in
-  let* load_variables_code =
-    let rec helper num acc = function
-      | arg :: args ->
-        let* load_arg = gen_imm (T 0) arg in
-        helper (num + 1) (acc @ load_arg @ [ sd (T 0) (word_size * num) Sp ]) args
-      | [] -> return acc
-    in
-    helper 0 [] args
+  let stack_size =
+    match argc with
+    | n when n <= 8 -> 0
+    | n when n mod 2 = 0 -> n * word_size
+    | n -> (n + 1) * word_size
   in
-  [ comment "Load args on stack"; addi Sp Sp (-stack_size) ]
-  @ load_variables_code
-  @ [ comment "End loading args on stack" ]
+  let* () = set_frame_offset (current_stack + stack_size) in
+  let* load_args_code =
+    Base.List.foldi args ~init:(return []) ~f:(fun i acc_m arg ->
+      let* acc = acc_m in
+      if i < 8
+      then
+        let* code = gen_imm (S 0) arg in
+        return
+          (acc
+           @ [ addi Sp Sp (-word_size) ]
+           @ code
+           @ [ sd (S 0) 0 Sp; addi Sp Sp word_size ])
+      else
+        let* code = gen_imm (S 0) arg in
+        (* stack arguments are saved so that the last one is on top *)
+        let offset = stack_size - ((i + 1) * word_size) in
+        return (acc @ code @ [ sd (S 0) offset Sp ]))
+  in
+  [ comment "Load args for function call"; addi Sp Sp (-stack_size) ]
+  @ load_args_code
+  @ [ comment "End loading args for function call" ]
   |> return
 ;;
 
-let pp_instrs code fmt =
-  let open Format in
-  Base.List.iter code ~f:(function
-    | (Label _ | Directive _ | Comment _ | DWord _) as i -> fprintf fmt "%a\n" pp_instr i
-    | i -> fprintf fmt "  %a\n" pp_instr i)
-;;
-
-let%expect_test "even args" =
-  let code =
-    load_args_on_stack
-      [ ImmConst (Int_lt 5)
-      ; ImmConst (Int_lt 2)
-      ; ImmConst (Int_lt 1)
-      ; ImmConst (Int_lt 4)
-      ]
-  in
-  match run code default |> snd with
-  | Error msg -> Format.eprintf "Error: %s\n" msg
-  | Ok code ->
-    pp_instrs code Format.std_formatter;
-    [%expect
-      {|
-    # Load args on stack
-      addi sp, sp, -32
-      li t0, 11
-      sd t0, 0(sp)
-      li t0, 5
-      sd t0, 8(sp)
-      li t0, 3
-      sd t0, 16(sp)
-      li t0, 9
-      sd t0, 24(sp)
-    # End loading args on stack
-     |}]
-;;
-
-let%expect_test "not even args" =
-  let code =
-    load_args_on_stack [ ImmConst (Int_lt 4); ImmConst (Int_lt 2); ImmConst (Int_lt 1) ]
-  in
-  match run code default |> snd with
-  | Error msg -> Format.eprintf "Error: %s\n" msg
-  | Ok code ->
-    pp_instrs code Format.std_formatter;
-    [%expect
-      {|
-    # Load args on stack
-      addi sp, sp, -32
-      li t0, 9
-      sd t0, 0(sp)
-      li t0, 5
-      sd t0, 8(sp)
-      li t0, 3
-      sd t0, 16(sp)
-    # End loading args on stack
-     |}]
-;;
-
-(* add binding in env with arguments of functions and their values *)
-(* argument values keeps on stack *)
+(* add variables and function argument values bindings in env *)
 (* use this function before save ra and fp registers *)
-let get_args_from_stack (args : ident list) : unit t =
-  (* let argc = List.length args in *)
-  (* let argc = argc + (argc mod 2) in *)
-  let* current_sp = get_frame_offset in
-  let* () =
-    let rec helper num = function
-      | arg :: args ->
-        let* () = add_binding arg (Stack (current_sp - (num * word_size))) in
-        helper (num + 1) args
-      | [] -> return ()
-    in
-    helper 0 args
-  in
-  return ()
+let get_args (args : ident list) : instr list t =
+  Base.List.foldi args ~init:(return []) ~f:(fun i acc arg ->
+    let* acc = acc in
+    if i < 8
+    then
+      let+ off = save_var_on_stack arg in
+      acc @ [ sd (A i) (-off) fp ]
+    else (
+      let offset = (i - 8) * word_size in
+      let* () = add_binding arg (Stack offset) in
+      return acc))
 ;;
 
 (* Get args lists and free stack space that these argument taken *)
-let free_args_on_stack (args : imm list) : instr list t =
+let free_args (args : imm list) : instr list t =
   let argc = List.length args in
-  let stack_size = (if argc mod 2 = 0 then argc else argc + 1) * word_size in
+  let stack_size =
+    match argc with
+    | n when n <= 8 -> 0
+    | n when n mod 2 = 0 -> n * word_size
+    | n -> (n + 1) * word_size
+  in
   let* current = get_frame_offset in
   let* () = set_frame_offset (current - stack_size) in
   return
@@ -223,51 +183,6 @@ let free_args_on_stack (args : imm list) : instr list t =
     ; addi Sp Sp stack_size
     ; comment "End free args on stack"
     ]
-;;
-
-(* Put arguments on stack and exec alloc_closure function *)
-(* Result of function stay in a0 register *)
-let alloc_closure func arity =
-  let args = [ ImmVar func; ImmConst (Int_lt arity) ] in
-  let* load_code = load_args_on_stack args in
-  let* free_code = free_args_on_stack args in
-  load_code @ [ call "alloc_closure" ] @ free_code |> return
-;;
-
-let%expect_test "alloc_closure_test" =
-  let code =
-    let* curr_off = get_frame_offset in
-    let* code = alloc_closure "homka" 5 in
-    let* prev_off = get_frame_offset in
-    assert (curr_off = prev_off);
-    return code
-  in
-  let env = Base.Map.empty (module Base.String) in
-  let env = Base.Map.add_exn env ~key:"homka" ~data:(Function 5) in
-  match run code { frame_offset = 0; env; fresh = 0 } |> snd with
-  | Error msg -> Format.eprintf "Error: %s\n" msg
-  | Ok code ->
-    pp_instrs code Format.std_formatter;
-    [%expect
-      {|
-    # Load args on stack
-      addi sp, sp, -16
-      addi sp, sp, -16
-      la t5, homka
-      li t6, 5
-      sd t5, 0(sp)
-      sd t6, 8(sp)
-      call alloc_closure
-      mv t0, a0
-      addi sp, sp, 16
-      sd t0, 0(sp)
-      li t0, 11
-      sd t0, 8(sp)
-    # End loading args on stack
-      call alloc_closure
-    # Free args on stack
-      addi sp, sp, 16
-    # End free args on stack |}]
 ;;
 
 let comment_wrap str code = [ comment str ] @ code @ [ comment ("End " ^ str) ]
@@ -351,30 +266,22 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     ([ call name ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
-    when let arity = var_arity f in
-         List.length (arg :: args) = arity ->
+    when List.length (arg :: args) = var_arity f ->
     let args = arg :: args in
     let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
-    let* load_code, free_code =
-      let* load_code = load_args_on_stack args in
-      let+ free_code = free_args_on_stack args in
-      load_code, free_code
-    in
+    let* load_code = load_args args in
+    let* free_code = free_args args in
     (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
     |> comment_wrap comment
     |> return
   | CApp (ImmVar f, arg, args)
-    when let arity = var_arity f in
-         (* it is partial application *)
-         List.length (arg :: args) < arity ->
+  (* it is partial application *)
+    when List.length (arg :: args) < var_arity f ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Partial application %s with %d args" f argc in
-    let* load_code, free_code =
-      let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
-      let* load_code = load_args_on_stack args in
-      let+ free_code = free_args_on_stack args in
-      load_code, free_code
-    in
+    let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
+    let* load_code = load_args args in
+    let* free_code = free_args args in
     load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
     |> comment_wrap comment
     |> return
@@ -394,8 +301,8 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
         in
         let* load_code, free_code =
           let args = [ ImmVar temp; ImmConst (Int_lt 1); arg ] in
-          let* load_code = load_args_on_stack args in
-          let+ free_code = free_args_on_stack args in
+          let* load_code = load_args args in
+          let+ free_code = free_args args in
           load_code, free_code
         in
         let code = get_closure_code @ load_code @ [ call "apply_closure" ] @ free_code in
@@ -418,12 +325,12 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
       helper [ arg ] body
     in
     let* current_sp = M.get_frame_offset in
-    let* () = get_args_from_stack args in
     (* ra and sp *)
     let* () = M.set_frame_offset 16 in
+    let* get_args_code = get_args args in
     let* body_code = gen_aexpr var_arity (A 0) body in
     let* locals = M.get_frame_offset in
-    let frame = locals + (locals mod 8) in
+    let frame = if locals mod 16 = 0 then locals else locals + 16 - (locals mod 16) in
     let* () = M.set_frame_offset current_sp in
     let prologue =
       [ addi Sp Sp (-frame)
@@ -435,7 +342,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let epilogue =
       [ ld Ra (frame - 8) Sp; ld fp (frame - 16) Sp; addi Sp Sp frame; ret ]
     in
-    prologue @ body_code @ epilogue |> return
+    prologue @ get_args_code @ body_code @ epilogue |> return
   | CNot imm ->
     let* code = gen_imm (T 0) imm in
     code @ [ xori dst (T 0) (-1) ] |> return
@@ -541,6 +448,13 @@ let gather pr : instr list t =
   @ [ addi Sp Sp (-frame) ]
   @ main_code
   @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
+;;
+
+let pp_instrs code fmt =
+  let open Format in
+  Base.List.iter code ~f:(function
+    | (Label _ | Directive _ | Comment _ | DWord _) as i -> fprintf fmt "%a\n" pp_instr i
+    | i -> fprintf fmt "  %a\n" pp_instr i)
 ;;
 
 let gen_aprogram fmt (pr : aprogram) =

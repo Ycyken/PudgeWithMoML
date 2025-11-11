@@ -96,9 +96,6 @@ typedef struct {
   void *args[];
 } closure;
 
-#define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
-#define INT8 int, int, int, int, int, int, int, int
-
 static void print_stack(void *current_sp);
 
 // Print stats about Garbage Collector work
@@ -160,12 +157,13 @@ void init_GC(void *base_sp) {
   return;
 }
 
-// if caller function wants to save some regs that my collect_riscv_state
-// function may destroy (for ex. during creating regs[26]) then caller puts
+// Collect register values to array
+//
+// if caller function wants to save regs that collect_registers() call
+// may destroy (for ex. during creating regs[26]) then caller puts
 // their values on stack. so we don't lose any address that points to object
 // in heap
-// TODO: riscv calling conventions
-static void **collect_riscv_state() {
+static void **collect_registers() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
   size_t *regs = malloc(sizeof(size_t) * 26);
 
@@ -225,7 +223,7 @@ static void _gc_collect(void *current_sp) {
     return;
   }
 
-  void **regs = collect_riscv_state();
+  void **regs = collect_registers();
   LOGF(print_stack(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
@@ -399,7 +397,7 @@ void **get_heap_fin() {
   return result;
 }
 
-void *alloc_closure(INT8, void *f, uint8_t argc) {
+void *alloc_closure(void *f, uint8_t argc) {
   LOG("[DEBUG] %s(f: 0x%x, argc: %d)\n", __func__, f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
@@ -415,10 +413,10 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
 
 static void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
-  closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
+  closure *new = alloc_closure(clos->code, clos->argc);
 
-  // LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
-  // LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
+  LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
+  LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
 
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
@@ -428,7 +426,7 @@ static void *copy_closure(closure *old_clos) {
 }
 
 // get closure and apply [argc] arguments to closure
-void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
+void *apply_closure(closure *old_clos, uint8_t argc, ...) {
   argc = argc >> 1;
   void **args = malloc(sizeof(void *) * argc);
 
@@ -456,6 +454,8 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   // LOGF(print_gc_status());
 
   if (clos->argc_recived + argc > clos->argc) {
+    LOG("[Debug] Closure received %d args, get %d more args, but total argc is %d\n", clos->argc_recived, argc,
+        clos->argc);
     fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
