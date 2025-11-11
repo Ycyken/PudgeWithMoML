@@ -32,6 +32,7 @@
   	(0x1050) 0xa: [data: 0xb]
   	(0x1058) 0xb: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 2 times
@@ -47,6 +48,7 @@
   	(0x11020) 0x4: [data: 0xb]
   	(0x11028) 0x5: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 3 times
@@ -68,6 +70,7 @@
   	(0x11050) 0xa: [data: 0xb]
   	(0x11058) 0xb: [data: 0x5]
   === GC status ===
+  
   7
   $ cat ../main.anf
   let add__0 = fun a__1 ->
@@ -241,6 +244,7 @@
   	(0x10d0) 0x1a: [data: 0x1]
   	(0x10d8) 0x1b: [data: 0xb]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 5 times
@@ -250,6 +254,7 @@
   Allocated words in new space: 0 words
   Current new space:
   === GC status ===
+  
   5
   $ cat ../main.anf
   let wrap__0 = fun f__1 ->
@@ -468,6 +473,7 @@
   	(0x1050) 0xa: [data: 0xf]
   	(0x1058) 0xb: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 2 times
@@ -477,6 +483,7 @@
   Allocated words in new space: 0 words
   Current new space:
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 4 times
@@ -498,6 +505,7 @@
   	(0x11050) 0xa: [data: 0xd]
   	(0x11058) 0xb: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 1000
   Allocate count: 4 times
@@ -507,6 +515,7 @@
   Allocated words in new space: 0 words
   Current new space:
   === GC status ===
+  
   === GC status ===
   Start address of new space: 1000
   Allocate count: 4 times
@@ -516,6 +525,7 @@
   Allocated words in new space: 0 words
   Current new space:
   === GC status ===
+  
   5
 
 ( move multiple objects to old_space )
@@ -565,6 +575,7 @@
   	(0x10b0) 0x16: [data: 0x7]
   	(0x10b8) 0x17: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 4 times
@@ -586,6 +597,7 @@
   	(0x11050) 0xa: [data: 0x7]
   	(0x11058) 0xb: [data: 0x0]
   === GC status ===
+  
   === GC status ===
   Start address of new space: 11000
   Allocate count: 5 times
@@ -613,6 +625,7 @@
   	(0x11080) 0x10: [data: 0xb]
   	(0x11088) 0x11: [data: 0x5]
   === GC status ===
+  
   7
   $ cat ../main.anf
   let add__0 = fun a__1 ->
@@ -817,6 +830,7 @@
   	(0x1050) 0xa: [data: 0xf5]
   	(0x1058) 0xb: [data: 0x0]
   === GC status ===
+  
   8192
   === GC status ===
   Start address of new space: 11000
@@ -827,3 +841,4 @@
   Allocated words in new space: 0 words
   Current new space:
   === GC status ===
+  

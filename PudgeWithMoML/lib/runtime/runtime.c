@@ -104,7 +104,6 @@ static void print_stack(void *current_sp);
 // Print stats about Garbage Collector work
 void print_gc_status() {
   printf("=== GC status ===\n");
-  // printf("Base stack pointer: %x\n", STABLE_CI ? (void *)0x122 : gc.base_sp);
   printf("Start address of new space: %x\n",
          STABLE_CI ? (gc.new_space == first_new_space ? (void *)0x1000 : (void *)(0x1000 + GC_SPACE_INITIAL_SIZE * 8))
                    : gc.new_space);
@@ -138,7 +137,7 @@ void print_gc_status() {
     }
   }
 
-  printf("=== GC status ===\n");
+  printf("=== GC status ===\n\n");
 
   void *current_sp = NULL;
   asm volatile("mv %0, sp" : "=r"(current_sp));
@@ -160,12 +159,13 @@ void init_GC(void *base_sp) {
   return;
 }
 
-// if caller function wants to save some regs that my collect_riscv_state
-// function may destroy (for ex. during creating regs[26]) then caller puts
+// Collect all registers to array and returns pointer to it
+//
+// If caller function wants to save some regs that collect_registers
+// function may destroy, then caller puts
 // their values on stack. so we don't lose any address that points to object
 // in heap
-// TODO: riscv calling conventions
-static void **collect_riscv_state() {
+static void **collect_registers() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
   size_t *regs = malloc(sizeof(size_t) * 26);
 
@@ -225,7 +225,7 @@ static void _gc_collect(void *current_sp) {
     return;
   }
 
-  void **regs = collect_riscv_state();
+  void **regs = collect_registers();
   LOGF(print_stack(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
@@ -417,9 +417,6 @@ static void *copy_closure(closure *old_clos) {
   closure *clos = old_clos;
   closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
 
-  // LOG("old clos: 0x%x, new clos: 0x%x\n", clos, new);
-  // LOG("clos.code: 0x%x, clos argc: 0x%d\n", clos->code, clos->argc);
-
   for (size_t i = 0; i < clos->argc_recived; i++) {
     new->args[new->argc_recived++] = clos->args[i];
   }
@@ -453,9 +450,10 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   fflush(stdout);
 
   closure *clos = copy_closure(old_clos);
-  // LOGF(print_gc_status());
 
   if (clos->argc_recived + argc > clos->argc) {
+    LOG("Closure received %d args, get another %d args, but expect total %d args\n", clos->argc_recived, argc,
+        clos->argc);
     fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }

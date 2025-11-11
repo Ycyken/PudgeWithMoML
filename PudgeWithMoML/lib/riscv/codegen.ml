@@ -351,8 +351,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     ([ call name ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
   | CApp (ImmVar f, arg, args)
   (* it is full application *)
-    when let arity = var_arity f in
-         List.length (arg :: args) = arity ->
+    when List.length (arg :: args) = var_arity f ->
     let args = arg :: args in
     let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
     let* load_code, free_code =
@@ -364,17 +363,13 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     |> comment_wrap comment
     |> return
   | CApp (ImmVar f, arg, args)
-    when let arity = var_arity f in
-         (* it is partial application *)
-         List.length (arg :: args) < arity ->
+  (* it is partial application *)
+    when List.length (arg :: args) < var_arity f ->
     let argc = List.length (arg :: args) in
     let comment = Format.asprintf "Partial application %s with %d args" f argc in
-    let* load_code, free_code =
-      let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
-      let* load_code = load_args_on_stack args in
-      let+ free_code = free_args_on_stack args in
-      load_code, free_code
-    in
+    let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
+    let* load_code = load_args_on_stack args in
+    let* free_code = free_args_on_stack args in
     load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
     |> comment_wrap comment
     |> return
