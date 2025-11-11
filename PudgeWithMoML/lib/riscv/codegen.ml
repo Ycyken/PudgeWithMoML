@@ -108,11 +108,11 @@ let gen_imm dst = function
           ; call "alloc_closure"
           ; mv dst (A 0)
           ]
-          @
-          match dst with
-          | A 0 -> [ ld (A 1) 8 Sp ]
-          | A 1 -> [ ld (A 0) 0 Sp ]
-          | _ -> [ ld (A 0) 0 Sp; ld (A 1) 8 Sp ])
+          @ (match dst with
+             | A 0 -> [ ld (A 1) 8 Sp ]
+             | A 1 -> [ ld (A 0) 0 Sp ]
+             | _ -> [ ld (A 0) 0 Sp; ld (A 1) 8 Sp ])
+          @ [ addi Sp Sp 16 ])
      | Some Global -> return [ la (T 5) x; ld dst 0 (T 5) ]
      | Some (Reg reg) -> return [ mv dst reg ]
      | _ -> fail ("unbound variable: " ^ x))
@@ -125,8 +125,8 @@ let load_args (args : imm list) : instr list t =
   let stack_size =
     match argc with
     | n when n <= 8 -> 0
-    | n when n mod 2 = 0 -> n * word_size
-    | n -> (n + 1) * word_size
+    | n when n mod 2 = 0 -> (n - 8) * word_size
+    | n -> (n + 1 - 8) * word_size
   in
   let* () = set_frame_offset (current_stack + stack_size) in
   let* load_args_code =
@@ -134,21 +134,15 @@ let load_args (args : imm list) : instr list t =
       let* acc = acc_m in
       if i < 8
       then
-        let* code = gen_imm (S 0) arg in
-        return
-          (acc
-           @ [ addi Sp Sp (-word_size) ]
-           @ code
-           @ [ sd (S 0) 0 Sp; addi Sp Sp word_size ])
+        let* code = gen_imm (S 1) arg in
+        return (acc @ code @ [ mv (A i) (S 1) ])
       else
-        let* code = gen_imm (S 0) arg in
-        (* stack arguments are saved so that the last one is on top *)
-        let offset = stack_size - ((i + 1) * word_size) in
-        return (acc @ code @ [ sd (S 0) offset Sp ]))
+        let* code = gen_imm (S 1) arg in
+        return (acc @ code @ [ sd (S 1) ((i - 8) * word_size) Sp ]))
   in
   [ comment "Load args for function call"; addi Sp Sp (-stack_size) ]
   @ load_args_code
-  @ [ comment "End loading args for function call" ]
+  @ [ addi Sp Sp stack_size; comment "End loading args for function call" ]
   |> return
 ;;
 
