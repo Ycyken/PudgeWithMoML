@@ -418,7 +418,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let* () = M.set_frame_offset 16 in
     let* body_code = gen_aexpr var_arity (A 0) body in
     let* locals = M.get_frame_offset in
-    let frame = locals + (locals mod 8) in
+    let frame = if locals mod 16 = 0 then locals else locals + (16 - (locals mod 16)) in
     let* () = M.set_frame_offset current_sp in
     let prologue =
       [ addi Sp Sp (-frame)

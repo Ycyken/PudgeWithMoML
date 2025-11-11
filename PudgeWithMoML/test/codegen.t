@@ -285,10 +285,10 @@
   .text
   .globl app__0
   app__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
   # Apply f__1 with 1 args
     ld t0, 0(fp)
     sd t0, -24(fp)
@@ -306,9 +306,9 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply f__1 with 1 args
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl inc__3
   inc__3:

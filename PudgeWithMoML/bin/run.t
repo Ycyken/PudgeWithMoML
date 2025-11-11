@@ -70,10 +70,10 @@
     ret
   .globl fac__0
   fac__0:
-    addi sp, sp, -72
-    sd ra, 64(sp)
-    sd fp, 56(sp)
-    addi fp, sp, 72
+    addi sp, sp, -80
+    sd ra, 72(sp)
+    sd fp, 64(sp)
+    addi fp, sp, 80
     ld t0, 0(fp)
     li t1, 5
     slt t0, t0, t1
@@ -164,9 +164,9 @@
   # End free args on stack
   # End Apply fac__0 with 2 args
   L5:
-    ld ra, 64(sp)
-    ld fp, 56(sp)
-    addi sp, sp, 72
+    ld ra, 72(sp)
+    ld fp, 64(sp)
+    addi sp, sp, 80
     ret
   .globl f_1
   f_1:
@@ -301,10 +301,10 @@
     ret
   .globl f_1
   f_1:
-    addi sp, sp, -56
-    sd ra, 48(sp)
-    sd fp, 40(sp)
-    addi fp, sp, 56
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
     ld t0, 8(fp)
     li t1, 5
     srai t0, t0, 1
@@ -369,16 +369,16 @@
     addi sp, sp, 16
   # End free args on stack
   # End Apply fib__0 with 2 args
-    ld ra, 48(sp)
-    ld fp, 40(sp)
-    addi sp, sp, 56
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
     ret
   .globl fib__0
   fib__0:
-    addi sp, sp, -72
-    sd ra, 64(sp)
-    sd fp, 56(sp)
-    addi fp, sp, 72
+    addi sp, sp, -80
+    sd ra, 72(sp)
+    sd fp, 64(sp)
+    addi fp, sp, 80
     ld t0, 0(fp)
     li t1, 5
     slt t0, t0, t1
@@ -469,9 +469,9 @@
   # End free args on stack
   # End Apply fib__0 with 2 args
   L7:
-    ld ra, 64(sp)
-    ld fp, 56(sp)
-    addi sp, sp, 72
+    ld ra, 72(sp)
+    ld fp, 64(sp)
+    addi sp, sp, 80
     ret
   .globl f_2
   f_2:
@@ -585,10 +585,10 @@
   .text
   .globl wrap__0
   wrap__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
     li t0, 3
     li t1, 3
     sub t0, t0, t1
@@ -601,9 +601,9 @@
   L0:
     ld a0, 0(fp)
   L1:
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl test3__2
   test3__2:

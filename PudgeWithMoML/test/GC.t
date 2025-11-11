@@ -290,10 +290,10 @@
   .text
   .globl wrap__0
   wrap__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
   # Apply f__1 with 1 args
     ld t0, 0(fp)
     sd t0, -24(fp)
@@ -311,9 +311,9 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply f__1 with 1 args
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl id__3
   id__3:
@@ -328,10 +328,10 @@
     ret
   .globl homka__5
   homka__5:
-    addi sp, sp, -40
-    sd ra, 32(sp)
-    sd fp, 24(sp)
-    addi fp, sp, 40
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
   # Apply wrap__7 with 1 args
     ld t0, 8(fp)
     sd t0, -24(fp)
@@ -368,9 +368,9 @@
     addi sp, sp, 32
   # End free args on stack
   # End Apply anf_t6 with 1 args
-    ld ra, 32(sp)
-    ld fp, 24(sp)
-    addi sp, sp, 40
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl _start
   _start:
