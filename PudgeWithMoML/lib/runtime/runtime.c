@@ -27,6 +27,7 @@ void print_int(size_t n) {
 
 void flush() { fflush(stdout); }
 
+#define REGS_N 26
 #define RISCV_REG_LIST                                                                                                 \
   X(0, t0, 0)                                                                                                          \
   X(1, t1, 8)                                                                                                          \
@@ -56,7 +57,7 @@ void flush() { fflush(stdout); }
   X(25, s11, 200)
 
 // New and old space size in words.
-#define SPACE_INITIAL_SIZE (8192)
+#define SPACE_MINIMUM_SIZE (8192)
 #define WORD_SIZE 8
 
 // All adresses are printed relative to the new_space with GC_HEAP_OFFSET.
@@ -79,7 +80,7 @@ void flush() { fflush(stdout); }
 
 typedef struct {
   void *base_sp;
-  size_t space_capacity; // dynamic size in words
+  size_t space_capacity; // current space size in words
   void **heap_start;     // start address of spaces (spaces are arranged in a row)
   void **new_space;
   size_t alloc_offset; // first free word offset in new space
@@ -122,7 +123,7 @@ void print_gc_status() {
     if (gc.new_space == gc.heap_start) {
       addr = ((void **)GC_HEAP_OFFSET) + offset;
     } else {
-      addr = ((void **)GC_HEAP_OFFSET) + SPACE_INITIAL_SIZE + offset;
+      addr = ((void **)GC_HEAP_OFFSET) + SPACE_MINIMUM_SIZE + offset;
     }
 
     printf("\t(0x%x) 0x%x: [size: %ld]\n", addr, offset, size);
@@ -147,12 +148,12 @@ void print_gc_status() {
 // Alloc space for GC, init initial state
 void init_GC(void *base_sp) {
   gc.base_sp = base_sp;
-  gc.space_capacity = SPACE_INITIAL_SIZE;
-  void **heap = malloc(sizeof(void *) * SPACE_INITIAL_SIZE * 2);
+  gc.space_capacity = SPACE_MINIMUM_SIZE;
+  void **heap = malloc(sizeof(void *) * SPACE_MINIMUM_SIZE * 2);
   gc.new_space = heap;
   gc.heap_start = heap;
   gc.alloc_offset = 0;
-  gc.old_space = heap + SPACE_INITIAL_SIZE;
+  gc.old_space = heap + SPACE_MINIMUM_SIZE;
 
   return;
 }
@@ -163,9 +164,9 @@ void init_GC(void *base_sp) {
 // function may destroy, then caller puts
 // their values on stack. so we don't lose any address that points to object
 // in heap
-static void **collect_registers() {
+inline static void **collect_registers() {
   // t0-t6 (7), a0-a7 (8), s1-s11 (11)
-  size_t *regs = malloc(sizeof(size_t) * 26);
+  size_t *regs = malloc(sizeof(size_t) * REGS_N);
 
   // sd t0, 0(%0)\n\t
   // sd t1, 8(%0)\n\t
@@ -210,20 +211,50 @@ static void print_stack(void *current_sp) {
   return;
 }
 
+// Change all pointers from old to new in given regs and stack (from current_sp to gc.base_sp)
+static void change_pointer(void *current_sp, void **regs, void *old, void *new) {
+  size_t stack_size = (gc.base_sp - current_sp) / 8;
+  // regs
+  for (size_t i = 0; i < REGS_N; i++) {
+    if (regs[i] == old) {
+      set_riscv_reg(i, new);
+    }
+  }
+
+  // stack
+  for (size_t i = 0; i < stack_size; i++) {
+    void **byte = (void **)gc.base_sp - i - 1;
+    if (*byte == old) {
+      LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte, new);
+      *byte = new;
+    }
+  }
+  return;
+}
+
+static void change_pointers(void *current_sp, void **regs, void **old_space, void **new_space, size_t size) {
+  size_t cur_offset = 0;
+  while (cur_offset < size) {
+    size_t cur_size = (size_t)old_space[cur_offset];
+    void *old_pointer = old_space + cur_offset + 1;
+    void *new_pointer = new_space + cur_offset + 1;
+    change_pointer(current_sp, regs, old_pointer, new_pointer);
+    cur_offset += cur_size + 1;
+  }
+}
+
 // When we exec gc_collect we have on a heap objects:
 // [size 3] [data 0] [data 1] [data 2] [size 1] [data 0] [size 2] ...
 // We iterate through heap and try to find poiters to "data 0" on stack\regs
 // If we find it in first time:
 //   1) move size bytes to the old_space
 //   2) save new pointer to old_space
-//   3) iterate through stack\regs and replace all pointer to the new
-//   pointer
-static void _gc_collect(void *current_sp) {
+//   3) iterate through stack\regs and replace all pointers to the new pointers
+static void _gc_collect(void *current_sp, void **regs) {
   if (gc.alloc_offset == 0) {
     return;
   }
 
-  void **regs = collect_registers();
   LOGF(print_stack(current_sp));
 
   size_t stack_size = (gc.base_sp - current_sp) / 8;
@@ -247,7 +278,7 @@ static void _gc_collect(void *current_sp) {
       bool found = false;
 
       // regs
-      for (size_t i = 0; i < 26; i++) {
+      for (size_t i = 0; i < REGS_N; i++) {
         if (regs[i] == cur_pointer) {
           LOG("FOUND AT REG: %ld\n", i);
           found = true;
@@ -283,23 +314,7 @@ static void _gc_collect(void *current_sp) {
 
     LOG("RUN CHANGING\n");
     // change all occurences
-    {
-      // regs
-      for (size_t i = 0; i < 26; i++) {
-        if (regs[i] == cur_pointer) {
-          set_riscv_reg(i, new_pointer);
-        }
-      }
-
-      // stack
-      for (size_t i = 0; i < stack_size; i++) {
-        void **byte = (void **)gc.base_sp - i - 1;
-        if (*byte == cur_pointer) {
-          LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte, new_pointer);
-          *byte = new_pointer;
-        }
-      }
-    }
+    change_pointer(current_sp, regs, cur_pointer, new_pointer);
 
     cur_offset += cur_size + 1;
   }
@@ -313,15 +328,17 @@ static void _gc_collect(void *current_sp) {
   gc.collect_count++;
 }
 
+inline static void *get_sp() {
+  void *current_sp = NULL;
+  asm volatile("mv %0, sp" : "=r"(current_sp));
+  return current_sp;
+}
+
 // WARNING: if you read stack pointer in _gc_collect function then when you go
 // through stack you can change local variables of _gc_collect fuction
 // So we write wrapper only for reading stack pointer **before** _gc_collect
 // function It took 4 hours for debug this chaos 🐣🐣🐤🐤🐔🐔🦆🦆🐹🐹🐹🐹
-void gc_collect() {
-  void *current_sp = NULL;
-  asm volatile("mv %0, sp" : "=r"(current_sp));
-  _gc_collect(current_sp);
-}
+void gc_collect() { _gc_collect(get_sp(), collect_registers()); }
 
 // alloc size bytes in gc.memory
 static void *my_malloc(size_t size) {
@@ -329,6 +346,9 @@ static void *my_malloc(size_t size) {
   if (size == 0) {
     return NULL;
   }
+
+  void **regs = collect_registers();
+  void *current_sp = get_sp();
 
   // 8 byte rounding
   if (size % 8 != 0) {
@@ -340,13 +360,21 @@ static void *my_malloc(size_t size) {
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
     LOG("no free space\n");
-    gc_collect();
+    _gc_collect(current_sp, regs);
 
     // after collecting we still don't have space
     if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
-      fprintf(stderr, "panic! overflow memory limits\n");
-      fflush(stderr);
-      exit(122);
+
+      void **old_heap = gc.heap_start;
+      gc.space_capacity *= 2;
+      void **new_heap = malloc(sizeof(void *) * gc.space_capacity * 2);
+      memcpy(new_heap, gc.new_space, sizeof(void *) * gc.alloc_offset);
+      change_pointers(current_sp, regs, gc.new_space, new_heap, gc.alloc_offset);
+      free(old_heap);
+
+      gc.heap_start = new_heap;
+      gc.new_space = new_heap;
+      gc.old_space = new_heap + gc.space_capacity;
     }
   }
 
