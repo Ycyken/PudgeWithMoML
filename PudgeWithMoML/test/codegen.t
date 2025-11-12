@@ -29,6 +29,14 @@
     ecall
   .data
   main__0: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__0
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( just add )
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -99,6 +107,14 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( a lot of variables )
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -194,6 +210,14 @@
     ecall
   .data
   main__13: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__13
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (just id)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -258,6 +282,14 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (function as argument)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -368,6 +400,14 @@
     ecall
   .data
   main__5: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__5
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (shadowing is correct)
   $ make compile --no-print-directory -C .. << 'EOF'
@@ -409,6 +449,14 @@
     ecall
   .data
   res__0: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad res__0
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (simple partial application)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -511,6 +559,14 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (double partial application)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -642,6 +698,14 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (Global variables and .data section)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -690,6 +754,16 @@
   x__1: .dword 0
   x__0: .dword 0
   main__2: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__2
+  .quad x__0
+  .quad x__1
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (Global variables with partial application)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -796,6 +870,15 @@
   .data
   main__4: .dword 0
   add5__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad add5__3
+  .quad main__4
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (A lot of global variables with partial application)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -979,6 +1062,18 @@
   homka__5: .dword 0
   homka122__6: .dword 0
   add5__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad add5__3
+  .quad homka122__6
+  .quad homka__5
+  .quad inc__4
+  .quad main__7
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( global and local x )
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -1035,6 +1130,16 @@
   x__0: .dword 0
   g__3: .dword 0
   f__1: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad f__1
+  .quad g__3
+  .quad x__0
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let t = if true then 1 else 2         
@@ -1099,6 +1204,15 @@
   .data
   t__0: .dword 0
   _: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad _
+  .quad t__0
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (literals and bin operators)
   $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'

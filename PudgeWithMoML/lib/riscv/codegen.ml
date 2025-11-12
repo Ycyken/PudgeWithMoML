@@ -464,21 +464,42 @@ let gen_astr_item (var_arity : string -> int) : astr_item -> instr list M.t = fu
     fail (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
 ;;
 
+(* get list of global variables that are not functions and generate bss section (local variables) *)
+let get_globals_variables (pr : aprogram) =
+  let module StringSet = Set.Make (String) in
+  let rec helper acc (astrs : astr_item list) =
+    (* After lambda lifting we don't have inner functions that make our life mush easy :) *)
+    match astrs with
+    | [] -> acc |> return
+    | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
+    | (_, (name, _), []) :: tl -> helper (StringSet.add name acc) tl
+    | (_, (_, _), _ :: _) :: _ ->
+      fail "Multiple bindings in astr_item not implemented yet"
+  in
+  helper StringSet.empty pr
+;;
+
+let gen_gcroots_section (pr : aprogram) : instr list t =
+  let module S = Set.Make (String) in
+  let* vars = get_globals_variables pr in
+  let quads =
+    S.fold (fun v acc -> Directive (Printf.sprintf ".quad %s" v) :: acc) vars []
+  in
+  return
+    ([ Directive ".pushsection .gcroots,\"aw\",@progbits"
+     ; Directive ".balign 8"
+     ; Directive ".globl __start_gcroots"
+     ; Label "__start_gcroots"
+     ]
+     @ List.rev quads
+     @ [ Directive ".globl __stop_gcroots"
+       ; Label "__stop_gcroots"
+       ; Directive ".popsection"
+       ])
+;;
+
 let gen_bss_section (pr : aprogram) : instr list t =
   let module StringSet = Set.Make (String) in
-  (* get list of global variables that are not functions and generate bss section (local variables) *)
-  let get_globals_variables (pr : aprogram) =
-    let rec helper acc (astrs : astr_item list) =
-      (* After lambda lifting we don't have inner functions that make our life mush easy :) *)
-      match astrs with
-      | [] -> acc |> return
-      | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
-      | (_, (name, _), []) :: tl -> helper (StringSet.add name acc) tl
-      | (_, (_, _), _ :: _) :: _ ->
-        fail "Multiple bindings in astr_item not implemented yet"
-    in
-    helper StringSet.empty pr
-  in
   let+ vars = get_globals_variables pr in
   StringSet.fold (fun v acc -> DWord v :: acc) vars []
 ;;
@@ -541,14 +562,15 @@ let gather pr : instr list t =
 let gen_aprogram fmt (pr : aprogram) =
   let code =
     let* bss_section = gen_bss_section pr in
+    let* gcroots = gen_gcroots_section pr in
     let+ main_code = gather pr in
-    main_code, bss_section
+    main_code, bss_section, gcroots
   in
   match M.run code M.default |> snd with
   | Error msg -> Error msg
-  | Ok (main_code, bss_section) ->
+  | Ok (main_code, bss_section, gcroots) ->
     pp_instrs main_code fmt;
     if Base.List.is_empty bss_section
     then Ok ()
-    else Ok (pp_instrs (Directive ".data" :: bss_section) fmt)
+    else Ok (pp_instrs ((Directive ".data" :: bss_section) @ gcroots) fmt)
 ;;

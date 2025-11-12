@@ -18,6 +18,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 12 words
   Allocated words in new space: 12 words
+  Live objects in new space: 0
   Current new space:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
@@ -40,6 +41,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 12 words
   Allocated words in new space: 6 words
+  Live objects in new space: 1
   Current new space:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
@@ -56,6 +58,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 18 words
   Allocated words in new space: 12 words
+  Live objects in new space: 1
   Current new space:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
@@ -192,6 +195,14 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( alloc inner closure )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -214,6 +225,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 28 words
   Allocated words in new space: 28 words
+  Live objects in new space: 0
   Current new space:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
@@ -252,6 +264,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 28 words
   Allocated words in new space: 0 words
+  Live objects in new space: 0
   Current new space:
   === GC status ===
   
@@ -435,6 +448,16 @@
   main__11: .dword 0
   homs__10: .dword 0
   _: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad _
+  .quad homs__10
+  .quad main__11
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( a lot of collector )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -459,6 +482,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 12 words
   Allocated words in new space: 12 words
+  Live objects in new space: 0
   Current new space:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
@@ -480,8 +504,15 @@
   Collect count: 1 times
   Current space capacity: 8192 words
   Total allocated memory: 12 words
-  Allocated words in new space: 0 words
+  Allocated words in new space: 6 words
+  Live objects in new space: 1
   Current new space:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xf]
+  	(0x10028) 0x5: [data: 0x0]
   === GC status ===
   
   === GC status ===
@@ -490,13 +521,66 @@
   Collect count: 1 times
   Current space capacity: 8192 words
   Total allocated memory: 24 words
-  Allocated words in new space: 12 words
+  Allocated words in new space: 18 words
+  Live objects in new space: 1
   Current new space:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x0]
-  	(0x10020) 0x4: [data: 0x0]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xf]
+  	(0x10028) 0x5: [data: 0x0]
+  	(0x10030) 0x6: [size: 5]
+  	(0x10038) 0x7: [data: 0x400000]
+  	(0x10040) 0x8: [data: 0x2]
+  	(0x10048) 0x9: [data: 0x0]
+  	(0x10050) 0xa: [data: 0x0]
+  	(0x10058) 0xb: [data: 0x0]
+  	(0x10060) 0xc: [size: 5]
+  	(0x10068) 0xd: [data: 0x400000]
+  	(0x10070) 0xe: [data: 0x2]
+  	(0x10078) 0xf: [data: 0x1]
+  	(0x10080) 0x10: [data: 0xd]
+  	(0x10088) 0x11: [data: 0x0]
+  === GC status ===
+  
+  === GC status ===
+  Start address of new space: 0
+  Allocate count: 4 times
+  Collect count: 2 times
+  Current space capacity: 8192 words
+  Total allocated memory: 24 words
+  Allocated words in new space: 12 words
+  Live objects in new space: 2
+  Current new space:
+  	(0x0) 0x0: [size: 5]
+  	(0x8) 0x1: [data: 0x400000]
+  	(0x10) 0x2: [data: 0x2]
+  	(0x18) 0x3: [data: 0x1]
+  	(0x20) 0x4: [data: 0xf]
+  	(0x28) 0x5: [data: 0x0]
+  	(0x30) 0x6: [size: 5]
+  	(0x38) 0x7: [data: 0x400000]
+  	(0x40) 0x8: [data: 0x2]
+  	(0x48) 0x9: [data: 0x1]
+  	(0x50) 0xa: [data: 0xd]
+  	(0x58) 0xb: [data: 0x0]
+  === GC status ===
+  
+  === GC status ===
+  Start address of new space: 10000
+  Allocate count: 4 times
+  Collect count: 3 times
+  Current space capacity: 8192 words
+  Total allocated memory: 24 words
+  Allocated words in new space: 12 words
+  Live objects in new space: 2
+  Current new space:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xf]
   	(0x10028) 0x5: [data: 0x0]
   	(0x10030) 0x6: [size: 5]
   	(0x10038) 0x7: [data: 0x400000]
@@ -504,26 +588,6 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0xd]
   	(0x10058) 0xb: [data: 0x0]
-  === GC status ===
-  
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 4 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 0 words
-  Current new space:
-  === GC status ===
-  
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 4 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 0 words
-  Current new space:
   === GC status ===
   
   5
@@ -549,6 +613,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 24 words
   Allocated words in new space: 24 words
+  Live objects in new space: 0
   Current new space:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
@@ -583,6 +648,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 24 words
   Allocated words in new space: 12 words
+  Live objects in new space: 2
   Current new space:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
@@ -605,6 +671,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 30 words
   Allocated words in new space: 18 words
+  Live objects in new space: 2
   Current new space:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
@@ -775,16 +842,41 @@
     ecall
   .data
   main__3: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__3
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 
-( overflow heap, but nobody can help you )
+( many closures, heap is dynamicly resized )
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
-  > let main = print_int (fib 13 (fun x -> x))
+  > let main = print_int (fib 15 (fun x -> x))
+  > let _ = gc_collect ()
+  > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  panic! overflow memory limits
-  [122]
+  610
+  === GC status ===
+  Start address of new space: 80000
+  Allocate count: 7890 times
+  Collect count: 4 times
+  Current space capacity: 65536 words
+  Total allocated memory: 55226 words
+  Allocated words in new space: 5 words
+  Live objects in new space: 1
+  Current new space:
+  	(0x10000) 0x0: [size: 4]
+  	(0x10008) 0x1: [data: 0x4001c4]
+  	(0x10010) 0x2: [data: 0x1]
+  	(0x10018) 0x3: [data: 0x0]
+  	(0x10020) 0x4: [data: 0x0]
+  === GC status ===
+  
 
 ( get current capacity of heap )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -814,6 +906,7 @@
   Current space capacity: 8192 words
   Total allocated memory: 12 words
   Allocated words in new space: 12 words
+  Live objects in new space: 0
   Current new space:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
@@ -836,19 +929,38 @@
   Collect count: 1 times
   Current space capacity: 8192 words
   Total allocated memory: 12 words
-  Allocated words in new space: 0 words
+  Allocated words in new space: 6 words
+  Live objects in new space: 1
   Current new space:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xf5]
+  	(0x10028) 0x5: [data: 0x0]
   === GC status ===
   
 (realloc)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let sum x y = x + y                   
   > let rec f x = if (x <= 1) then 1 else let t = sum 5 in f (x - 1)
-  > let main = print_int (f 5000)
+  > let main = print_int (f 1500)
+  > let _ = gc_collect ()
+  > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  panic! overflow memory limits
-  [122]
+  1
+  === GC status ===
+  Start address of new space: 20000
+  Allocate count: 2998 times
+  Collect count: 13 times
+  Current space capacity: 16384 words
+  Total allocated memory: 17988 words
+  Allocated words in new space: 0 words
+  Live objects in new space: 0
+  Current new space:
+  === GC status ===
+  
 
 (realloc)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
@@ -862,6 +974,53 @@
   > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  panic! overflow memory limits
-  [122]
+  === GC status ===
+  Start address of new space: 10000
+  Allocate count: 4 times
+  Collect count: 1 times
+  Current space capacity: 8192 words
+  Total allocated memory: 26 words
+  Allocated words in new space: 13 words
+  Live objects in new space: 2
+  Current new space:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0x29]
+  	(0x10028) 0x5: [data: 0x0]
+  	(0x10030) 0x6: [size: 6]
+  	(0x10038) 0x7: [data: 0x40002a]
+  	(0x10040) 0x8: [data: 0x3]
+  	(0x10048) 0x9: [data: 0x2]
+  	(0x10050) 0xa: [data: 0x15]
+  	(0x10058) 0xb: [data: 0x4142a8]
+  	(0x10060) 0xc: [data: 0x0]
+  === GC status ===
+  
+  60
+  === GC status ===
+  Start address of new space: 0
+  Allocate count: 6 times
+  Collect count: 2 times
+  Current space capacity: 8192 words
+  Total allocated memory: 39 words
+  Allocated words in new space: 13 words
+  Live objects in new space: 2
+  Current new space:
+  	(0x0) 0x0: [size: 5]
+  	(0x8) 0x1: [data: 0x400000]
+  	(0x10) 0x2: [data: 0x2]
+  	(0x18) 0x3: [data: 0x1]
+  	(0x20) 0x4: [data: 0x29]
+  	(0x28) 0x5: [data: 0x0]
+  	(0x30) 0x6: [size: 6]
+  	(0x38) 0x7: [data: 0x40002a]
+  	(0x40) 0x8: [data: 0x3]
+  	(0x48) 0x9: [data: 0x2]
+  	(0x50) 0xa: [data: 0x15]
+  	(0x58) 0xb: [data: 0x4042a8]
+  	(0x60) 0xc: [data: 0x0]
+  === GC status ===
+  
 

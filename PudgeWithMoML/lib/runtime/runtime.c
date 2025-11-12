@@ -19,6 +19,8 @@
 #endif
 
 extern void *call_closure(void *code, uint64_t argc, void **argv);
+extern void *__start_gcroots __attribute__((weak));
+extern void *__stop_gcroots __attribute__((weak));
 
 void print_int(size_t n) {
   n >>= 1;
@@ -26,35 +28,6 @@ void print_int(size_t n) {
 }
 
 void flush() { fflush(stdout); }
-
-#define REGS_N 26
-#define RISCV_REG_LIST                                                                                                 \
-  X(0, t0, 0)                                                                                                          \
-  X(1, t1, 8)                                                                                                          \
-  X(2, t2, 16)                                                                                                         \
-  X(3, t3, 24)                                                                                                         \
-  X(4, t4, 32)                                                                                                         \
-  X(5, t5, 40)                                                                                                         \
-  X(6, t6, 48)                                                                                                         \
-  X(7, a0, 56)                                                                                                         \
-  X(8, a1, 64)                                                                                                         \
-  X(9, a2, 72)                                                                                                         \
-  X(10, a3, 80)                                                                                                        \
-  X(11, a4, 88)                                                                                                        \
-  X(12, a5, 96)                                                                                                        \
-  X(13, a6, 104)                                                                                                       \
-  X(14, a7, 112)                                                                                                       \
-  X(15, s1, 120)                                                                                                       \
-  X(16, s2, 128)                                                                                                       \
-  X(17, s3, 136)                                                                                                       \
-  X(18, s4, 144)                                                                                                       \
-  X(19, s5, 152)                                                                                                       \
-  X(20, s6, 160)                                                                                                       \
-  X(21, s7, 168)                                                                                                       \
-  X(22, s8, 176)                                                                                                       \
-  X(23, s9, 184)                                                                                                       \
-  X(24, s10, 192)                                                                                                      \
-  X(25, s11, 200)
 
 // New and old space size in words.
 #define SPACE_MINIMUM_SIZE (8192)
@@ -160,44 +133,6 @@ void init_GC(void *base_sp) {
   return;
 }
 
-// Collect all registers to array and returns pointer to it
-//
-// If caller function wants to save some regs that collect_registers
-// function may destroy, then caller puts
-// their values on stack. so we don't lose any address that points to object
-// in heap
-inline static void **collect_registers() {
-  // t0-t6 (7), a0-a7 (8), s1-s11 (11)
-  size_t *regs = malloc(sizeof(size_t) * REGS_N);
-
-  // sd t0, 0(%0)\n\t
-  // sd t1, 8(%0)\n\t
-  // sd t2, 16(%0)\n\t
-  // ...
-#define X(i, reg, offset) "sd " #reg ", " #offset "(%0)\n\t"
-  asm volatile(RISCV_REG_LIST : : "r"(regs) : "memory");
-#undef X
-
-  return (void **)regs;
-}
-
-// case 0: mv t0, %0 :: "r"(val)
-// case 1: mv t1, %0 :: "r"(val)
-// case 2: mv t2, %0 :: "r"(val)
-// ...
-static void set_riscv_reg(int idx, void *val) {
-  switch (idx) {
-#define X(i, reg, offset)                                                                                              \
-  case i:                                                                                                              \
-    asm volatile("mv " #reg ", %0" ::"r"(val) : #reg);                                                                 \
-    break;
-    RISCV_REG_LIST
-#undef X
-  default:
-    break;
-  }
-}
-
 static void print_stack(void *current_sp) {
   printf("=== STACK status ===\n");
   printf("BASE_SP: 0x%x, CURRENT_SP: 0x%x\n", gc.base_sp, current_sp);
@@ -214,34 +149,35 @@ static void print_stack(void *current_sp) {
   return;
 }
 
-// Change all pointers from old to new in given regs and stack (from current_sp to gc.base_sp)
-static void update_regs_stack_ptrs(void *current_sp, void **regs, void *old, void *new) {
+// Change all pointers from old to new in .data section and at given stack (from current_sp to gc.base_sp)
+static void update_stack_data_ptrs(void *current_sp, void *old, void *new) {
   size_t stack_size = (gc.base_sp - current_sp) / 8;
-  // regs
-  for (size_t i = 0; i < REGS_N; i++) {
-    if (regs[i] == old) {
-      set_riscv_reg(i, new);
-    }
-  }
 
   // stack
   for (size_t i = 0; i < stack_size; i++) {
     void **byte = (void **)gc.base_sp - i - 1;
     if (*byte == old) {
-      LOG("Change stack cell 0x%x. 0x%x -> 0x%x\n", byte, *byte, new);
       *byte = new;
     }
   }
+
+  for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
+    void **slot = (void **)*p;
+    if (*slot == old)
+      *slot = new;
+  }
+
   return;
 }
 
-static void update_ptrs(void *current_sp, void **regs, void **old_space, void **new_space, size_t size) {
+// Update all pointers in new_space, assuming they was copied from old_space
+static void update_ptrs(void *current_sp, void **old_space, void **new_space, size_t size) {
   size_t cur_offset = 0;
   while (cur_offset < size) {
     size_t cur_size = (size_t)new_space[cur_offset];
     void *old_pointer = old_space + cur_offset + 1;
     void *new_pointer = new_space + cur_offset + 1;
-    update_regs_stack_ptrs(current_sp, regs, old_pointer, new_pointer);
+    update_stack_data_ptrs(current_sp, old_pointer, new_pointer);
 
     for (size_t j = 0; j < cur_size; j++) {
       void **data_pointer = new_space + cur_offset + 1 + j;
@@ -253,9 +189,12 @@ static void update_ptrs(void *current_sp, void **regs, void **old_space, void **
         continue;
       }
 
+      // update data pointers so they point to a similar place in new_space
       size_t data_ptr_offset = (void **)*data_pointer - old_space;
       void *new_data_pointer = new_space + data_ptr_offset;
       new_space[cur_offset + 1 + j] = new_data_pointer;
+
+      update_stack_data_ptrs(current_sp, *data_pointer, new_data_pointer);
     }
 
     cur_offset += cur_size + 1;
@@ -264,12 +203,12 @@ static void update_ptrs(void *current_sp, void **regs, void **old_space, void **
 
 // When we exec gc_collect we have on a heap objects:
 // [size 3] [data 0] [data 1] [data 2] [size 1] [data 0] [size 2] ...
-// We iterate through heap and try to find poiters to "data 0" on stack\regs
+// We iterate through heap and try to find poiters to "data 0" on stack
 // If we find it in first time:
 //   1) move size bytes to the old_space
 //   2) save new pointer to old_space
-//   3) iterate through stack\regs and replace all pointers to the new pointers
-static void _gc_collect(void *current_sp, void **regs) {
+//   3) iterate through stack and replace all pointers to the new pointers
+static void _gc_collect(void *current_sp) {
   if (gc.alloc_offset == 0) {
     return;
   }
@@ -293,14 +232,14 @@ static void _gc_collect(void *current_sp, void **regs) {
 
     LOG("Try to find stack cell with 0x%x value on 0x%ld offset\n", cur_pointer, cur_offset + 1);
 
-    // try to find in regs and stack at least one pointer
+    // try to find in stack at least one pointer
     {
       bool found = false;
 
-      // regs
-      for (size_t i = 0; i < REGS_N; i++) {
-        if (regs[i] == cur_pointer) {
-          LOG("FOUND AT REG: %ld\n", i);
+      // .data section
+      for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
+        void **slot = (void **)*p;
+        if (*slot == cur_pointer) {
           found = true;
           break;
         }
@@ -334,8 +273,8 @@ static void _gc_collect(void *current_sp, void **regs) {
     }
 
     LOG("RUN CHANGING\n");
-    // change all regs and stack occurences
-    update_regs_stack_ptrs(current_sp, regs, cur_pointer, new_pointer);
+    // change all stack occurences
+    update_stack_data_ptrs(current_sp, cur_pointer, new_pointer);
     // size is -1, first data is new pointer, this is how we mark that object is moved
     gc.new_space[cur_offset] = (void *)-1;
     *cur_pointer = new_pointer;
@@ -373,6 +312,14 @@ static void _gc_collect(void *current_sp, void **regs) {
       for (size_t k = 0; k < pointed_obj_size; k++) {
         gc.old_space[old_space_offset++] = data_pointer[k];
       }
+
+      // update .data section pointers
+      for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
+        void **slot = (void **)*p;
+        if (*slot == data_pointer)
+          *slot = new_pointer;
+      }
+
       gc.obj_count++;
       // mark as moved
       *(data_pointer - 1) = (void *)-1;
@@ -400,7 +347,7 @@ inline static void *get_sp() {
 // through stack you can change local variables of _gc_collect fuction
 // So we write wrapper only for reading stack pointer **before** _gc_collect
 // function It took 4 hours for debug this chaos 🐣🐣🐤🐤🐔🐔🦆🦆🐹🐹🐹🐹
-void gc_collect() { _gc_collect(get_sp(), collect_registers()); }
+void gc_collect() { _gc_collect(get_sp()); }
 
 // alloc size bytes in gc.memory
 static void *my_malloc(size_t size) {
@@ -409,7 +356,6 @@ static void *my_malloc(size_t size) {
     return NULL;
   }
 
-  void **regs = collect_registers();
   void *current_sp = get_sp();
 
   // 8 byte rounding
@@ -422,7 +368,7 @@ static void *my_malloc(size_t size) {
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
     LOG("no free space\n");
-    _gc_collect(current_sp, regs);
+    _gc_collect(current_sp);
 
     // after collecting we still don't have space
     if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
@@ -432,8 +378,7 @@ static void *my_malloc(size_t size) {
       gc.space_capacity *= 2;
       void **new_heap = malloc(sizeof(void *) * gc.space_capacity * 2);
       memcpy(new_heap, gc.new_space, sizeof(void *) * gc.alloc_offset);
-      regs = collect_registers(); // regs are updated
-      update_ptrs(current_sp, regs, gc.new_space, new_heap, gc.alloc_offset);
+      update_ptrs(current_sp, gc.new_space, new_heap, gc.alloc_offset);
       free(old_heap);
 
       gc.heap_start = new_heap;
