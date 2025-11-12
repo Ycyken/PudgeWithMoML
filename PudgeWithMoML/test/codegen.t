@@ -50,20 +50,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -72,16 +74,14 @@
     call init_GC
     addi sp, sp, -8
   # Apply add__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    li t0, 11
-    sd t0, 0(sp)
-    li t0, 5
-    sd t0, 8(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    li a0, 11
+    li a1, 5
+  # End loading args for function call
     call add__0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply add__0 with 2 args
@@ -131,14 +131,22 @@
   .text
   .globl homka__0
   homka__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld a0, 0(fp)
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    addi sp, sp, -80
+    sd ra, 72(sp)
+    sd fp, 64(sp)
+    addi fp, sp, 80
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    sd a2, -40(fp)
+    sd a3, -48(fp)
+    sd a4, -56(fp)
+    sd a5, -64(fp)
+    sd a6, -72(fp)
+    sd a7, -80(fp)
+    ld a0, -24(fp)
+    ld ra, 72(sp)
+    ld fp, 64(sp)
+    addi sp, sp, 80
     ret
   .globl _start
   _start:
@@ -147,33 +155,25 @@
     call init_GC
     addi sp, sp, -8
   # Apply homka__0 with 12 args
-  # Load args on stack
+  # Load args for function call
     addi sp, sp, -96
-    li t0, 245
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 5
-    sd t0, 16(sp)
-    li t0, 7
-    sd t0, 24(sp)
-    li t0, 9
-    sd t0, 32(sp)
-    li t0, 11
-    sd t0, 40(sp)
-    li t0, 13
-    sd t0, 48(sp)
-    li t0, 15
-    sd t0, 56(sp)
+    li a0, 245
+    li a1, 3
+    li a2, 5
+    li a3, 7
+    li a4, 9
+    li a5, 11
+    li a6, 13
+    li a7, 15
     li t0, 17
-    sd t0, 64(sp)
+    sd t0, 24(sp)
     li t0, 19
-    sd t0, 72(sp)
+    sd t0, 16(sp)
     li t0, 21
-    sd t0, 80(sp)
+    sd t0, 8(sp)
     li t0, 23
-    sd t0, 88(sp)
-  # End loading args on stack
+    sd t0, 0(sp)
+  # End loading args for function call
     call homka__0
   # Free args on stack
     addi sp, sp, 96
@@ -215,14 +215,16 @@
   .text
   .globl id__0
   id__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld a0, 8(fp)
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld a0, -32(fp)
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -231,16 +233,14 @@
     call init_GC
     addi sp, sp, -8
   # Apply id__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    li t0, 11
-    sd t0, 0(sp)
-    li t0, 11
-    sd t0, 8(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    li a0, 11
+    li a1, 11
+  # End loading args for function call
     call id__0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply id__0 with 2 args
@@ -285,47 +285,47 @@
   .text
   .globl app__0
   app__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
+    sd a0, -24(fp)
+    sd a1, -32(fp)
   # Apply f__1 with 1 args
-    ld t0, 0(fp)
-    sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
     ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    ld t0, 8(fp)
-    sd t0, 16(sp)
-  # End loading args on stack
+    sd t0, -40(fp)
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -40(fp)
+    li a1, 3
+    ld a2, -32(fp)
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Apply f__1 with 1 args
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl inc__3
   inc__3:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    ld t0, -24(fp)
     li t1, 3
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -334,23 +334,19 @@
     call init_GC
     addi sp, sp, -8
   # Apply app__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    addi sp, sp, -16
-    la t5, inc__3
-    li t6, 1
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, inc__3
+    mv t5, a1
+    li a1, 1
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 11
-    sd t0, 8(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 11
+  # End loading args for function call
     call app__0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply app__0 with 2 args
@@ -432,20 +428,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -454,26 +452,21 @@
     call init_GC
     addi sp, sp, -32
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 3
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 3
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -8(fp)
@@ -482,18 +475,15 @@
   # Apply inc__4 with 1 args
     ld t0, -16(fp)
     sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 243
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -24(fp)
+    li a1, 3
+    li a2, 243
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply inc__4 with 1 args
@@ -538,20 +528,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -560,26 +552,21 @@
     call init_GC
     addi sp, sp, -56
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 3
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 3
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -8(fp)
@@ -588,18 +575,15 @@
   # Apply inc__4 with 1 args
     ld t0, -16(fp)
     sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 243
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -24(fp)
+    li a1, 3
+    li a2, 243
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply inc__4 with 1 args
@@ -613,18 +597,15 @@
   # Apply inc__4 with 1 args
     ld t0, -16(fp)
     sd t0, -48(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -48(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 245
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -48(fp)
+    li a1, 3
+    li a2, 245
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply inc__4 with 1 args
@@ -716,20 +697,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -738,26 +721,21 @@
     call init_GC
     addi sp, sp, -16
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 11
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     la t1, add5__3
@@ -766,18 +744,15 @@
     la t5, add5__3
     ld t0, 0(t5)
     sd t0, -8(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -8(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 235
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -8(fp)
+    li a1, 3
+    li a2, 235
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply add5__3 with 1 args
@@ -838,20 +813,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -860,51 +837,41 @@
     call init_GC
     addi sp, sp, -32
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 11
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     la t1, add5__3
     sd t0, 0(t1)
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 3
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 3
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     la t1, inc__4
@@ -913,16 +880,14 @@
     la t1, homka__5
     sd t0, 0(t1)
   # Apply add__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    li t0, 241
-    sd t0, 0(sp)
-    li t0, 5
-    sd t0, 8(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    li a0, 241
+    li a1, 5
+  # End loading args for function call
     call add__0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply add__0 with 2 args
@@ -932,18 +897,15 @@
     la t5, add5__3
     ld t0, 0(t5)
     sd t0, -8(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -8(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 221
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -8(fp)
+    li a1, 3
+    li a2, 221
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply add5__3 with 1 args
@@ -1057,17 +1019,18 @@
   .text
   .globl f__1
   f__1:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
   # Apply print_int
-    ld a0, 0(fp)
+    ld a0, -24(fp)
     call print_int
   # End Apply print_int
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -1147,94 +1110,99 @@
   .text
   .globl homka__0
   homka__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
     li a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl homka__2
   homka__2:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
     li a0, 0
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl homka__4
   homka__4:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
     li a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl homka__6
   homka__6:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
     li a0, 11
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl homka__8
   homka__8:
-    addi sp, sp, -96
-    sd ra, 88(sp)
-    sd fp, 80(sp)
-    addi fp, sp, 96
-    ld t0, 0(fp)
-    ld t1, 0(fp)
+    addi sp, sp, -112
+    sd ra, 104(sp)
+    sd fp, 96(sp)
+    addi fp, sp, 112
+    sd a0, -24(fp)
+    ld t0, -24(fp)
+    ld t1, -24(fp)
     slt t0, t0, t1
     xori t0, t0, 1
-    sd t0, -24(fp)
-    ld t0, -24(fp)
     sd t0, -32(fp)
-    ld t0, 0(fp)
-    ld t1, 0(fp)
-    slt t0, t1, t0
+    ld t0, -32(fp)
     sd t0, -40(fp)
-    ld t0, -40(fp)
+    ld t0, -24(fp)
+    ld t1, -24(fp)
+    slt t0, t1, t0
     sd t0, -48(fp)
-    ld t0, 0(fp)
-    ld t1, 0(fp)
+    ld t0, -48(fp)
+    sd t0, -56(fp)
+    ld t0, -24(fp)
+    ld t1, -24(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     div t0, t0, t1
     slli t0, t0, 1
     ori t0, t0, 1
-    sd t0, -56(fp)
-    ld t0, -56(fp)
     sd t0, -64(fp)
+    ld t0, -64(fp)
+    sd t0, -72(fp)
     li t0, 1
     li t1, 1
     or t0, t0, t1
-    sd t0, -72(fp)
-    ld t0, -72(fp)
     sd t0, -80(fp)
+    ld t0, -80(fp)
+    sd t0, -88(fp)
     li t0, 1
     xori t0, t0, -1
-    sd t0, -88(fp)
-    ld t0, -88(fp)
     sd t0, -96(fp)
+    ld t0, -96(fp)
+    sd t0, -104(fp)
     li t0, 0
     li t1, 0
     and a0, t0, t1
-    ld ra, 88(sp)
-    ld fp, 80(sp)
-    addi sp, sp, 96
+    ld ra, 104(sp)
+    ld fp, 96(sp)
+    addi sp, sp, 112
     ret
   .globl _start
   _start:

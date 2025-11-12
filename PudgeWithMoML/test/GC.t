@@ -1,5 +1,5 @@
 ( simple example )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let add a b = a + b
   > let main = 
   >   let homka1 = add 5 in
@@ -20,13 +20,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1008) 0x1: [data: 0x400000]
   	(0x1010) 0x2: [data: 0x2]
   	(0x1018) 0x3: [data: 0x0]
   	(0x1020) 0x4: [data: 0x0]
   	(0x1028) 0x5: [data: 0x0]
   	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x106c0]
+  	(0x1038) 0x7: [data: 0x400000]
   	(0x1040) 0x8: [data: 0x2]
   	(0x1048) 0x9: [data: 0x1]
   	(0x1050) 0xa: [data: 0xb]
@@ -41,7 +41,7 @@
   Allocated words in new space: 6 words
   Current new space:
   	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x106c0]
+  	(0x11008) 0x1: [data: 0x400000]
   	(0x11010) 0x2: [data: 0x2]
   	(0x11018) 0x3: [data: 0x1]
   	(0x11020) 0x4: [data: 0xb]
@@ -56,13 +56,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x106c0]
+  	(0x11008) 0x1: [data: 0x400000]
   	(0x11010) 0x2: [data: 0x2]
   	(0x11018) 0x3: [data: 0x1]
   	(0x11020) 0x4: [data: 0xb]
   	(0x11028) 0x5: [data: 0x0]
   	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x106c0]
+  	(0x11038) 0x7: [data: 0x400000]
   	(0x11040) 0x8: [data: 0x2]
   	(0x11048) 0x9: [data: 0x2]
   	(0x11050) 0xa: [data: 0xb]
@@ -92,20 +92,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -114,26 +116,21 @@
     call init_GC
     addi sp, sp, -104
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 11
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -8(fp)
@@ -154,18 +151,15 @@
   # Apply homka1__4 with 1 args
     ld t0, -16(fp)
     sd t0, -72(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -72(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 5
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -72(fp)
+    li a1, 3
+    li a2, 5
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply homka1__4 with 1 args
@@ -191,7 +185,7 @@
   main__3: .dword 0
 
 ( alloc inner closure )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let wrap f x = f x
   > let id x = x
   > let homka useless wrap id =
@@ -213,30 +207,30 @@
   Allocated words in new space: 28 words
   Current new space:
   	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1008) 0x1: [data: 0x400000]
   	(0x1010) 0x2: [data: 0x2]
   	(0x1018) 0x3: [data: 0x0]
   	(0x1020) 0x4: [data: 0x0]
   	(0x1028) 0x5: [data: 0x0]
   	(0x1030) 0x6: [size: 4]
-  	(0x1038) 0x7: [data: 0x106f0]
+  	(0x1038) 0x7: [data: 0x400032]
   	(0x1040) 0x8: [data: 0x1]
   	(0x1048) 0x9: [data: 0x0]
   	(0x1050) 0xa: [data: 0x0]
   	(0x1058) 0xb: [size: 5]
-  	(0x1060) 0xc: [data: 0x106c0]
+  	(0x1060) 0xc: [data: 0x400000]
   	(0x1068) 0xd: [data: 0x2]
   	(0x1070) 0xe: [data: 0x1]
-  	(0x1078) 0xf: [data: 0x142d8]
+  	(0x1078) 0xf: [data: 0x4042d8]
   	(0x1080) 0x10: [data: 0x0]
   	(0x1088) 0x11: [size: 5]
-  	(0x1090) 0x12: [data: 0x106c0]
+  	(0x1090) 0x12: [data: 0x400000]
   	(0x1098) 0x13: [data: 0x2]
   	(0x10a0) 0x14: [data: 0x2]
-  	(0x10a8) 0x15: [data: 0x142d8]
+  	(0x10a8) 0x15: [data: 0x4042d8]
   	(0x10b0) 0x16: [data: 0xb]
   	(0x10b8) 0x17: [size: 4]
-  	(0x10c0) 0x18: [data: 0x106f0]
+  	(0x10c0) 0x18: [data: 0x400032]
   	(0x10c8) 0x19: [data: 0x1]
   	(0x10d0) 0x1a: [data: 0x1]
   	(0x10d8) 0x1b: [data: 0xb]
@@ -285,87 +279,84 @@
   .text
   .globl wrap__0
   wrap__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
+    sd a0, -24(fp)
+    sd a1, -32(fp)
   # Apply f__1 with 1 args
-    ld t0, 0(fp)
-    sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
     ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    ld t0, 8(fp)
-    sd t0, 16(sp)
-  # End loading args on stack
+    sd t0, -40(fp)
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -40(fp)
+    li a1, 3
+    ld a2, -32(fp)
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Apply f__1 with 1 args
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl id__3
   id__3:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld a0, 0(fp)
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    ld a0, -24(fp)
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl homka__5
   homka__5:
-    addi sp, sp, -40
-    sd ra, 32(sp)
-    sd fp, 24(sp)
-    addi fp, sp, 40
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    sd a2, -40(fp)
   # Apply wrap__7 with 1 args
-    ld t0, 8(fp)
-    sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    ld t0, 16(fp)
-    sd t0, 16(sp)
-  # End loading args on stack
+    ld t0, -32(fp)
+    sd t0, -48(fp)
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -48(fp)
+    li a1, 3
+    ld a2, -40(fp)
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply wrap__7 with 1 args
-    sd t0, -32(fp)
+    sd t0, -56(fp)
   # Apply anf_t6 with 1 args
-    ld t0, -32(fp)
-    sd t0, -40(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -40(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
+    ld t0, -56(fp)
+    sd t0, -64(fp)
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -64(fp)
+    li a1, 3
+    li a2, 11
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Apply anf_t6 with 1 args
-    ld ra, 32(sp)
-    ld fp, 24(sp)
-    addi sp, sp, 40
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
     ret
   .globl _start
   _start:
@@ -374,32 +365,24 @@
     call init_GC
     addi sp, sp, 0
   # Apply homka__5 with 3 args
-  # Load args on stack
-    addi sp, sp, -32
-    li t0, 5
-    sd t0, 0(sp)
-    addi sp, sp, -16
-    la t5, wrap__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    li a0, 5
+    la a0, wrap__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 8(sp)
-    addi sp, sp, -16
-    la t5, id__3
-    li t6, 1
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+    mv a1, a0
+    la a0, id__3
+    mv t5, a1
+    li a1, 1
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a2, a0
+    mv a1, t5
+  # End loading args for function call
     call homka__5
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply homka__5 with 3 args
@@ -432,7 +415,7 @@
   _: .dword 0
 
 ( a lot of collector )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let gleb a b = a + b
   > let homs = gleb 7
   > let _1 = print_gc_status ()
@@ -456,13 +439,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1008) 0x1: [data: 0x400000]
   	(0x1010) 0x2: [data: 0x2]
   	(0x1018) 0x3: [data: 0x0]
   	(0x1020) 0x4: [data: 0x0]
   	(0x1028) 0x5: [data: 0x0]
   	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x106c0]
+  	(0x1038) 0x7: [data: 0x400000]
   	(0x1040) 0x8: [data: 0x2]
   	(0x1048) 0x9: [data: 0x1]
   	(0x1050) 0xa: [data: 0xf]
@@ -486,13 +469,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x106c0]
+  	(0x11008) 0x1: [data: 0x400000]
   	(0x11010) 0x2: [data: 0x2]
   	(0x11018) 0x3: [data: 0x0]
   	(0x11020) 0x4: [data: 0x0]
   	(0x11028) 0x5: [data: 0x0]
   	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x106c0]
+  	(0x11038) 0x7: [data: 0x400000]
   	(0x11040) 0x8: [data: 0x2]
   	(0x11048) 0x9: [data: 0x1]
   	(0x11050) 0xa: [data: 0xd]
@@ -519,7 +502,7 @@
   5
 
 ( move multiple objects to old_space )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let add a b = a + b
   > let main = 
   >   let homka1 = add 5 in
@@ -541,25 +524,25 @@
   Allocated words in new space: 24 words
   Current new space:
   	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1008) 0x1: [data: 0x400000]
   	(0x1010) 0x2: [data: 0x2]
   	(0x1018) 0x3: [data: 0x0]
   	(0x1020) 0x4: [data: 0x0]
   	(0x1028) 0x5: [data: 0x0]
   	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x106c0]
+  	(0x1038) 0x7: [data: 0x400000]
   	(0x1040) 0x8: [data: 0x2]
   	(0x1048) 0x9: [data: 0x1]
   	(0x1050) 0xa: [data: 0xb]
   	(0x1058) 0xb: [data: 0x0]
   	(0x1060) 0xc: [size: 5]
-  	(0x1068) 0xd: [data: 0x106c0]
+  	(0x1068) 0xd: [data: 0x400000]
   	(0x1070) 0xe: [data: 0x2]
   	(0x1078) 0xf: [data: 0x0]
   	(0x1080) 0x10: [data: 0x0]
   	(0x1088) 0x11: [data: 0x0]
   	(0x1090) 0x12: [size: 5]
-  	(0x1098) 0x13: [data: 0x106c0]
+  	(0x1098) 0x13: [data: 0x400000]
   	(0x10a0) 0x14: [data: 0x2]
   	(0x10a8) 0x15: [data: 0x1]
   	(0x10b0) 0x16: [data: 0x7]
@@ -574,13 +557,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x106c0]
+  	(0x11008) 0x1: [data: 0x400000]
   	(0x11010) 0x2: [data: 0x2]
   	(0x11018) 0x3: [data: 0x1]
   	(0x11020) 0x4: [data: 0xb]
   	(0x11028) 0x5: [data: 0x0]
   	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x106c0]
+  	(0x11038) 0x7: [data: 0x400000]
   	(0x11040) 0x8: [data: 0x2]
   	(0x11048) 0x9: [data: 0x1]
   	(0x11050) 0xa: [data: 0x7]
@@ -595,19 +578,19 @@
   Allocated words in new space: 18 words
   Current new space:
   	(0x11000) 0x0: [size: 5]
-  	(0x11008) 0x1: [data: 0x106c0]
+  	(0x11008) 0x1: [data: 0x400000]
   	(0x11010) 0x2: [data: 0x2]
   	(0x11018) 0x3: [data: 0x1]
   	(0x11020) 0x4: [data: 0xb]
   	(0x11028) 0x5: [data: 0x0]
   	(0x11030) 0x6: [size: 5]
-  	(0x11038) 0x7: [data: 0x106c0]
+  	(0x11038) 0x7: [data: 0x400000]
   	(0x11040) 0x8: [data: 0x2]
   	(0x11048) 0x9: [data: 0x1]
   	(0x11050) 0xa: [data: 0x7]
   	(0x11058) 0xb: [data: 0x0]
   	(0x11060) 0xc: [size: 5]
-  	(0x11068) 0xd: [data: 0x106c0]
+  	(0x11068) 0xd: [data: 0x400000]
   	(0x11070) 0xe: [data: 0x2]
   	(0x11078) 0xf: [data: 0x2]
   	(0x11080) 0x10: [data: 0xb]
@@ -639,20 +622,22 @@
   .text
   .globl add__0
   add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+    sd a0, -24(fp)
+    sd a1, -32(fp)
+    ld t0, -24(fp)
+    ld t1, -32(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -661,52 +646,42 @@
     call init_GC
     addi sp, sp, -120
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 11
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -8(fp)
     ld t0, -8(fp)
     sd t0, -16(fp)
   # Partial application add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 2
-    sd t5, 0(sp)
-    sd t6, 8(sp)
+  # Load args for function call
+    addi sp, sp, 0
+    la a0, add__0
+    mv t5, a1
+    li a1, 2
     call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 7
-    sd t0, 16(sp)
-  # End loading args on stack
+    mv a0, a0
+    mv a1, t5
+    li a1, 3
+    li a2, 7
+  # End loading args for function call
     call apply_closure
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
   # End Partial application add__0 with 1 args
     sd t0, -24(fp)
@@ -727,18 +702,15 @@
   # Apply homka1__4 with 1 args
     ld t0, -16(fp)
     sd t0, -88(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -88(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 5
-    sd t0, 16(sp)
-  # End loading args on stack
+  # Load args for function call
+    addi sp, sp, 0
+    ld a0, -88(fp)
+    li a1, 3
+    li a2, 5
+  # End loading args for function call
     call apply_closure
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 0
   # End free args on stack
     mv t0, a0
   # End Apply homka1__4 with 1 args
@@ -765,7 +737,7 @@
 
 
 ( overflow heap, but nobody can help you )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
   > let main = print_int (fib 15 (fun x -> x))
   > EOF
@@ -774,7 +746,7 @@
   [122]
 
 ( get current capacity of heap )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let start = get_heap_start ()
   > let end = get_heap_fin ()
   > let main = print_int (end - start)
@@ -783,7 +755,7 @@
   131072
 
 ( numbers can't be equal existings addresses on heap )
-  $ make compile opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let add x y = x + y
   > let homka = add 122
   > let _ = print_gc_status ()
@@ -805,13 +777,13 @@
   Allocated words in new space: 12 words
   Current new space:
   	(0x1000) 0x0: [size: 5]
-  	(0x1008) 0x1: [data: 0x106c0]
+  	(0x1008) 0x1: [data: 0x400000]
   	(0x1010) 0x2: [data: 0x2]
   	(0x1018) 0x3: [data: 0x0]
   	(0x1020) 0x4: [data: 0x0]
   	(0x1028) 0x5: [data: 0x0]
   	(0x1030) 0x6: [size: 5]
-  	(0x1038) 0x7: [data: 0x106c0]
+  	(0x1038) 0x7: [data: 0x400000]
   	(0x1040) 0x8: [data: 0x2]
   	(0x1048) 0x9: [data: 0x1]
   	(0x1050) 0xa: [data: 0xf5]
