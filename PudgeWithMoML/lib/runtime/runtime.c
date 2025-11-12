@@ -61,9 +61,9 @@ void flush() { fflush(stdout); }
 
 // All adresses are printed relative to the new_space with GC_HEAP_OFFSET.
 // For example, space size is 0x1000, gc.heap_start = 0x10000, old_space = 0x10000, new_space = 0x11000, GC_HEAP_OFFSET
-// = 0x100000 If some data have address 0x11256, then we print it as gc.new_space - gc.heap_start + 0x11256 +
+// = 0x100000, then if some data have address 0x11256, then we print it as gc.new_space - gc.heap_start + 0x11256 +
 // GC_HEAP_OFFSET = 0x100256
-#define GC_HEAP_OFFSET (0x1000)
+#define GC_HEAP_OFFSET (0x100000000)
 
 // HEAP structure
 // word number      value
