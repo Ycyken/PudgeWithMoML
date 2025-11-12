@@ -780,7 +780,7 @@
 ( overflow heap, but nobody can help you )
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
-  > let main = print_int (fib 15 (fun x -> x))
+  > let main = print_int (fib 13 (fun x -> x))
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   panic! overflow memory limits
@@ -845,6 +845,21 @@
   > let sum x y = x + y                   
   > let rec f x = if (x <= 1) then 1 else let t = sum 5 in f (x - 1)
   > let main = print_int (f 5000)
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  panic! overflow memory limits
+  [122]
+
+(realloc)
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
+  > let f x y = x + y
+  > let g a b c = a + (b c)
+  > let main = g 10 (f 20)
+  > let _ = gc_collect ()
+  > let _ = print_gc_status ()
+  > let main = print_int (main 30)
+  > let _ = gc_collect ()
+  > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   panic! overflow memory limits
