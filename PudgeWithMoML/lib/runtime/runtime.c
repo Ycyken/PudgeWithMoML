@@ -18,10 +18,6 @@
 #define LOGF(fun) ((void)0)
 #endif
 
-// each run of tests change, for example, initial sp address or address of heap
-// so when we want stable ci tests -- we mock that value
-#define STABLE_CI true
-
 extern void *call_closure(void *code, uint64_t argc, void **argv);
 
 void print_int(size_t n) {
@@ -59,12 +55,18 @@ void flush() { fflush(stdout); }
   X(24, s10, 192)                                                                                                      \
   X(25, s11, 200)
 
-// size in words
-#define GC_SPACE_INITIAL_SIZE (8192)
-#define WORD_SIZE (8)
+// New and old space size in words.
+#define SPACE_INITIAL_SIZE (8192)
+#define WORD_SIZE 8
+
+// All adresses are printed relative to the new_space with GC_HEAP_OFFSET.
+// For example, space size is 0x1000, gc.heap_start = 0x10000, old_space = 0x10000, new_space = 0x11000, GC_HEAP_OFFSET
+// = 0x100000 If some data have address 0x11256, then we print it as gc.new_space - gc.heap_start + 0x11256 +
+// GC_HEAP_OFFSET = 0x100256
+#define GC_HEAP_OFFSET (0x1000)
 
 // HEAP structure
-// word: value
+// word number      value
 //
 // 0:               [N_0 = size in words]
 // 1:               [data]
@@ -78,16 +80,16 @@ void flush() { fflush(stdout); }
 typedef struct {
   void *base_sp;
   size_t space_capacity; // dynamic size in words
+  void **heap_start;     // start address of spaces (spaces are arranged in a row)
   void **new_space;
   size_t alloc_offset; // first free word offset in new space
   void **old_space;
-  size_t alloc_count;
-  size_t allocated_bytes_count;
+  size_t alloc_count;       // total number of allocations
+  size_t alloc_bytes_count; // total number of allocated bytes
   size_t collect_count;
 } GC_state;
 
 static GC_state gc;
-void *first_new_space; // for stable CI
 
 typedef struct {
   void *code;
@@ -104,13 +106,11 @@ static void print_stack(void *current_sp);
 // Print stats about Garbage Collector work
 void print_gc_status() {
   printf("=== GC status ===\n");
-  printf("Start address of new space: %x\n",
-         STABLE_CI ? (gc.new_space == first_new_space ? (void *)0x1000 : (void *)(0x1000 + GC_SPACE_INITIAL_SIZE * 8))
-                   : gc.new_space);
+  printf("Start address of new space: %x\n", gc.new_space - gc.heap_start + (void **)GC_HEAP_OFFSET);
   printf("Allocate count: %ld times\n", gc.alloc_count);
   printf("Collect count: %ld times\n", gc.collect_count);
   printf("Current space capacity: %ld words\n", gc.space_capacity);
-  printf("Total allocated memory: %ld words\n", gc.allocated_bytes_count / WORD_SIZE);
+  printf("Total allocated memory: %ld words\n", gc.alloc_bytes_count / WORD_SIZE);
   printf("Allocated words in new space: %ld words\n", gc.alloc_offset);
 
   printf("Current new space:\n");
@@ -119,12 +119,10 @@ void print_gc_status() {
     size_t size = (size_t)gc.new_space[offset];
 
     void **addr = gc.new_space + offset;
-    if (STABLE_CI) {
-      if (gc.new_space == first_new_space) {
-        addr = ((void **)0x1000) + offset;
-      } else {
-        addr = ((void **)0x1000) + GC_SPACE_INITIAL_SIZE + offset;
-      }
+    if (gc.new_space == gc.heap_start) {
+      addr = ((void **)GC_HEAP_OFFSET) + offset;
+    } else {
+      addr = ((void **)GC_HEAP_OFFSET) + SPACE_INITIAL_SIZE + offset;
     }
 
     printf("\t(0x%x) 0x%x: [size: %ld]\n", addr, offset, size);
@@ -148,13 +146,13 @@ void print_gc_status() {
 
 // Alloc space for GC, init initial state
 void init_GC(void *base_sp) {
-  // I have problems with modify global variables in direct way
   gc.base_sp = base_sp;
-  gc.space_capacity = GC_SPACE_INITIAL_SIZE;
-  gc.new_space = malloc(sizeof(void *) * GC_SPACE_INITIAL_SIZE);
-  first_new_space = gc.new_space;
+  gc.space_capacity = SPACE_INITIAL_SIZE;
+  void **heap = malloc(sizeof(void *) * SPACE_INITIAL_SIZE * 2);
+  gc.new_space = heap;
+  gc.heap_start = heap;
   gc.alloc_offset = 0;
-  gc.old_space = malloc(sizeof(void *) * GC_SPACE_INITIAL_SIZE);
+  gc.old_space = heap + SPACE_INITIAL_SIZE;
 
   return;
 }
@@ -315,7 +313,7 @@ static void _gc_collect(void *current_sp) {
   gc.collect_count++;
 }
 
-// WARNING: if you read stack pointer in _gc_collect function than when you go
+// WARNING: if you read stack pointer in _gc_collect function then when you go
 // through stack you can change local variables of _gc_collect fuction
 // So we write wrapper only for reading stack pointer **before** _gc_collect
 // function It took 4 hours for debug this chaos 🐣🐣🐤🐤🐔🐔🦆🦆🐹🐹🐹🐹
@@ -357,44 +355,30 @@ static void *my_malloc(size_t size) {
 
   gc.alloc_offset += words;
   gc.alloc_count++;
-  gc.allocated_bytes_count += size + WORD_SIZE;
+  gc.alloc_bytes_count += size + WORD_SIZE;
 
   LOG(" -> 0x%x\n", result);
   return result;
 }
 
-// get heap start of current new_space
+// Get start address of current new_space
 void **get_heap_start() {
   LOG("[DEBUG] %s()\n", __func__);
-  if (!STABLE_CI) {
-    void **result = (void **)(((uintptr_t)gc.new_space) << 1 + 1);
-    LOG(" -> 0x%x\n", result);
-    return result;
-  }
 
-  void **addr = (void **)0x1000;
-  addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
+  void **addr = gc.new_space - gc.heap_start + (void **)GC_HEAP_OFFSET;
 
-  void **result = (void **)(((uintptr_t)addr) << 1 + 1);
+  void **result = (void **)((((uintptr_t)addr) << 1) + 1);
   LOG(" -> 0x%x\n", result);
   return result;
 }
 
-// get heap end of current new_space
+// Get end address of current new_space
 void **get_heap_fin() {
   LOG("[DEBUG] %s()\n", __func__);
 
-  if (!STABLE_CI) {
-    void **result = (void **)(((uintptr_t)(gc.new_space + gc.space_capacity)) << 1 + 1);
-    LOG(" -> 0x%x", result);
-    return result;
-  }
+  void **addr = gc.new_space - gc.heap_start + gc.space_capacity + (void **)GC_HEAP_OFFSET;
 
-  void **addr = (void **)0x1000;
-  addr += gc.new_space == first_new_space ? 0 : GC_SPACE_INITIAL_SIZE;
-  addr += gc.space_capacity;
-
-  void **result = (void **)(((uintptr_t)addr) << 1 + 1);
+  void **result = (void **)((((uintptr_t)addr) << 1) + 1);
   LOG(" -> 0x%x", result);
   return result;
 }

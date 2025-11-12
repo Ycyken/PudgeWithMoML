@@ -778,7 +778,7 @@
 
 
 ( overflow heap, but nobody can help you )
-  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
   > let main = print_int (fib 15 (fun x -> x))
   > EOF
@@ -793,20 +793,18 @@
   > let main = print_int (end - start)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  131072
+  65536
 
 ( numbers can't be equal existings addresses on heap )
-  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let add x y = x + y
   > let homka = add 122
   > let _ = print_gc_status ()
-  > let homka122 = 
-  >   let start = get_heap_start () in
-  >   let _ = print_int start in
-  >   let _ = gc_collect () in
-  >   let _ = print_gc_status () in
-  >   5
-  > let main = 5
+  > let start1 = get_heap_start ()
+  > let _ = gc_collect ()
+  > let start2 = get_heap_start ()
+  > let _ = print_int (start2 - start1)
+  > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   === GC status ===
@@ -831,7 +829,7 @@
   	(0x1058) 0xb: [data: 0x0]
   === GC status ===
   
-  8192
+  65536
   === GC status ===
   Start address of new space: 11000
   Allocate count: 2 times
@@ -842,3 +840,13 @@
   Current new space:
   === GC status ===
   
+(realloc)
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
+  > let sum x y = x + y                   
+  > let rec f x = if (x <= 1) then 1 else let t = sum 5 in f (x - 1)
+  > let main = print_int (f 5000)
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  panic! overflow memory limits
+  [122]
+
