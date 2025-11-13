@@ -1,7 +1,7 @@
+#include "runtime.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,22 +66,16 @@ typedef struct {
 
 static GC_state gc;
 
-typedef struct {
+struct closure {
   void *code;
   size_t argc;
   size_t argc_recived;
   void *args[];
-} closure;
-
-#define ZERO8 0, 0, 0, 0, 0, 0, 0, 0
-#define INT8 int, int, int, int, int, int, int, int
+};
 
 static void print_stack(void *current_sp);
 
-// Print stats about Garbage Collector work
-void print_gc_status() {
-  printf("===== GC STATUS =====\n");
-
+static void _print_gc_stats() {
   printf("Heap Info:\n");
   printf("  Heap base address: %p\n", (void **)GC_HEAP_OFFSET);
   printf("  New space address: %p\n", gc.new_space - gc.heap_start + (void **)GC_HEAP_OFFSET);
@@ -93,7 +87,17 @@ void print_gc_status() {
   printf("  Total allocations: %ld\n", gc.alloc_count);
   printf("  Total allocated words: %ld\n", gc.alloc_bytes_count / WORD_SIZE);
   printf("  Collections performed: %ld\n", gc.collect_count);
+}
 
+void print_gc_stats() {
+  printf("============ GC STATUS ============\n");
+  _print_gc_stats();
+  printf("============ GC STATUS ============\n\n");
+}
+
+void print_gc_status() {
+  printf("============ GC STATUS ============\n");
+  _print_gc_stats();
   printf("\nNew space layout:\n");
   size_t offset = 0;
   while (offset < gc.alloc_offset) {
@@ -116,7 +120,7 @@ void print_gc_status() {
     }
   }
 
-  printf("===== GC STATUS =====\n\n");
+  printf("============ GC STATUS ============\n\n");
 
   void *current_sp = NULL;
   asm volatile("mv %0, sp" : "=r"(current_sp));
@@ -125,7 +129,6 @@ void print_gc_status() {
   return;
 }
 
-// Alloc space for GC, init initial state
 void init_GC(void *base_sp) {
   gc.base_sp = base_sp;
   gc.space_capacity = SPACE_MINIMUM_SIZE;
@@ -397,7 +400,6 @@ static void *my_malloc(size_t size) {
   return result;
 }
 
-// Get start address of current new_space
 void **get_heap_start() {
   LOG("[DEBUG] %s()\n", __func__);
 
@@ -408,7 +410,6 @@ void **get_heap_start() {
   return result;
 }
 
-// Get end address of current new_space
 void **get_heap_fin() {
   LOG("[DEBUG] %s()\n", __func__);
 

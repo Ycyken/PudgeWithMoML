@@ -11,7 +11,7 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -37,9 +37,9 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xb]
   	(0x58) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -59,9 +59,9 @@
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xb]
   	(0x10028) 0x5: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -87,7 +87,7 @@
   	(0x10048) 0x9: [data: 0x2]
   	(0x10050) 0xa: [data: 0xb]
   	(0x10058) 0xb: [data: 0x5]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   7
   $ cat ../main.anf
@@ -233,7 +233,7 @@
   > let main = print_int homs
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -275,9 +275,9 @@
   	(0xc8) 0x19: [data: 0x1]
   	(0xd0) 0x1a: [data: 0x1]
   	(0xd8) 0x1b: [data: 0xb]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -291,7 +291,7 @@
     Collections performed: 1
   
   New space layout:
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   5
   $ cat ../main.anf
@@ -500,7 +500,7 @@
   > let main = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -526,9 +526,9 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xf]
   	(0x58) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -548,9 +548,9 @@
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xf]
   	(0x10028) 0x5: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -582,9 +582,9 @@
   	(0x10078) 0xf: [data: 0x1]
   	(0x10080) 0x10: [data: 0xd]
   	(0x10088) 0x11: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -610,9 +610,9 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xd]
   	(0x58) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -638,7 +638,7 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0xd]
   	(0x10058) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   5
 
@@ -656,7 +656,7 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -694,9 +694,9 @@
   	(0xa8) 0x15: [data: 0x1]
   	(0xb0) 0x16: [data: 0x7]
   	(0xb8) 0x17: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -722,9 +722,9 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0x7]
   	(0x10058) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -756,7 +756,7 @@
   	(0x10078) 0xf: [data: 0x2]
   	(0x10080) 0x10: [data: 0xb]
   	(0x10088) 0x11: [data: 0x5]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   7
   $ cat ../main.anf
@@ -922,11 +922,11 @@
   > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
   > let main = print_int (fib 15 (fun x -> x))
   > let _ = gc_collect ()
-  > let _ = print_gc_status ()
+  > let _ = print_gc_stats ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   610
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100080000
@@ -938,24 +938,17 @@
     Total allocations: 7890
     Total allocated words: 55226
     Collections performed: 4
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 4]
-  	(0x10008) 0x1: [data: 0x4001c4]
-  	(0x10010) 0x2: [data: 0x1]
-  	(0x10018) 0x3: [data: 0x0]
-  	(0x10020) 0x4: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
 
 ( get current capacity of heap )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let start = get_heap_start ()
   > let end = get_heap_fin ()
-  > let main = print_int (end - start)
+  > let main = print_int ((end - start) / 8)
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  65536
+  8192
 
 ( numbers can't be equal existings addresses on heap )
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
@@ -969,7 +962,7 @@
   > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -995,10 +988,10 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xf5]
   	(0x58) 0xb: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   65536
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -1018,33 +1011,63 @@
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xf5]
   	(0x10028) 0x5: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
-(realloc)
+(many closures, realloc heap)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
-  > let sum x y = x + y                   
-  > let rec f x = if (x <= 1) then 1 else let t = sum 5 in f (x - 1)
-  > let main = print_int (f 1500)
+  > let sum x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 = x20
+  > let rec f x = if (x <= 1)
+  > then let _ = print_gc_stats () in 1 
+  > else let t = sum 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 in f (x - 1) + t 20
+  > 
+  > let main = let _ = print_int (f 1501) in ()
+  > let _ = print_gc_stats ()
   > let _ = gc_collect ()
-  > let _ = print_gc_status ()
+  > let _ = print_gc_stats ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  1
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
-    New space address: 0x100020000
-    Space capacity: 16384 words
+    New space address: 0x100000000
+    Space capacity: 65536 words
+    Currently used: 39288 words
+    Live objects: 1637
+  
+  Statistics:
+    Total allocations: 3000
+    Total allocated words: 72000
+    Collections performed: 31
+  ============ GC STATUS ============
+  
+  30001
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100080000
+    Space capacity: 65536 words
+    Currently used: 19584 words
+    Live objects: 816
+  
+  Statistics:
+    Total allocations: 4500
+    Total allocated words: 108000
+    Collections performed: 32
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 65536 words
     Currently used: 0 words
     Live objects: 0
   
   Statistics:
-    Total allocations: 2998
-    Total allocated words: 17988
-    Collections performed: 13
-  
-  New space layout:
-  ===== GC STATUS =====
+    Total allocations: 4500
+    Total allocated words: 108000
+    Collections performed: 33
+  ============ GC STATUS ============
   
 
 (realloc)
@@ -1059,7 +1082,7 @@
   > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100010000
@@ -1086,10 +1109,10 @@
   	(0x10050) 0xa: [data: 0x15]
   	(0x10058) 0xb: [data: 0x4142a8]
   	(0x10060) 0xc: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
   60
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
     New space address: 0x100000000
@@ -1116,6 +1139,6 @@
   	(0x50) 0xa: [data: 0x15]
   	(0x58) 0xb: [data: 0x4042a8]
   	(0x60) 0xc: [data: 0x0]
-  ===== GC STATUS =====
+  ============ GC STATUS ============
   
 

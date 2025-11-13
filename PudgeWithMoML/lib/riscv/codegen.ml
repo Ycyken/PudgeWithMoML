@@ -66,6 +66,7 @@ module M = struct
         ; "get_heap_start", Function 1
         ; "get_heap_fin", Function 1
         ; "print_gc_status", Function 1
+        ; "print_gc_stats", Function 1
         ]
     in
     let env =
