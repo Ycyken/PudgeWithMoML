@@ -35,7 +35,54 @@ module M = struct
       type error = string
     end)
 
-  let default = { env = Map.empty (module String); frame_offset = 0; fresh = 0 }
+  let func_arity =
+    let rec helper acc = function
+      | ACExpr (CLambda (_, body)) -> helper (acc + 1) body
+      | _ -> acc
+    in
+    helper 0
+  ;;
+
+  let program_arities (pr : aprogram) =
+    let open Base in
+    let binds = pr |> List.concat_map ~f:(fun (_, bind, binds) -> bind :: binds) in
+    List.fold
+      binds
+      ~init:(Map.empty (module String))
+      ~f:(fun acc -> function
+        | f, ACExpr (CLambda (_, body)) ->
+          Map.set acc ~key:f ~data:(Function (1 + func_arity body))
+        | _ -> acc)
+  ;;
+
+  let default pr =
+    let open Base in
+    let arities = program_arities pr in
+    let std =
+      Map.of_alist_exn
+        (module String)
+        [ "print_int", Function 1
+        ; "gc_collect", Function 1
+        ; "get_heap_start", Function 1
+        ; "get_heap_fin", Function 1
+        ; "print_gc_status", Function 1
+        ]
+    in
+    let env =
+      Map.merge arities std ~f:(fun ~key:_ -> function
+        | `Left loc -> Some loc
+        | `Right loc -> Some loc
+        | `Both (v1, _) -> Some v1)
+    in
+    { env; frame_offset = 0; fresh = 0 }
+  ;;
+
+  let get_arity name : int t =
+    let+ st = get in
+    match Map.find st.env name with
+    | Some (Function arity) -> arity
+    | _ -> 0
+  ;;
 
   let fresh : string t =
     let* st = get in
@@ -151,7 +198,7 @@ let%expect_test "even args" =
       ; ImmConst (Int_lt 4)
       ]
   in
-  match run code default |> snd with
+  match run code (default []) |> snd with
   | Error msg -> Format.eprintf "Error: %s\n" msg
   | Ok code ->
     pp_instrs code Format.std_formatter;
@@ -175,7 +222,7 @@ let%expect_test "not even args" =
   let code =
     load_args_on_stack [ ImmConst (Int_lt 4); ImmConst (Int_lt 2); ImmConst (Int_lt 1) ]
   in
-  match run code default |> snd with
+  match run code (default []) |> snd with
   | Error msg -> Format.eprintf "Error: %s\n" msg
   | Ok code ->
     pp_instrs code Format.std_formatter;
@@ -272,12 +319,12 @@ let%expect_test "alloc_closure_test" =
 
 let comment_wrap str code = [ comment str ] @ code @ [ comment ("End " ^ str) ]
 
-let rec gen_cexpr (var_arity : string -> int) dst = function
+let rec gen_cexpr dst = function
   | CImm imm -> gen_imm dst imm
   | CIte (c, th, el) ->
     let* cond_code = gen_imm (T 0) c in
-    let* then_code = gen_aexpr var_arity dst th in
-    let* else_code = gen_aexpr var_arity dst el in
+    let* then_code = gen_aexpr dst th in
+    let* else_code = gen_aexpr dst el in
     let* l_else = M.fresh in
     let+ l_end = M.fresh in
     cond_code
@@ -349,61 +396,63 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
   | CApp (ImmVar name, ImmConst Unit_lt, [])
     when Base.List.mem [ "get_heap_start"; "get_heap_fin" ] name ~equal:String.equal ->
     ([ call name ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
-  | CApp (ImmVar f, arg, args)
-  (* it is full application *)
-    when List.length (arg :: args) = var_arity f ->
-    let args = arg :: args in
-    let comment = Format.asprintf "Apply %s with %d args" f (List.length args) in
-    let* load_code, free_code =
-      let* load_code = load_args_on_stack args in
-      let+ free_code = free_args_on_stack args in
-      load_code, free_code
-    in
-    (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
-    |> comment_wrap comment
-    |> return
-  | CApp (ImmVar f, arg, args)
-  (* it is partial application *)
-    when List.length (arg :: args) < var_arity f ->
+  | CApp ((ImmVar f as imm), arg, args) ->
     let argc = List.length (arg :: args) in
-    let comment = Format.asprintf "Partial application %s with %d args" f argc in
-    let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
-    let* load_code = load_args_on_stack args in
-    let* free_code = free_args_on_stack args in
-    load_code @ [ call "apply_closure"; mv dst (A 0) ] @ free_code
-    |> comment_wrap comment
-    |> return
-  | CApp ((ImmVar f as imm), arg, args)
-  (* f is not top level, so apply arguments one by one *) ->
-    (* TODO: closure keep argc, so we can group them by that number *)
-    let argc = List.length (arg :: args) in
-    let comment = Format.asprintf "Apply %s with %d args" f argc in
-    let rec helper imm acc = function
-      | [] -> return acc
-      | arg :: args ->
-        let* temp = fresh in
-        let* get_closure_code =
-          let* get_f = gen_imm (T 0) imm in
-          let+ off = save_var_on_stack temp in
-          get_f @ [ sd (T 0) (-off) fp ]
-        in
-        let* load_code, free_code =
-          let args = [ ImmVar temp; ImmConst (Int_lt 1); arg ] in
-          let* load_code = load_args_on_stack args in
-          let+ free_code = free_args_on_stack args in
-          load_code, free_code
-        in
-        let code = get_closure_code @ load_code @ [ call "apply_closure" ] @ free_code in
-        let* () = add_binding temp (Reg (A 0)) in
-        helper (ImmVar temp) (acc @ code) args
-    in
-    let* result = helper imm [] (arg :: args) in
-    let load_result =
-      match dst with
-      | A 0 -> []
-      | _ -> [ mv dst (A 0) ]
-    in
-    result @ load_result |> comment_wrap comment |> return
+    let* arity = M.get_arity f in
+    (match arity with
+     | _ when arity = argc ->
+       (* it is full application *)
+       let comment = Format.asprintf "Apply %s with %d args" f argc in
+       let args = arg :: args in
+       let* load_code = load_args_on_stack args in
+       let* free_code = free_args_on_stack args in
+       (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
+       |> comment_wrap comment
+       |> return
+     | _ when arity > argc ->
+       (* it is partial application *)
+       let comment = Format.asprintf "Partial application %s with %d args" f argc in
+       let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
+       let* load_code = load_args_on_stack args in
+       let* free_code = free_args_on_stack args in
+       load_code
+       @ [ call "apply_closure" ]
+       @ (if dst = A 0 then [] else [ mv dst (A 0) ])
+       @ free_code
+       |> comment_wrap comment
+       |> return
+     | _ ->
+       (* f is not top level, so apply arguments one by one *)
+       (* TODO: closure keep argc, so we can group them by that number *)
+       let comment = Format.asprintf "Apply %s with %d args" f argc in
+       let rec helper imm acc = function
+         | [] -> return acc
+         | arg :: args ->
+           let* temp = fresh in
+           let* get_closure_code =
+             let* get_f = gen_imm (T 0) imm in
+             let+ off = save_var_on_stack temp in
+             get_f @ [ sd (T 0) (-off) fp ]
+           in
+           let* load_code, free_code =
+             let args = [ ImmVar temp; ImmConst (Int_lt 1); arg ] in
+             let* load_code = load_args_on_stack args in
+             let+ free_code = free_args_on_stack args in
+             load_code, free_code
+           in
+           let code =
+             get_closure_code @ load_code @ [ call "apply_closure" ] @ free_code
+           in
+           let* () = add_binding temp (Reg (A 0)) in
+           helper (ImmVar temp) (acc @ code) args
+       in
+       let* result = helper imm [] (arg :: args) in
+       let load_result =
+         match dst with
+         | A 0 -> []
+         | _ -> [ mv dst (A 0) ]
+       in
+       result @ load_result |> comment_wrap comment |> return)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
@@ -416,7 +465,7 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     let* () = get_args_from_stack args in
     (* ra and sp *)
     let* () = M.set_frame_offset 16 in
-    let* body_code = gen_aexpr var_arity (A 0) body in
+    let* body_code = gen_aexpr (A 0) body in
     let* locals = M.get_frame_offset in
     let frame = if locals mod 16 = 0 then locals else locals + (16 - (locals mod 16)) in
     let* () = M.set_frame_offset current_sp in
@@ -438,26 +487,25 @@ let rec gen_cexpr (var_arity : string -> int) dst = function
     (* TODO: replace it with Anf.pp_cexpr without \n prints *)
     fail (Format.asprintf "gen_cexpr case not implemented yet: %a" AnfPP.pp_cexpr cexpr)
 
-and gen_aexpr (var_arity : string -> int) dst = function
-  | ACExpr cexpr -> gen_cexpr var_arity dst cexpr
+and gen_aexpr dst = function
+  | ACExpr cexpr -> gen_cexpr dst cexpr
   | ALet (Nonrec, name, cexpr, body) ->
-    let* cexpr_c = gen_cexpr var_arity (T 0) cexpr in
+    let* cexpr_c = gen_cexpr (T 0) cexpr in
     let* off = save_var_on_stack name in
-    let+ body_c = gen_aexpr var_arity dst body in
+    let+ body_c = gen_aexpr dst body in
     cexpr_c @ [ sd (T 0) (-off) fp ] @ body_c
   | _ -> fail "gen_aexpr case not implemented yet"
 ;;
 
-let gen_astr_item (var_arity : string -> int) : astr_item -> instr list M.t = function
+let gen_astr_item : astr_item -> instr list M.t = function
   | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
-    let arity = var_arity f in
+    let* arity = get_arity f in
     let* () = save_fun_on_stack f arity in
-    let+ code = gen_cexpr var_arity (T 0) lam in
+    let+ code = gen_cexpr (T 0) lam in
     [ directive (Format.asprintf ".globl %s" f); label f ] @ code
   | Nonrec, (name, e), [] ->
-    (* let* off = save_var_on_stack name in *)
     let* () = add_binding name Global in
-    let+ code = gen_aexpr var_arity (T 0) e in
+    let+ code = gen_aexpr (T 0) e in
     code @ [ la (T 1) name; sd (T 0) 0 (T 1) ]
   | i ->
     (* TODO: replace it with Anf.pp_astr_item without \n prints *)
@@ -509,39 +557,16 @@ let is_function = function
   | _ -> false
 ;;
 
-let func_arity =
-  let rec helper acc = function
-    | ACExpr (CLambda (_, body)) -> helper (acc + 1) body
-    | _ -> acc
-  in
-  helper 0
-;;
-
-let program_arities (pr : aprogram) =
-  let open Base in
-  let binds = pr |> List.concat_map ~f:(fun (_, bind, binds) -> bind :: binds) in
-  let arities =
-    List.fold
-      binds
-      ~init:(Map.empty (module String))
-      ~f:(fun acc -> function
-        | f, ACExpr (CLambda (_, body)) -> Map.set acc ~key:f ~data:(1 + func_arity body)
-        | _ -> acc)
-  in
-  fun name -> Map.find arities name |> Option.value ~default:0
-;;
-
 (* Go through list of astr_item, generates three types of code:
   1) Code for variables initialization of the bss section (exec in _start)
   2) Code for functions *)
 let gather pr : instr list t =
-  let program_arities = program_arities pr in
   let* main_code, functions_code =
     let rec helper acc = function
       | [] -> M.return acc
       | item :: rest ->
         let main_code, functions_code = acc in
-        let* code = gen_astr_item program_arities item in
+        let* code = gen_astr_item item in
         if is_function item
         then helper (main_code, functions_code @ code) rest
         else helper (main_code @ code, functions_code) rest
@@ -566,7 +591,7 @@ let gen_aprogram fmt (pr : aprogram) =
     let+ main_code = gather pr in
     main_code, bss_section, gcroots
   in
-  match M.run code M.default |> snd with
+  match M.run code (M.default pr) |> snd with
   | Error msg -> Error msg
   | Ok (main_code, bss_section, gcroots) ->
     pp_instrs main_code fmt;
