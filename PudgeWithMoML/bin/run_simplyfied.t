@@ -53,10 +53,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call fac__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fac__0 with 1 args
     sd t0, -48(fp)
     ld t0, -48(fp)
@@ -86,10 +86,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call fac__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fac__0 with 1 args
     sd t0, -8(fp)
   # Apply print_int
@@ -162,10 +162,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call fib__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fib__0 with 1 args
     sd t0, -40(fp)
     ld t0, 0(fp)
@@ -183,10 +183,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call fib__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fib__0 with 1 args
     sd t0, -56(fp)
     ld t0, -40(fp)
@@ -214,10 +214,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call fib__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fib__0 with 1 args
     sd t0, -8(fp)
   # Apply print_int
@@ -344,10 +344,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
     j L3
   L2:
@@ -360,10 +360,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
   L3:
     j L7
@@ -384,10 +384,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
     j L5
   L4:
@@ -400,10 +400,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
   L5:
   L7:
@@ -440,10 +440,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
     j L9
   L8:
@@ -456,10 +456,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
   L9:
     j L13
@@ -480,10 +480,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
     j L11
   L10:
@@ -496,10 +496,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call large__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply large__0 with 1 args
   L11:
   L13:

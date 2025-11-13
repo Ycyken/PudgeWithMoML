@@ -88,10 +88,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call add__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply add__0 with 2 args
     sd t0, -8(fp)
   # Apply print_int
@@ -191,10 +191,10 @@
     sd t0, 88(sp)
   # End loading args on stack
     call homka__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 96
   # End free args on stack
-    mv t0, a0
   # End Apply homka__0 with 12 args
     sd t0, -8(fp)
   # Apply print_int
@@ -263,10 +263,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call id__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply id__0 with 2 args
     sd t0, -8(fp)
   # Apply print_int
@@ -381,10 +381,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call app__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply app__0 with 2 args
     sd t0, -8(fp)
   # Apply print_int
@@ -1004,10 +1004,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call add__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply add__0 with 2 args
     la t1, homka122__6
     sd t0, 0(t1)

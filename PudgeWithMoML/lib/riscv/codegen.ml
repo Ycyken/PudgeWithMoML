@@ -13,8 +13,8 @@ open Middle_end.Anf
 
 type location =
   | Reg of reg
-  | Stack of int
-  | Function of int (* arity of function *)
+  | Stack of int (* offset from fp *)
+  | Function of int (* global funciton and it's arity *)
   | Global (* bss section *)
 
 let word_size = 8
@@ -78,6 +78,7 @@ module M = struct
     { env; frame_offset = 0; fresh = 0 }
   ;;
 
+  (* Get arity of global function. If function is not in the global scope, then return 0 *)
   let get_arity name : int t =
     let+ st = get in
     match Map.find st.env name with
@@ -273,49 +274,11 @@ let free_args_on_stack (args : imm list) : instr list t =
     ]
 ;;
 
-(* Put arguments on stack and exec alloc_closure function *)
-(* Result of function stay in a0 register *)
-let alloc_closure func arity =
-  let args = [ ImmVar func; ImmConst (Int_lt arity) ] in
-  let* load_code = load_args_on_stack args in
-  let* free_code = free_args_on_stack args in
-  load_code @ [ call "alloc_closure" ] @ free_code |> return
-;;
-
-let%expect_test "alloc_closure_test" =
-  let code =
-    let* curr_off = get_frame_offset in
-    let* code = alloc_closure "homka" 5 in
-    let* prev_off = get_frame_offset in
-    assert (curr_off = prev_off);
-    return code
-  in
-  let env = Base.Map.empty (module Base.String) in
-  let env = Base.Map.add_exn env ~key:"homka" ~data:(Function 5) in
-  match run code { frame_offset = 0; env; fresh = 0 } |> snd with
-  | Error msg -> Format.eprintf "Error: %s\n" msg
-  | Ok code ->
-    pp_instrs code Format.std_formatter;
-    [%expect
-      {|
-    # Load args on stack
-      addi sp, sp, -16
-      addi sp, sp, -16
-      la t5, homka
-      li t6, 5
-      sd t5, 0(sp)
-      sd t6, 8(sp)
-      call alloc_closure
-      mv t0, a0
-      addi sp, sp, 16
-      sd t0, 0(sp)
-      li t0, 11
-      sd t0, 8(sp)
-    # End loading args on stack
-      call alloc_closure
-    # Free args on stack
-      addi sp, sp, 16
-    # End free args on stack |}]
+(* Call function with arguments on stack and move result to destination register *)
+let call_function ?(dst = A 0) f args =
+  let* load = load_args_on_stack args in
+  let+ free = free_args_on_stack args in
+  load @ [ call f ] @ (if dst = A 0 then [] else [ mv dst (A 0) ]) @ free
 ;;
 
 let comment_wrap str code = [ comment str ] @ code @ [ comment ("End " ^ str) ]
@@ -401,27 +364,17 @@ let rec gen_cexpr dst = function
     let argc = List.length (arg :: args) in
     let* arity = M.get_arity f in
     (match arity with
-     | _ when arity = argc ->
+     | _ when argc = arity ->
        (* it is full application *)
        let comment = Format.asprintf "Apply %s with %d args" f argc in
-       let args = arg :: args in
-       let* load_code = load_args_on_stack args in
-       let* free_code = free_args_on_stack args in
-       (load_code @ [ call f ] @ free_code @ if dst = A 0 then [] else [ mv dst (A 0) ])
-       |> comment_wrap comment
-       |> return
-     | _ when arity > argc ->
+       let+ call_code = call_function f (arg :: args) ~dst in
+       call_code |> comment_wrap comment
+     | _ when argc < arity ->
        (* it is partial application *)
        let comment = Format.asprintf "Partial application %s with %d args" f argc in
        let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
-       let* load_code = load_args_on_stack args in
-       let* free_code = free_args_on_stack args in
-       load_code
-       @ [ call "apply_closure" ]
-       @ (if dst = A 0 then [] else [ mv dst (A 0) ])
-       @ free_code
-       |> comment_wrap comment
-       |> return
+       let+ call_code = call_function "apply_closure" args ~dst in
+       call_code |> comment_wrap comment
      | _ ->
        (* f is not top level, so apply arguments one by one *)
        (* TODO: closure keep argc, so we can group them by that number *)
@@ -435,25 +388,15 @@ let rec gen_cexpr dst = function
              let+ off = save_var_on_stack temp in
              get_f @ [ sd (T 0) (-off) fp ]
            in
-           let* load_code, free_code =
-             let args = [ ImmVar temp; ImmConst (Int_lt 1); arg ] in
-             let* load_code = load_args_on_stack args in
-             let+ free_code = free_args_on_stack args in
-             load_code, free_code
+           let* call_code =
+             call_function "apply_closure" [ ImmVar temp; ImmConst (Int_lt 1); arg ]
            in
-           let code =
-             get_closure_code @ load_code @ [ call "apply_closure" ] @ free_code
-           in
+           let code = get_closure_code @ call_code in
            let* () = add_binding temp (Reg (A 0)) in
            helper (ImmVar temp) (acc @ code) args
        in
-       let* result = helper imm [] (arg :: args) in
-       let load_result =
-         match dst with
-         | A 0 -> []
-         | _ -> [ mv dst (A 0) ]
-       in
-       result @ load_result |> comment_wrap comment |> return)
+       let+ result = helper imm [] (arg :: args) in
+       (result @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> comment_wrap comment)
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function

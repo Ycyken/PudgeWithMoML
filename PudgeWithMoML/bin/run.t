@@ -203,10 +203,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call fac__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fac__0 with 2 args
     sd t0, -16(fp)
   # Apply print_int
@@ -516,10 +516,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call fib__0
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fib__0 with 2 args
     sd t0, -16(fp)
   # Apply print_int

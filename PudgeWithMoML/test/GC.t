@@ -424,10 +424,10 @@
     sd t0, 16(sp)
   # End loading args on stack
     call homka__5
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
   # End Apply homka__5 with 3 args
     la t1, homs__10
     sd t0, 0(t1)
@@ -1127,10 +1127,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call print_gc_stats
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply print_gc_stats with 1 args
     sd t0, -32(fp)
     li a0, 3
@@ -1213,10 +1213,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call f__21
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply f__21 with 1 args
     sd t0, -64(fp)
   # Apply t__23 with 1 args
@@ -1263,10 +1263,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call f__21
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply f__21 with 1 args
     sd t0, -8(fp)
   # Apply print_int
@@ -1285,10 +1285,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call print_gc_stats
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply print_gc_stats with 1 args
     la t1, _
     sd t0, 0(t1)
@@ -1302,10 +1302,10 @@
     sd t0, 0(sp)
   # End loading args on stack
     call print_gc_stats
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply print_gc_stats with 1 args
     la t1, _
     sd t0, 0(t1)

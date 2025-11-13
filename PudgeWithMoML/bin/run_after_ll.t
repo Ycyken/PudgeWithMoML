@@ -183,10 +183,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call fac_cps__6
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fac_cps__6 with 2 args
     sd t0, -8(fp)
   # Apply print_int
@@ -488,10 +488,10 @@
     sd t0, 8(sp)
   # End loading args on stack
     call fib__11
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 16
   # End free args on stack
-    mv t0, a0
   # End Apply fib__11 with 2 args
     sd t0, -8(fp)
   # Apply print_int
