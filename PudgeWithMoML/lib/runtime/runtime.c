@@ -434,27 +434,29 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return result;
 }
 
-static void *copy_closure(closure *old_clos) {
-  closure *clos = old_clos;
-  closure *new = alloc_closure(ZERO8, clos->code, clos->argc);
-
-  for (size_t i = 0; i < clos->argc_recived; i++) {
-    new->args[new->argc_recived++] = clos->args[i];
-  }
-
-  return new;
+// Copy old closure args and new closure args to the destination.
+static void merge_closure_args(void **dest, closure *clos, void **new_args, uint8_t new_argc) {
+  memcpy(dest, clos->args, clos->argc_recived * sizeof(void *));
+  memcpy(dest + clos->argc_recived, new_args, new_argc * sizeof(void *));
 }
 
-// get closure and apply [argc] arguments to closure
+// Get closure and apply [argc] arguments to closure.
 void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   argc = argc >> 1;
-  void **args = malloc(sizeof(void *) * argc);
 
+  if (old_clos->argc_recived + argc > old_clos->argc) {
+    LOG("Closure received %d args, get another %d args, but expect total %d args\n", old_clos->argc_recived, argc,
+        old_clos->argc);
+    fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
+    exit(122);
+  }
+
+  void **new_args = malloc(sizeof(void *) * argc);
   va_list list;
   va_start(list, argc);
   for (size_t i = 0; i < argc; i++) {
     void *arg = va_arg(list, void *);
-    args[i] = arg;
+    new_args[i] = arg;
   }
   va_end(list);
 
@@ -465,35 +467,29 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
   }
   LOG("]\n}, argc: %d, args: [", argc);
   for (size_t i = 0; i < argc; i++) {
-    LOG(i == 0 ? "0x%x" : ", 0x%x", args[i]);
+    LOG(i == 0 ? "0x%x" : ", 0x%x", new_args[i]);
   }
   LOG("])\n");
   fflush(stdout);
 
-  closure *clos = copy_closure(old_clos);
+  // it is full application, we need to exec function and return result, not producing any garbage
+  if (old_clos->argc_recived + argc == old_clos->argc) {
+    void **args = malloc(sizeof(void *) * old_clos->argc);
+    merge_closure_args(args, old_clos, new_args, argc);
 
-  if (clos->argc_recived + argc > clos->argc) {
-    LOG("Closure received %d args, get another %d args, but expect total %d args\n", clos->argc_recived, argc,
-        clos->argc);
-    fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
-    exit(122);
-  }
-
-  for (size_t i = 0; i < argc; i++) {
-    clos->args[clos->argc_recived++] = args[i];
-  }
-  free(args);
-
-  // if application is partial
-  if (clos->argc_recived < clos->argc) {
-    void *result = clos;
-    LOG(" -> 0x%x\n", result);
+    free(new_args);
+    LOG(" -> *exec 0x%x*\n", old_clos->code);
+    void *result = call_closure(old_clos->code, old_clos->argc, args);
+    free(args);
     return result;
   }
 
-  // full application (we need pass all arguments to stack and exec function)
-  assert(clos->argc_recived == clos->argc);
+  closure *new_clos = alloc_closure(ZERO8, old_clos->code, old_clos->argc);
+  merge_closure_args(new_clos->args, old_clos, new_args, argc);
+  new_clos->argc_recived = old_clos->argc_recived + argc;
+  free(new_args);
 
-  LOG(" -> *exec 0x%x*\n", old_clos->code);
-  return call_closure(clos->code, clos->argc, clos->args);
+  void *result = new_clos;
+  LOG(" -> 0x%x\n", result);
+  return result;
 }

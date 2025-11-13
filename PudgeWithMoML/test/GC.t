@@ -66,12 +66,12 @@
     Heap base address: 0x100000000
     New space address: 0x100010000
     Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
+    Currently used: 6 words
+    Live objects: 1
   
   Statistics:
-    Total allocations: 3
-    Total allocated words: 18
+    Total allocations: 2
+    Total allocated words: 12
     Collections performed: 1
   
   New space layout:
@@ -81,12 +81,6 @@
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xb]
   	(0x10028) 0x5: [data: 0x0]
-  	(0x10030) 0x6: [size: 5]
-  	(0x10038) 0x7: [data: 0x400000]
-  	(0x10040) 0x8: [data: 0x2]
-  	(0x10048) 0x9: [data: 0x2]
-  	(0x10050) 0xa: [data: 0xb]
-  	(0x10058) 0xb: [data: 0x5]
   ============ GC STATUS ============
   
   7
@@ -238,12 +232,12 @@
     Heap base address: 0x100000000
     New space address: 0x100000000
     Space capacity: 8192 words
-    Currently used: 28 words
-    Live objects: 5
+    Currently used: 17 words
+    Live objects: 3
   
   Statistics:
-    Total allocations: 5
-    Total allocated words: 28
+    Total allocations: 3
+    Total allocated words: 17
     Collections performed: 0
   
   New space layout:
@@ -264,17 +258,6 @@
   	(0x70) 0xe: [data: 0x1]
   	(0x78) 0xf: [data: 0x4042d8]
   	(0x80) 0x10: [data: 0x0]
-  	(0x88) 0x11: [size: 5]
-  	(0x90) 0x12: [data: 0x400000]
-  	(0x98) 0x13: [data: 0x2]
-  	(0xa0) 0x14: [data: 0x2]
-  	(0xa8) 0x15: [data: 0x4042d8]
-  	(0xb0) 0x16: [data: 0xb]
-  	(0xb8) 0x17: [size: 4]
-  	(0xc0) 0x18: [data: 0x400030]
-  	(0xc8) 0x19: [data: 0x1]
-  	(0xd0) 0x1a: [data: 0x1]
-  	(0xd8) 0x1b: [data: 0xb]
   ============ GC STATUS ============
   
   ============ GC STATUS ============
@@ -286,8 +269,8 @@
     Live objects: 0
   
   Statistics:
-    Total allocations: 5
-    Total allocated words: 28
+    Total allocations: 3
+    Total allocated words: 17
     Collections performed: 1
   
   New space layout:
@@ -729,12 +712,12 @@
     Heap base address: 0x100000000
     New space address: 0x100010000
     Space capacity: 8192 words
-    Currently used: 18 words
-    Live objects: 3
+    Currently used: 12 words
+    Live objects: 2
   
   Statistics:
-    Total allocations: 5
-    Total allocated words: 30
+    Total allocations: 4
+    Total allocated words: 24
     Collections performed: 1
   
   New space layout:
@@ -750,12 +733,6 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0x7]
   	(0x10058) 0xb: [data: 0x0]
-  	(0x10060) 0xc: [size: 5]
-  	(0x10068) 0xd: [data: 0x400000]
-  	(0x10070) 0xe: [data: 0x2]
-  	(0x10078) 0xf: [data: 0x2]
-  	(0x10080) 0x10: [data: 0xb]
-  	(0x10088) 0x11: [data: 0x5]
   ============ GC STATUS ============
   
   7
@@ -935,8 +912,8 @@
     Live objects: 1
   
   Statistics:
-    Total allocations: 7890
-    Total allocated words: 55226
+    Total allocations: 5917
+    Total allocated words: 41417
     Collections performed: 4
   ============ GC STATUS ============
   
@@ -1014,7 +991,7 @@
   ============ GC STATUS ============
   
 (many closures, realloc heap)
-  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let sum x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 = x20
   > let rec f x = if (x <= 1)
   > then let _ = print_gc_stats () in 1 
@@ -1044,31 +1021,310 @@
   ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
-    New space address: 0x100080000
+    New space address: 0x100000000
     Space capacity: 65536 words
-    Currently used: 19584 words
-    Live objects: 816
+    Currently used: 39288 words
+    Live objects: 1637
   
   Statistics:
-    Total allocations: 4500
-    Total allocated words: 108000
-    Collections performed: 32
+    Total allocations: 3000
+    Total allocated words: 72000
+    Collections performed: 31
   ============ GC STATUS ============
   
   ============ GC STATUS ============
   Heap Info:
     Heap base address: 0x100000000
-    New space address: 0x100000000
+    New space address: 0x100080000
     Space capacity: 65536 words
     Currently used: 0 words
     Live objects: 0
   
   Statistics:
-    Total allocations: 4500
-    Total allocated words: 108000
-    Collections performed: 33
+    Total allocations: 3000
+    Total allocated words: 72000
+    Collections performed: 32
   ============ GC STATUS ============
   
+  $ cat ../main.anf
+  let sum__0 = fun x1__1 ->
+    fun x2__2 ->
+    fun x3__3 ->
+    fun x4__4 ->
+    fun x5__5 ->
+    fun x6__6 ->
+    fun x7__7 ->
+    fun x8__8 ->
+    fun x9__9 ->
+    fun x10__10 ->
+    fun x11__11 ->
+    fun x12__12 ->
+    fun x13__13 ->
+    fun x14__14 ->
+    fun x15__15 ->
+    fun x16__16 ->
+    fun x17__17 ->
+    fun x18__18 ->
+    fun x19__19 ->
+    fun x20__20 ->
+    x20__20 
+  
+  
+  let rec f__21 = fun x__22 ->
+    let anf_t5 = x__22 <= 1 in
+    if anf_t5 then (let anf_t6 = print_gc_stats () in
+    1)
+    else let anf_t11 = sum__0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 in
+    let t__23 = anf_t11 in
+    let anf_t7 = x__22 - 1 in
+    let anf_t8 = f__21 anf_t7 in
+    let anf_t9 = t__23 20 in
+    anf_t8 + anf_t9 
+  
+  
+  let main__24 = let anf_t3 = f__21 1501 in
+    let anf_t4 = print_int anf_t3 in
+    () 
+  
+  
+  let _ = print_gc_stats () 
+  
+  
+  let _ = gc_collect () 
+  
+  
+  let _ = print_gc_stats () 
+  $ cat ../main.s
+  .text
+  .globl sum__0
+  sum__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld a0, 152(fp)
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl f__21
+  f__21:
+    addi sp, sp, -80
+    sd ra, 72(sp)
+    sd fp, 64(sp)
+    addi fp, sp, 80
+    ld t0, 0(fp)
+    li t1, 3
+    slt t0, t1, t0
+    xori t0, t0, 1
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    beq t0, zero, L1
+  # Apply print_gc_stats with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 1
+    sd t0, 0(sp)
+  # End loading args on stack
+    call print_gc_stats
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply print_gc_stats with 1 args
+    sd t0, -32(fp)
+    li a0, 3
+    j L2
+  L1:
+  # Partial application sum__0 with 19 args
+  # Load args on stack
+    addi sp, sp, -176
+    addi sp, sp, -16
+    la t5, sum__0
+    li t6, 20
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 39
+    sd t0, 8(sp)
+    li t0, 3
+    sd t0, 16(sp)
+    li t0, 5
+    sd t0, 24(sp)
+    li t0, 7
+    sd t0, 32(sp)
+    li t0, 9
+    sd t0, 40(sp)
+    li t0, 11
+    sd t0, 48(sp)
+    li t0, 13
+    sd t0, 56(sp)
+    li t0, 15
+    sd t0, 64(sp)
+    li t0, 17
+    sd t0, 72(sp)
+    li t0, 19
+    sd t0, 80(sp)
+    li t0, 21
+    sd t0, 88(sp)
+    li t0, 23
+    sd t0, 96(sp)
+    li t0, 25
+    sd t0, 104(sp)
+    li t0, 27
+    sd t0, 112(sp)
+    li t0, 29
+    sd t0, 120(sp)
+    li t0, 31
+    sd t0, 128(sp)
+    li t0, 33
+    sd t0, 136(sp)
+    li t0, 35
+    sd t0, 144(sp)
+    li t0, 37
+    sd t0, 152(sp)
+    li t0, 39
+    sd t0, 160(sp)
+  # End loading args on stack
+    call apply_closure
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 176
+  # End free args on stack
+  # End Partial application sum__0 with 19 args
+    sd t0, -40(fp)
+    ld t0, -40(fp)
+    sd t0, -48(fp)
+    ld t0, 0(fp)
+    li t1, 3
+    srai t0, t0, 1
+    srai t1, t1, 1
+    sub t0, t0, t1
+    slli t0, t0, 1
+    ori t0, t0, 1
+    sd t0, -56(fp)
+  # Apply f__21 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    ld t0, -56(fp)
+    sd t0, 0(sp)
+  # End loading args on stack
+    call f__21
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply f__21 with 1 args
+    sd t0, -64(fp)
+  # Apply t__23 with 1 args
+    ld t0, -48(fp)
+    sd t0, -72(fp)
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -72(fp)
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 41
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+    mv t0, a0
+  # End Apply t__23 with 1 args
+    sd t0, -80(fp)
+    ld t0, -64(fp)
+    ld t1, -80(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
+    add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
+  L2:
+    ld ra, 72(sp)
+    ld fp, 64(sp)
+    addi sp, sp, 80
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    mv a0, sp
+    call init_GC
+    addi sp, sp, -16
+  # Apply f__21 with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 3003
+    sd t0, 0(sp)
+  # End loading args on stack
+    call f__21
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply f__21 with 1 args
+    sd t0, -8(fp)
+  # Apply print_int
+    ld a0, -8(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -16(fp)
+    li t0, 1
+    la t1, main__24
+    sd t0, 0(t1)
+  # Apply print_gc_stats with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 1
+    sd t0, 0(sp)
+  # End loading args on stack
+    call print_gc_stats
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply print_gc_stats with 1 args
+    la t1, _
+    sd t0, 0(t1)
+    call gc_collect
+    la t1, _
+    sd t0, 0(t1)
+  # Apply print_gc_stats with 1 args
+  # Load args on stack
+    addi sp, sp, -16
+    li t0, 1
+    sd t0, 0(sp)
+  # End loading args on stack
+    call print_gc_stats
+  # Free args on stack
+    addi sp, sp, 16
+  # End free args on stack
+    mv t0, a0
+  # End Apply print_gc_stats with 1 args
+    la t1, _
+    sd t0, 0(t1)
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  .data
+  main__24: .dword 0
+  _: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad _
+  .quad main__24
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 (realloc)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
@@ -1121,8 +1377,8 @@
     Live objects: 2
   
   Statistics:
-    Total allocations: 6
-    Total allocated words: 39
+    Total allocations: 4
+    Total allocated words: 26
     Collections performed: 2
   
   New space layout:
