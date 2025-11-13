@@ -11,15 +11,20 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 2 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 0
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 0
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -32,34 +37,44 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xb]
   	(0x58) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 2 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 6 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 6 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xb]
   	(0x10028) 0x5: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 3 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 18 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 3
+    Total allocated words: 18
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -72,7 +87,7 @@
   	(0x10048) 0x9: [data: 0x2]
   	(0x10050) 0xa: [data: 0xb]
   	(0x10058) 0xb: [data: 0x5]
-  === GC status ===
+  ===== GC STATUS =====
   
   7
   $ cat ../main.anf
@@ -218,15 +233,20 @@
   > let main = print_int homs
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 5 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 28 words
-  Allocated words in new space: 28 words
-  Live objects in new space: 0
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 28 words
+    Live objects: 5
+  
+  Statistics:
+    Total allocations: 5
+    Total allocated words: 28
+    Collections performed: 0
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -255,18 +275,23 @@
   	(0xc8) 0x19: [data: 0x1]
   	(0xd0) 0x1a: [data: 0x1]
   	(0xd8) 0x1b: [data: 0xb]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 5 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 28 words
-  Allocated words in new space: 0 words
-  Live objects in new space: 0
-  Current new space:
-  === GC status ===
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 0 words
+    Live objects: 0
+  
+  Statistics:
+    Total allocations: 5
+    Total allocated words: 28
+    Collections performed: 1
+  
+  New space layout:
+  ===== GC STATUS =====
   
   5
   $ cat ../main.anf
@@ -475,15 +500,20 @@
   > let main = print_int 5
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 2 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 0
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 0
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -496,34 +526,44 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xf]
   	(0x58) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 2 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 6 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 6 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xf]
   	(0x10028) 0x5: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 4 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 18 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 18 words
+    Live objects: 3
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -542,17 +582,22 @@
   	(0x10078) 0xf: [data: 0x1]
   	(0x10080) 0x10: [data: 0xd]
   	(0x10088) 0x11: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 4 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 2
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -565,17 +610,22 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xd]
   	(0x58) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 4 times
-  Collect count: 3 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 3
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -588,7 +638,7 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0xd]
   	(0x10058) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
   5
 
@@ -606,15 +656,20 @@
   >   print_int lol
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 4 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 24 words
-  Live objects in new space: 0
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 24 words
+    Live objects: 4
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 0
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -639,17 +694,22 @@
   	(0xa8) 0x15: [data: 0x1]
   	(0xb0) 0x16: [data: 0x7]
   	(0xb8) 0x17: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 4 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 24 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -662,17 +722,22 @@
   	(0x10048) 0x9: [data: 0x1]
   	(0x10050) 0xa: [data: 0x7]
   	(0x10058) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 5 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 30 words
-  Allocated words in new space: 18 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 18 words
+    Live objects: 3
+  
+  Statistics:
+    Total allocations: 5
+    Total allocated words: 30
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -691,7 +756,7 @@
   	(0x10078) 0xf: [data: 0x2]
   	(0x10080) 0x10: [data: 0xb]
   	(0x10088) 0x11: [data: 0x5]
-  === GC status ===
+  ===== GC STATUS =====
   
   7
   $ cat ../main.anf
@@ -861,21 +926,26 @@
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   610
-  === GC status ===
-  Start address of new space: 80000
-  Allocate count: 7890 times
-  Collect count: 4 times
-  Current space capacity: 65536 words
-  Total allocated memory: 55226 words
-  Allocated words in new space: 5 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100080000
+    Space capacity: 65536 words
+    Currently used: 5 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 7890
+    Total allocated words: 55226
+    Collections performed: 4
+  
+  New space layout:
   	(0x10000) 0x0: [size: 4]
   	(0x10008) 0x1: [data: 0x4001c4]
   	(0x10010) 0x2: [data: 0x1]
   	(0x10018) 0x3: [data: 0x0]
   	(0x10020) 0x4: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
 
 ( get current capacity of heap )
@@ -899,15 +969,20 @@
   > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 2 times
-  Collect count: 0 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 12 words
-  Live objects in new space: 0
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 0
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -920,25 +995,30 @@
   	(0x48) 0x9: [data: 0x1]
   	(0x50) 0xa: [data: 0xf5]
   	(0x58) 0xb: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
   65536
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 2 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 12 words
-  Allocated words in new space: 6 words
-  Live objects in new space: 1
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 6 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
   	(0x10018) 0x3: [data: 0x1]
   	(0x10020) 0x4: [data: 0xf5]
   	(0x10028) 0x5: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
 (realloc)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
@@ -950,16 +1030,21 @@
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   1
-  === GC status ===
-  Start address of new space: 20000
-  Allocate count: 2998 times
-  Collect count: 13 times
-  Current space capacity: 16384 words
-  Total allocated memory: 17988 words
-  Allocated words in new space: 0 words
-  Live objects in new space: 0
-  Current new space:
-  === GC status ===
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100020000
+    Space capacity: 16384 words
+    Currently used: 0 words
+    Live objects: 0
+  
+  Statistics:
+    Total allocations: 2998
+    Total allocated words: 17988
+    Collections performed: 13
+  
+  New space layout:
+  ===== GC STATUS =====
   
 
 (realloc)
@@ -974,15 +1059,20 @@
   > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  === GC status ===
-  Start address of new space: 10000
-  Allocate count: 4 times
-  Collect count: 1 times
-  Current space capacity: 8192 words
-  Total allocated memory: 26 words
-  Allocated words in new space: 13 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 13 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 26
+    Collections performed: 1
+  
+  New space layout:
   	(0x10000) 0x0: [size: 5]
   	(0x10008) 0x1: [data: 0x400000]
   	(0x10010) 0x2: [data: 0x2]
@@ -996,18 +1086,23 @@
   	(0x10050) 0xa: [data: 0x15]
   	(0x10058) 0xb: [data: 0x4142a8]
   	(0x10060) 0xc: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
   60
-  === GC status ===
-  Start address of new space: 0
-  Allocate count: 6 times
-  Collect count: 2 times
-  Current space capacity: 8192 words
-  Total allocated memory: 39 words
-  Allocated words in new space: 13 words
-  Live objects in new space: 2
-  Current new space:
+  ===== GC STATUS =====
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 13 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 6
+    Total allocated words: 39
+    Collections performed: 2
+  
+  New space layout:
   	(0x0) 0x0: [size: 5]
   	(0x8) 0x1: [data: 0x400000]
   	(0x10) 0x2: [data: 0x2]
@@ -1021,6 +1116,6 @@
   	(0x50) 0xa: [data: 0x15]
   	(0x58) 0xb: [data: 0x4042a8]
   	(0x60) 0xc: [data: 0x0]
-  === GC status ===
+  ===== GC STATUS =====
   
 

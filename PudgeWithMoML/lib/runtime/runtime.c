@@ -80,16 +80,21 @@ static void print_stack(void *current_sp);
 
 // Print stats about Garbage Collector work
 void print_gc_status() {
-  printf("=== GC status ===\n");
-  printf("Start address of new space: %x\n", gc.new_space - gc.heap_start + (void **)GC_HEAP_OFFSET);
-  printf("Allocate count: %ld times\n", gc.alloc_count);
-  printf("Collect count: %ld times\n", gc.collect_count);
-  printf("Current space capacity: %ld words\n", gc.space_capacity);
-  printf("Total allocated memory: %ld words\n", gc.alloc_bytes_count / WORD_SIZE);
-  printf("Allocated words in new space: %ld words\n", gc.alloc_offset);
-  printf("Live objects in new space: %ld\n", gc.obj_count);
+  printf("===== GC STATUS =====\n");
 
-  printf("Current new space:\n");
+  printf("Heap Info:\n");
+  printf("  Heap base address: %p\n", (void **)GC_HEAP_OFFSET);
+  printf("  New space address: %p\n", gc.new_space - gc.heap_start + (void **)GC_HEAP_OFFSET);
+  printf("  Space capacity: %ld words\n", gc.space_capacity);
+  printf("  Currently used: %ld words\n", gc.alloc_offset);
+  printf("  Live objects: %ld\n", gc.obj_count);
+
+  printf("\nStatistics:\n");
+  printf("  Total allocations: %ld\n", gc.alloc_count);
+  printf("  Total allocated words: %ld\n", gc.alloc_bytes_count / WORD_SIZE);
+  printf("  Collections performed: %ld\n", gc.collect_count);
+
+  printf("\nNew space layout:\n");
   size_t offset = 0;
   while (offset < gc.alloc_offset) {
     size_t size = (size_t)gc.new_space[offset];
@@ -111,7 +116,7 @@ void print_gc_status() {
     }
   }
 
-  printf("=== GC status ===\n\n");
+  printf("===== GC STATUS =====\n\n");
 
   void *current_sp = NULL;
   asm volatile("mv %0, sp" : "=r"(current_sp));
@@ -363,7 +368,7 @@ static void *my_malloc(size_t size) {
     LOG("no free space\n");
     _gc_collect(current_sp);
 
-    // after collecting we still don't have space
+    // after collecting we still don't have space, so we are increasing heap size
     if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
       LOG("Allocate more space for GC heap\n");
 
