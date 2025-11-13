@@ -329,9 +329,9 @@ end = struct
     let uminus_s = Scheme (VarSet.empty, arrow_t [ int_typ ] int_typ) in
     let bool_not = Scheme (VarSet.empty, arrow_t [ bool_typ ] bool_typ) in
     let print_int_s = Scheme (VarSet.empty, arrow_t [ int_typ ] unit_typ) in
-    let print_gs_status_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
+    let print_gc_status_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
+    let print_gc_stats_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
     let gc_collect_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
-    let clear_regs_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] unit_typ) in
     let get_heap_start_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] int_typ) in
     let get_heap_fin_s = Scheme (VarSet.empty, arrow_t [ unit_typ ] int_typ) in
     ( Map.of_alist_exn
@@ -352,9 +352,9 @@ end = struct
         ; "not", bool_not
         ; "~-", uminus_s
         ; "print_int", print_int_s
-        ; "print_gc_status", print_gs_status_s
+        ; "print_gc_status", print_gc_status_s
+        ; "print_gc_stats", print_gc_stats_s
         ; "gc_collect", gc_collect_s
-        ; "clear_regs", clear_regs_s
         ; "get_heap_start", get_heap_start_s
         ; "get_heap_fin", get_heap_fin_s
         ]

@@ -153,10 +153,10 @@ and convert_cc_aexpr is_top_level = function
 (* Apply closure conversion to aprogram. *)
 (* After conversion all function are closed (withour free variables). *)
 let convert_cc_pr (pr : aprogram) =
+  (* If function top-level*)
   let is_top_level name =
-    (* If function top-level or it's just, for example, argument *)
     match name with
-    | "print_int" -> true
+    | n when Base.List.mem std_lib n ~equal:String.equal -> true
     | _ ->
       let rec helper (astr : astr_item list) =
         match astr with

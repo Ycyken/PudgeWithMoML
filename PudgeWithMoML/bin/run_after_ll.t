@@ -204,6 +204,14 @@
     ecall
   .data
   main__9: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__9
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
   $ make compile opts=-gen_mid input=test/manytests/typed/010fibcps_ll.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -503,6 +511,14 @@
     ecall
   .data
   main__14: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__14
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )

@@ -22,10 +22,10 @@
   .text
   .globl fac__0
   fac__0:
-    addi sp, sp, -56
-    sd ra, 48(sp)
-    sd fp, 40(sp)
-    addi fp, sp, 56
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
     ld t0, 0(fp)
     li t1, 3
     slt t0, t1, t0
@@ -69,9 +69,9 @@
     slli a0, a0, 1
     ori a0, a0, 1
   L1:
-    ld ra, 48(sp)
-    ld fp, 40(sp)
-    addi sp, sp, 56
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
     ret
   .globl _start
   _start:
@@ -105,6 +105,14 @@
     ecall
   .data
   main__4: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__4
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
   $ make compile opts=-gen_mid input=bin/tests/fib --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -126,10 +134,10 @@
   .text
   .globl fib__0
   fib__0:
-    addi sp, sp, -56
-    sd ra, 48(sp)
-    sd fp, 40(sp)
-    addi fp, sp, 56
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
     ld t0, 0(fp)
     li t1, 5
     slt t0, t0, t1
@@ -189,9 +197,9 @@
     slli a0, a0, 1
     ori a0, a0, 1
   L1:
-    ld ra, 48(sp)
-    ld fp, 40(sp)
-    addi sp, sp, 56
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
     ret
   .globl _start
   _start:
@@ -225,6 +233,14 @@
     ecall
   .data
   main__2: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__2
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
   $ make compile opts=-gen_mid input=bin/tests/large_if --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -266,10 +282,10 @@
   .text
   .globl large__0
   large__0:
-    addi sp, sp, -24
-    sd ra, 16(sp)
-    sd fp, 8(sp)
-    addi fp, sp, 24
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
     li t0, 1
     ld t1, 0(fp)
     sub t0, t0, t1
@@ -288,9 +304,9 @@
     call print_int
   # End Apply print_int
   L1:
-    ld ra, 16(sp)
-    ld fp, 8(sp)
-    addi sp, sp, 24
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -496,6 +512,14 @@
     ecall
   .data
   main__2: .dword 0
+  .pushsection .gcroots,"aw",@progbits
+  .balign 8
+  .globl __start_gcroots
+  __start_gcroots:
+  .quad main__2
+  .globl __stop_gcroots
+  __stop_gcroots:
+  .popsection
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt

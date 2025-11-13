@@ -105,3 +105,13 @@ let econs a b = eapp (Variable "::") [ a; b ]
 let euminus a = eapp (Variable "~-") [ a ]
 let std_binops = [ "="; "<>"; "<"; "<="; ">"; ">="; "+"; "-"; "*"; "/"; "&&"; "||"; "::" ]
 let std_ops = "not" :: "~-" :: std_binops
+
+let std_lib =
+  [ "print_int"
+  ; "print_gc_status"
+  ; "print_gc_stats"
+  ; "gc_collect"
+  ; "get_heap_start"
+  ; "get_heap_finish"
+  ]
+;;
