@@ -313,13 +313,6 @@ static void _gc_collect(void *current_sp) {
         gc.old_space[old_space_offset++] = data_pointer[k];
       }
 
-      // update .data section pointers
-      for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
-        void **slot = (void **)*p;
-        if (*slot == data_pointer)
-          *slot = new_pointer;
-      }
-
       gc.obj_count++;
       // mark as moved
       *(data_pointer - 1) = (void *)-1;
