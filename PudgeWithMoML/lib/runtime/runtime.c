@@ -379,6 +379,7 @@ static void *my_malloc(size_t size) {
       gc.old_space = new_heap + gc.space_capacity;
     }
   }
+  gc.obj_count++;
 
   gc.new_space[gc.alloc_offset++] = (void *)words;
   void **result = gc.new_space + gc.alloc_offset;
