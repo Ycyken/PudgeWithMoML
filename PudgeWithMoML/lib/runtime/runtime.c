@@ -18,9 +18,19 @@
 #define LOGF(fun) ((void)0)
 #endif
 
+#define LOAD_VARARGS(args, argc)                                                                                       \
+  do {                                                                                                                 \
+    va_list list;                                                                                                      \
+    va_start(list, argc);                                                                                              \
+    for (size_t _i = 0; _i < (argc); _i++) {                                                                           \
+      args[_i] = va_arg(list, void *);                                                                                 \
+    }                                                                                                                  \
+    va_end(list);                                                                                                      \
+  } while (0)
+
 extern void *call_closure(void *code, uint64_t argc, void **argv);
-extern void *__start_gcroots __attribute__((weak));
-extern void *__stop_gcroots __attribute__((weak));
+extern void *__start_global_vars[];
+extern void *__stop_global_vars[];
 
 void print_int(size_t n) {
   n >>= 1;
@@ -74,6 +84,8 @@ struct closure {
 };
 
 static void print_stack(void *current_sp);
+static void *_apply_closure_chain(closure *clos, uint8_t argc, void **new_args);
+static void *_apply_closure(closure *old_clos, uint8_t argc, void **new_args);
 
 static void _print_gc_stats() {
   printf("Heap Info:\n");
@@ -161,7 +173,7 @@ static void print_stack(void *current_sp) {
 static void update_stack_data_ptrs(void *current_sp, void *old, void *new) {
   size_t stack_size = (gc.base_sp - current_sp) / 8;
 
-  // stack
+  // update pointers on stack
   for (size_t i = 0; i < stack_size; i++) {
     void **byte = (void **)gc.base_sp - i - 1;
     if (*byte == old) {
@@ -169,10 +181,11 @@ static void update_stack_data_ptrs(void *current_sp, void *old, void *new) {
     }
   }
 
-  for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
-    void **slot = (void **)*p;
-    if (*slot == old)
-      *slot = new;
+  // update pointers in global variables
+  for (void **p = __start_global_vars; p < __stop_global_vars; ++p) {
+    if (*p == old) {
+      *p = new;
+    }
   }
 
   return;
@@ -244,16 +257,15 @@ static void _gc_collect(void *current_sp) {
     {
       bool found = false;
 
-      // .data section
-      for (void **p = &__start_gcroots; p < &__stop_gcroots; ++p) {
-        void **slot = (void **)*p;
-        if (*slot == cur_pointer) {
+      // check global vars
+      for (void **p = __start_global_vars; p < __stop_global_vars; ++p) {
+        if (*p == cur_pointer) {
           found = true;
           break;
         }
       }
 
-      // stack
+      // check stack
       for (size_t i = 0; i < stack_size; i++) {
         void **byte = (void **)gc.base_sp - i - 1;
         if (*byte == cur_pointer) {
@@ -420,7 +432,7 @@ void **get_heap_fin() {
   return result;
 }
 
-void *alloc_closure(INT8, void *f, uint8_t argc) {
+void *_alloc_closure(void *f, uint8_t argc) {
   LOG("[DEBUG] %s(f: 0x%x, argc: %d)\n", __func__, f, argc);
   closure *clos = my_malloc(sizeof(closure) + sizeof(void *) * argc);
 
@@ -434,31 +446,55 @@ void *alloc_closure(INT8, void *f, uint8_t argc) {
   return result;
 }
 
+void *alloc_closure(INT8, void *f, uint8_t argc) {
+  argc = argc >> 1;
+  return _alloc_closure(f, argc);
+}
+
 // Copy old closure args and new closure args to the destination.
 static void merge_closure_args(void **dest, closure *clos, void **new_args, uint8_t new_argc) {
   memcpy(dest, clos->args, clos->argc_recived * sizeof(void *));
   memcpy(dest + clos->argc_recived, new_args, new_argc * sizeof(void *));
 }
 
-// Get closure and apply [argc] arguments to closure.
-void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
+void *apply_closure_chain(INT8, closure *old_clos, uint8_t argc, ...) {
   argc = argc >> 1;
+  void **new_args = malloc(sizeof(void *) * argc);
+  LOAD_VARARGS(new_args, argc);
 
+  void *result = _apply_closure_chain(old_clos, argc, new_args);
+  free(new_args);
+  return result;
+}
+
+static void *_apply_closure_chain(closure *clos, uint8_t argc, void **new_args) {
+  size_t applied = 0;
+
+  while (applied < argc) {
+    size_t need = clos->argc - clos->argc_recived;
+    size_t provide = argc - applied;
+
+    if (provide <= need) {
+      return _apply_closure(clos, provide, new_args + applied);
+    }
+
+    void *res = _apply_closure(clos, need, new_args + applied);
+    applied += need;
+
+    clos = (closure *)res;
+  }
+
+  return clos;
+}
+
+// Get closure and apply [argc] arguments to closure.
+static void *_apply_closure(closure *old_clos, uint8_t argc, void **new_args) {
   if (old_clos->argc_recived + argc > old_clos->argc) {
     LOG("Closure received %d args, get another %d args, but expect total %d args\n", old_clos->argc_recived, argc,
         old_clos->argc);
     fprintf(stdout, "Runtime error: function accept more arguments than expect\n");
     exit(122);
   }
-
-  void **new_args = malloc(sizeof(void *) * argc);
-  va_list list;
-  va_start(list, argc);
-  for (size_t i = 0; i < argc; i++) {
-    void *arg = va_arg(list, void *);
-    new_args[i] = arg;
-  }
-  va_end(list);
 
   LOG("[Debug] %s(old_clos = {\n\tcode: 0x%x,\n\targc: %d\n\targc_recived: %d\n\targs = [", __func__, old_clos->code,
       old_clos->argc, old_clos->argc_recived);
@@ -477,17 +513,15 @@ void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...) {
     void **args = malloc(sizeof(void *) * old_clos->argc);
     merge_closure_args(args, old_clos, new_args, argc);
 
-    free(new_args);
     LOG(" -> *exec 0x%x*\n", old_clos->code);
     void *result = call_closure(old_clos->code, old_clos->argc, args);
     free(args);
     return result;
   }
 
-  closure *new_clos = alloc_closure(ZERO8, old_clos->code, old_clos->argc);
+  closure *new_clos = _alloc_closure(old_clos->code, old_clos->argc);
   merge_closure_args(new_clos->args, old_clos, new_args, argc);
   new_clos->argc_recived = old_clos->argc_recived + argc;
-  free(new_args);
 
   void *result = new_clos;
   LOG(" -> 0x%x\n", result);

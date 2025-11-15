@@ -47,58 +47,54 @@
     slli t0, t0, 1
     ori t0, t0, 1
     sd t0, -24(fp)
-  # Apply k__2__new with 1 args
-    ld t0, 0(fp)
-    sd t0, -32(fp)
+  # Application to k__2__new with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, 0(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     ld t0, -24(fp)
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply k__2__new with 1 args
+  # End Application to k__2__new with 1 args
     ld ra, 24(sp)
     ld fp, 16(sp)
     addi sp, sp, 32
     ret
   .globl fac__0
   fac__0:
-    addi sp, sp, -80
-    sd ra, 72(sp)
-    sd fp, 64(sp)
-    addi fp, sp, 80
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
     ld t0, 0(fp)
     li t1, 5
     slt t0, t0, t1
     sd t0, -24(fp)
     ld t0, -24(fp)
-    beq t0, zero, L4
-  # Apply k__2 with 1 args
-    ld t0, 8(fp)
-    sd t0, -32(fp)
+    beq t0, zero, L0
+  # Application to k__2 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, 8(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply k__2 with 1 args
-    j L5
-  L4:
+  # End Application to k__2 with 1 args
+    j L1
+  L0:
     ld t0, 0(fp)
     li t1, 3
     srai t0, t0, 1
@@ -106,67 +102,63 @@
     sub t0, t0, t1
     slli t0, t0, 1
     ori t0, t0, 1
-    sd t0, -40(fp)
+    sd t0, -32(fp)
     addi sp, sp, -16
     la t5, f_0
-    li t6, 3
+    li t6, 7
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, -48(fp)
-  # Apply arg_0 with 2 args
-    ld t0, -48(fp)
-    sd t0, -56(fp)
+    sd t0, -40(fp)
+  # Application to arg_0 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -56(fp)
+    ld t0, -40(fp)
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
     ld t0, 8(fp)
     sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-    sd t0, -64(fp)
+  # End Application to arg_0 with 2 args
+    sd t0, -48(fp)
+  # Application to fac__0 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -64(fp)
+    addi sp, sp, -16
+    la t5, fac__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
-    ld t0, 0(fp)
+    ld t0, -32(fp)
     sd t0, 16(sp)
+    ld t0, -48(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply arg_0 with 2 args
-    sd t0, -72(fp)
-  # Apply fac__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -40(fp)
-    sd t0, 0(sp)
-    ld t0, -72(fp)
-    sd t0, 8(sp)
-  # End loading args on stack
-    call fac__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
-  # End Apply fac__0 with 2 args
-  L5:
-    ld ra, 72(sp)
-    ld fp, 64(sp)
-    addi sp, sp, 80
+  # End Application to fac__0 with 2 args
+  L1:
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl f_1
   f_1:
@@ -187,49 +179,53 @@
     addi sp, sp, -16
     addi sp, sp, -16
     la t5, f_1
-    li t6, 1
+    li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
     sd t0, -8(fp)
-  # Apply fac__0 with 2 args
+  # Application to fac__0 with 2 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 13
+    la t5, fac__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
-    ld t0, -8(fp)
+    li t0, 5
     sd t0, 8(sp)
+    li t0, 13
+    sd t0, 16(sp)
+    ld t0, -8(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call fac__0
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply fac__0 with 2 args
+  # End Application to fac__0 with 2 args
     sd t0, -16(fp)
   # Apply print_int
     ld a0, -16(fp)
     call print_int
-    mv t0, a0
   # End Apply print_int
-    la t1, main__4
-    sd t0, 0(t1)
+    la a1, main__4
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__4: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad main__4
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl main__4
+  main__4: .dword 0
 
 
   $ make compile opts=-gen_mid input=test/manytests/typed/012fibcps.ml --no-print-directory -C ..
@@ -286,33 +282,31 @@
     slli t0, t0, 1
     ori t0, t0, 1
     sd t0, -24(fp)
-  # Apply k__2__new with 1 args
-    ld t0, 8(fp)
-    sd t0, -32(fp)
+  # Application to k__2__new with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, 8(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     ld t0, -24(fp)
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply k__2__new with 1 args
+  # End Application to k__2__new with 1 args
     ld ra, 24(sp)
     ld fp, 16(sp)
     addi sp, sp, 32
     ret
   .globl f_1
   f_1:
-    addi sp, sp, -64
-    sd ra, 56(sp)
-    sd fp, 48(sp)
-    addi fp, sp, 64
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
     ld t0, 8(fp)
     li t1, 5
     srai t0, t0, 1
@@ -323,95 +317,89 @@
     sd t0, -24(fp)
     addi sp, sp, -16
     la t5, f_0
-    li t6, 3
+    li t6, 7
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
     sd t0, -32(fp)
-  # Apply arg_0 with 2 args
-    ld t0, -32(fp)
-    sd t0, -40(fp)
+  # Application to arg_0 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -40(fp)
+    ld t0, -32(fp)
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
     ld t0, 16(fp)
     sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-    sd t0, -48(fp)
+  # End Application to arg_0 with 2 args
+    sd t0, -40(fp)
+  # Application to fib__0 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -48(fp)
+    addi sp, sp, -16
+    la t5, fib__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
-    ld t0, 0(fp)
+    ld t0, -24(fp)
     sd t0, 16(sp)
+    ld t0, -40(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply arg_0 with 2 args
-    sd t0, -56(fp)
-  # Apply fib__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -24(fp)
-    sd t0, 0(sp)
-    ld t0, -56(fp)
-    sd t0, 8(sp)
-  # End loading args on stack
-    call fib__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
-  # End Apply fib__0 with 2 args
-    ld ra, 56(sp)
-    ld fp, 48(sp)
-    addi sp, sp, 64
+  # End Application to fib__0 with 2 args
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl fib__0
   fib__0:
-    addi sp, sp, -80
-    sd ra, 72(sp)
-    sd fp, 64(sp)
-    addi fp, sp, 80
+    addi sp, sp, -48
+    sd ra, 40(sp)
+    sd fp, 32(sp)
+    addi fp, sp, 48
     ld t0, 0(fp)
     li t1, 5
     slt t0, t0, t1
     sd t0, -24(fp)
     ld t0, -24(fp)
-    beq t0, zero, L6
-  # Apply k__2 with 1 args
-    ld t0, 8(fp)
-    sd t0, -32(fp)
+    beq t0, zero, L0
+  # Application to k__2 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -32(fp)
+    ld t0, 8(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     ld t0, 0(fp)
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply k__2 with 1 args
-    j L7
-  L6:
+  # End Application to k__2 with 1 args
+    j L1
+  L0:
     ld t0, 0(fp)
     li t1, 3
     srai t0, t0, 1
@@ -419,67 +407,63 @@
     sub t0, t0, t1
     slli t0, t0, 1
     ori t0, t0, 1
-    sd t0, -40(fp)
+    sd t0, -32(fp)
     addi sp, sp, -16
     la t5, f_1
-    li t6, 3
+    li t6, 7
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, -48(fp)
-  # Apply arg_1 with 2 args
-    ld t0, -48(fp)
-    sd t0, -56(fp)
+    sd t0, -40(fp)
+  # Application to arg_1 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -56(fp)
+    ld t0, -40(fp)
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
     ld t0, 8(fp)
     sd t0, 16(sp)
+    ld t0, 0(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-    sd t0, -64(fp)
+  # End Application to arg_1 with 2 args
+    sd t0, -48(fp)
+  # Application to fib__0 with 2 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -64(fp)
+    addi sp, sp, -16
+    la t5, fib__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 5
     sd t0, 8(sp)
-    ld t0, 0(fp)
+    ld t0, -32(fp)
     sd t0, 16(sp)
+    ld t0, -48(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply arg_1 with 2 args
-    sd t0, -72(fp)
-  # Apply fib__0 with 2 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -40(fp)
-    sd t0, 0(sp)
-    ld t0, -72(fp)
-    sd t0, 8(sp)
-  # End loading args on stack
-    call fib__0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
-  # End Apply fib__0 with 2 args
-  L7:
-    ld ra, 72(sp)
-    ld fp, 64(sp)
-    addi sp, sp, 80
+  # End Application to fib__0 with 2 args
+  L1:
+    ld ra, 40(sp)
+    ld fp, 32(sp)
+    addi sp, sp, 48
     ret
   .globl f_2
   f_2:
@@ -500,49 +484,53 @@
     addi sp, sp, -16
     addi sp, sp, -16
     la t5, f_2
-    li t6, 1
+    li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
     sd t0, -8(fp)
-  # Apply fib__0 with 2 args
+  # Application to fib__0 with 2 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 13
+    la t5, fib__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
-    ld t0, -8(fp)
+    li t0, 5
     sd t0, 8(sp)
+    li t0, 13
+    sd t0, 16(sp)
+    ld t0, -8(fp)
+    sd t0, 24(sp)
   # End loading args on stack
-    call fib__0
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply fib__0 with 2 args
+  # End Application to fib__0 with 2 args
     sd t0, -16(fp)
   # Apply print_int
     ld a0, -16(fp)
     call print_int
-    mv t0, a0
   # End Apply print_int
-    la t1, main__5
-    sd t0, 0(t1)
+    la a1, main__5
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__5: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad main__5
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl main__5
+  main__5: .dword 0
 
   $ make compile opts=-gen_mid input=test/manytests/typed/004manyargs.ml --no-print-directory -C ..
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe  | tee -a results.txt && echo "-----" >> results.txt
@@ -742,295 +730,116 @@
     mv fp, sp
     mv a0, sp
     call init_GC
-    addi sp, sp, -160
-  # Apply wrap__0 with 11 args
+    addi sp, sp, -40
+  # Application to wrap__0 with 11 args
+  # Load args on stack
+    addi sp, sp, -112
     addi sp, sp, -16
     la t5, wrap__0
-    li t6, 1
-    sd t5, 0(sp)
-    sd t6, 8(sp)
-    call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, -8(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -8(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    addi sp, sp, -16
-    la t5, test10__9
-    li t6, 10
-    sd t5, 0(sp)
-    sd t6, 8(sp)
-    call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -16(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -16(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 3
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -24(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -24(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 21
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -32(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -32(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 201
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -40(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -40(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 2001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -48(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -48(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 20001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -56(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -56(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 200001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -64(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -64(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 2000001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -72(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -72(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 20000001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -80(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -80(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 200000001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -88(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -88(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 2000000001
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-  # End Apply wrap__0 with 11 args
-    sd t0, -96(fp)
-    ld t0, -96(fp)
-    sd t0, -104(fp)
-  # Apply print_int
-    ld a0, -104(fp)
-    call print_int
-    mv t0, a0
-  # End Apply print_int
-    sd t0, -112(fp)
-  # Apply wrap__0 with 4 args
-    addi sp, sp, -16
-    la t5, wrap__0
-    li t6, 1
-    sd t5, 0(sp)
-    sd t6, 8(sp)
-    call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, -120(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -120(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    addi sp, sp, -16
-    la t5, test3__2
     li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -128(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -128(fp)
     sd t0, 0(sp)
-    li t0, 3
+    li t0, 23
     sd t0, 8(sp)
-    li t0, 3
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
+    addi sp, sp, -16
+    la t5, test10__9
+    li t6, 21
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
     mv t0, a0
-    sd t0, -136(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -136(fp)
-    sd t0, 0(sp)
+    addi sp, sp, 16
+    sd t0, 16(sp)
     li t0, 3
-    sd t0, 8(sp)
+    sd t0, 24(sp)
     li t0, 21
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-    mv t0, a0
-    sd t0, -144(fp)
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -144(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
+    sd t0, 32(sp)
     li t0, 201
-    sd t0, 16(sp)
+    sd t0, 40(sp)
+    li t0, 2001
+    sd t0, 48(sp)
+    li t0, 20001
+    sd t0, 56(sp)
+    li t0, 200001
+    sd t0, 64(sp)
+    li t0, 2000001
+    sd t0, 72(sp)
+    li t0, 20000001
+    sd t0, 80(sp)
+    li t0, 200000001
+    sd t0, 88(sp)
+    li t0, 2000000001
+    sd t0, 96(sp)
   # End loading args on stack
-    call apply_closure
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
+    call apply_closure_chain
     mv t0, a0
-  # End Apply wrap__0 with 4 args
-    sd t0, -152(fp)
-    ld t0, -152(fp)
-    sd t0, -160(fp)
-    li t0, 1
-    la t1, main__20
-    sd t0, 0(t1)
+  # Free args on stack
+    addi sp, sp, 112
+  # End free args on stack
+  # End Application to wrap__0 with 11 args
+    sd t0, -8(fp)
+    ld t0, -8(fp)
+    sd t0, -16(fp)
+  # Apply print_int
+    ld a0, -16(fp)
+    call print_int
+    mv t0, a0
+  # End Apply print_int
+    sd t0, -24(fp)
+  # Application to wrap__0 with 4 args
+  # Load args on stack
+    addi sp, sp, -48
+    addi sp, sp, -16
+    la t5, wrap__0
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 9
+    sd t0, 8(sp)
+    addi sp, sp, -16
+    la t5, test3__2
+    li t6, 7
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 16(sp)
+    li t0, 3
+    sd t0, 24(sp)
+    li t0, 21
+    sd t0, 32(sp)
+    li t0, 201
+    sd t0, 40(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 48
+  # End free args on stack
+  # End Application to wrap__0 with 4 args
+    sd t0, -32(fp)
+    ld t0, -32(fp)
+    sd t0, -40(fp)
+    li a0, 1
+    la a1, main__20
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__20: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad main__20
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl main__20
+  main__20: .dword 0
 
 ( IT MUST BE AT THE END OF THE CRAM TEST )
   $ cat results.txt
