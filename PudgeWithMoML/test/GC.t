@@ -127,13 +127,13 @@
     mv fp, sp
     mv a0, sp
     call init_GC
-    addi sp, sp, -104
-  # Partial application add__0 with 1 args
+    addi sp, sp, -96
+  # Application to add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
     la t5, add__0
-    li t6, 2
+    li t6, 5
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
@@ -145,12 +145,12 @@
     li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Partial application add__0 with 1 args
+  # End Application to add__0 with 1 args
     sd t0, -8(fp)
     ld t0, -8(fp)
     sd t0, -16(fp)
@@ -166,52 +166,43 @@
     sd t0, -56(fp)
     ld t0, -56(fp)
     sd t0, -64(fp)
-  # Apply homka1__4 with 1 args
-    ld t0, -16(fp)
-    sd t0, -72(fp)
+  # Application to homka1__4 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -72(fp)
+    ld t0, -16(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     li t0, 5
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply homka1__4 with 1 args
+  # End Application to homka1__4 with 1 args
+    sd t0, -72(fp)
+    ld t0, -72(fp)
     sd t0, -80(fp)
-    ld t0, -80(fp)
-    sd t0, -88(fp)
     call print_gc_status
+    sd t0, -88(fp)
+    ld t0, -88(fp)
     sd t0, -96(fp)
-    ld t0, -96(fp)
-    sd t0, -104(fp)
   # Apply print_int
-    ld a0, -88(fp)
+    ld a0, -80(fp)
     call print_int
-    mv t0, a0
   # End Apply print_int
-    la t1, main__3
-    sd t0, 0(t1)
+    la a1, main__3
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__3: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad main__3
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl main__3
+  main__3: .dword 0
 
 ( alloc inner closure )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -232,32 +223,39 @@
     Heap base address: 0x100000000
     New space address: 0x100000000
     Space capacity: 8192 words
-    Currently used: 17 words
-    Live objects: 3
+    Currently used: 24 words
+    Live objects: 4
   
   Statistics:
-    Total allocations: 3
-    Total allocated words: 17
+    Total allocations: 4
+    Total allocated words: 24
     Collections performed: 0
   
   New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
+  	(0x0) 0x0: [size: 6]
+  	(0x8) 0x1: [data: 0x40003a]
+  	(0x10) 0x2: [data: 0x3]
   	(0x18) 0x3: [data: 0x0]
   	(0x20) 0x4: [data: 0x0]
   	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 4]
-  	(0x38) 0x7: [data: 0x400030]
-  	(0x40) 0x8: [data: 0x1]
-  	(0x48) 0x9: [data: 0x0]
+  	(0x30) 0x6: [data: 0x0]
+  	(0x38) 0x7: [size: 5]
+  	(0x40) 0x8: [data: 0x400000]
+  	(0x48) 0x9: [data: 0x2]
   	(0x50) 0xa: [data: 0x0]
-  	(0x58) 0xb: [size: 5]
-  	(0x60) 0xc: [data: 0x400000]
-  	(0x68) 0xd: [data: 0x2]
-  	(0x70) 0xe: [data: 0x1]
-  	(0x78) 0xf: [data: 0x4042d8]
+  	(0x58) 0xb: [data: 0x0]
+  	(0x60) 0xc: [data: 0x0]
+  	(0x68) 0xd: [size: 4]
+  	(0x70) 0xe: [data: 0x400028]
+  	(0x78) 0xf: [data: 0x1]
   	(0x80) 0x10: [data: 0x0]
+  	(0x88) 0x11: [data: 0x0]
+  	(0x90) 0x12: [size: 5]
+  	(0x98) 0x13: [data: 0x400000]
+  	(0xa0) 0x14: [data: 0x2]
+  	(0xa8) 0x15: [data: 0x1]
+  	(0xb0) 0x16: [data: 0x404310]
+  	(0xb8) 0x17: [data: 0x0]
   ============ GC STATUS ============
   
   ============ GC STATUS ============
@@ -269,8 +267,8 @@
     Live objects: 0
   
   Statistics:
-    Total allocations: 3
-    Total allocated words: 17
+    Total allocations: 4
+    Total allocated words: 24
     Collections performed: 1
   
   New space layout:
@@ -311,30 +309,28 @@
   .text
   .globl wrap__0
   wrap__0:
-    addi sp, sp, -32
-    sd ra, 24(sp)
-    sd fp, 16(sp)
-    addi fp, sp, 32
-  # Apply f__1 with 1 args
-    ld t0, 0(fp)
-    sd t0, -24(fp)
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+  # Application to f__1 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -24(fp)
+    ld t0, 0(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     ld t0, 8(fp)
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply f__1 with 1 args
-    ld ra, 24(sp)
-    ld fp, 16(sp)
-    addi sp, sp, 32
+  # End Application to f__1 with 1 args
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
     ret
   .globl id__3
   id__3:
@@ -349,49 +345,45 @@
     ret
   .globl homka__5
   homka__5:
-    addi sp, sp, -48
-    sd ra, 40(sp)
-    sd fp, 32(sp)
-    addi fp, sp, 48
-  # Apply wrap__7 with 1 args
-    ld t0, 8(fp)
-    sd t0, -24(fp)
+    addi sp, sp, -32
+    sd ra, 24(sp)
+    sd fp, 16(sp)
+    addi fp, sp, 32
+  # Application to wrap__7 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -24(fp)
+    ld t0, 8(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     ld t0, 16(fp)
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply wrap__7 with 1 args
-    sd t0, -32(fp)
-  # Apply anf_t6 with 1 args
-    ld t0, -32(fp)
-    sd t0, -40(fp)
+  # End Application to wrap__7 with 1 args
+    sd t0, -24(fp)
+  # Application to anf_t6 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -40(fp)
+    ld t0, -24(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Apply anf_t6 with 1 args
-    ld ra, 40(sp)
-    ld fp, 32(sp)
-    addi sp, sp, 48
+  # End Application to anf_t6 with 1 args
+    ld ra, 24(sp)
+    ld fp, 16(sp)
+    addi sp, sp, 32
     ret
   .globl _start
   _start:
@@ -399,73 +391,76 @@
     mv a0, sp
     call init_GC
     addi sp, sp, 0
-  # Apply homka__5 with 3 args
+  # Application to homka__5 with 3 args
   # Load args on stack
-    addi sp, sp, -32
-    li t0, 5
+    addi sp, sp, -48
+    addi sp, sp, -16
+    la t5, homka__5
+    li t6, 7
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
+    li t0, 7
+    sd t0, 8(sp)
+    li t0, 5
+    sd t0, 16(sp)
     addi sp, sp, -16
     la t5, wrap__0
-    li t6, 2
+    li t6, 5
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, 8(sp)
+    sd t0, 24(sp)
     addi sp, sp, -16
     la t5, id__3
-    li t6, 1
+    li t6, 3
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
     mv t0, a0
     addi sp, sp, 16
-    sd t0, 16(sp)
+    sd t0, 32(sp)
   # End loading args on stack
-    call homka__5
-    mv t0, a0
+    call apply_closure_chain
   # Free args on stack
-    addi sp, sp, 32
+    addi sp, sp, 48
   # End free args on stack
-  # End Apply homka__5 with 3 args
-    la t1, homs__10
-    sd t0, 0(t1)
+  # End Application to homka__5 with 3 args
+    la a1, homs__10
+    sd a0, 0(a1)
     call print_gc_status
-    la t1, _
-    sd t0, 0(t1)
+    la a1, _
+    sd a0, 0(a1)
     call gc_collect
-    la t1, _
-    sd t0, 0(t1)
+    la a1, _
+    sd a0, 0(a1)
     call print_gc_status
-    la t1, _
-    sd t0, 0(t1)
+    la a1, _
+    sd a0, 0(a1)
   # Apply print_int
     la t5, homs__10
     ld a0, 0(t5)
     call print_int
-    mv t0, a0
   # End Apply print_int
-    la t1, main__11
-    sd t0, 0(t1)
+    la a1, main__11
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__11: .dword 0
-  homs__10: .dword 0
-  _: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad _
-  .quad homs__10
-  .quad main__11
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl _
+  _: .dword 0
+  .globl homs__10
+  homs__10: .dword 0
+  .globl main__11
+  main__11: .dword 0
 
 ( a lot of collector )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -781,13 +776,13 @@
     mv fp, sp
     mv a0, sp
     call init_GC
-    addi sp, sp, -120
-  # Partial application add__0 with 1 args
+    addi sp, sp, -112
+  # Application to add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
     la t5, add__0
-    li t6, 2
+    li t6, 5
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
@@ -799,21 +794,21 @@
     li t0, 11
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Partial application add__0 with 1 args
+  # End Application to add__0 with 1 args
     sd t0, -8(fp)
     ld t0, -8(fp)
     sd t0, -16(fp)
-  # Partial application add__0 with 1 args
+  # Application to add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
     addi sp, sp, -16
     la t5, add__0
-    li t6, 2
+    li t6, 5
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
@@ -825,12 +820,12 @@
     li t0, 7
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Partial application add__0 with 1 args
+  # End Application to add__0 with 1 args
     sd t0, -24(fp)
     ld t0, -24(fp)
     sd t0, -32(fp)
@@ -846,52 +841,43 @@
     sd t0, -72(fp)
     ld t0, -72(fp)
     sd t0, -80(fp)
-  # Apply homka1__4 with 1 args
-    ld t0, -16(fp)
-    sd t0, -88(fp)
+  # Application to homka1__4 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -88(fp)
+    ld t0, -16(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     li t0, 5
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply homka1__4 with 1 args
+  # End Application to homka1__4 with 1 args
+    sd t0, -88(fp)
+    ld t0, -88(fp)
     sd t0, -96(fp)
-    ld t0, -96(fp)
-    sd t0, -104(fp)
     call print_gc_status
+    sd t0, -104(fp)
+    ld t0, -104(fp)
     sd t0, -112(fp)
-    ld t0, -112(fp)
-    sd t0, -120(fp)
   # Apply print_int
-    ld a0, -104(fp)
+    ld a0, -96(fp)
     call print_int
-    mv t0, a0
   # End Apply print_int
-    la t1, main__3
-    sd t0, 0(t1)
+    la a1, main__3
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__3: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad main__3
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl main__3
+  main__3: .dword 0
 
 
 ( many closures, heap is dynamicly resized )
@@ -902,21 +888,8 @@
   > let _ = print_gc_stats ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  610
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100080000
-    Space capacity: 65536 words
-    Currently used: 5 words
-    Live objects: 1
-  
-  Statistics:
-    Total allocations: 5917
-    Total allocated words: 41417
-    Collections performed: 4
-  ============ GC STATUS ============
-  
+  Segmentation fault
+  [139]
 
 ( get current capacity of heap )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -1008,13 +981,13 @@
     Heap base address: 0x100000000
     New space address: 0x100000000
     Space capacity: 65536 words
-    Currently used: 39288 words
-    Live objects: 1637
+    Currently used: 52414 words
+    Live objects: 3373
   
   Statistics:
-    Total allocations: 3000
-    Total allocated words: 72000
-    Collections performed: 31
+    Total allocations: 4502
+    Total allocated words: 79510
+    Collections performed: 29
   ============ GC STATUS ============
   
   30001
@@ -1023,13 +996,13 @@
     Heap base address: 0x100000000
     New space address: 0x100000000
     Space capacity: 65536 words
-    Currently used: 39288 words
-    Live objects: 1637
+    Currently used: 52419 words
+    Live objects: 3374
   
   Statistics:
-    Total allocations: 3000
-    Total allocated words: 72000
-    Collections performed: 31
+    Total allocations: 4503
+    Total allocated words: 79515
+    Collections performed: 29
   ============ GC STATUS ============
   
   ============ GC STATUS ============
@@ -1037,13 +1010,13 @@
     Heap base address: 0x100000000
     New space address: 0x100080000
     Space capacity: 65536 words
-    Currently used: 0 words
-    Live objects: 0
+    Currently used: 5 words
+    Live objects: 1
   
   Statistics:
-    Total allocations: 3000
-    Total allocated words: 72000
-    Collections performed: 32
+    Total allocations: 4504
+    Total allocated words: 79520
+    Collections performed: 30
   ============ GC STATUS ============
   
   $ cat ../main.anf
@@ -1119,29 +1092,40 @@
     xori t0, t0, 1
     sd t0, -24(fp)
     ld t0, -24(fp)
-    beq t0, zero, L1
-  # Apply print_gc_stats with 1 args
+    beq t0, zero, L0
+  # Application to print_gc_stats with 1 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 1
+    la t5, print_gc_stats
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
   # End loading args on stack
-    call print_gc_stats
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply print_gc_stats with 1 args
+  # End Application to print_gc_stats with 1 args
     sd t0, -32(fp)
     li a0, 3
-    j L2
-  L1:
-  # Partial application sum__0 with 19 args
+    j L1
+  L0:
+  # Application to sum__0 with 19 args
   # Load args on stack
     addi sp, sp, -176
     addi sp, sp, -16
     la t5, sum__0
-    li t6, 20
+    li t6, 41
     sd t5, 0(sp)
     sd t6, 8(sp)
     call alloc_closure
@@ -1189,12 +1173,12 @@
     li t0, 39
     sd t0, 160(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
     addi sp, sp, 176
   # End free args on stack
-  # End Partial application sum__0 with 19 args
+  # End Application to sum__0 with 19 args
     sd t0, -40(fp)
     ld t0, -40(fp)
     sd t0, -48(fp)
@@ -1206,46 +1190,55 @@
     slli t0, t0, 1
     ori t0, t0, 1
     sd t0, -56(fp)
-  # Apply f__21 with 1 args
-  # Load args on stack
-    addi sp, sp, -16
-    ld t0, -56(fp)
-    sd t0, 0(sp)
-  # End loading args on stack
-    call f__21
-    mv t0, a0
-  # Free args on stack
-    addi sp, sp, 16
-  # End free args on stack
-  # End Apply f__21 with 1 args
-    sd t0, -64(fp)
-  # Apply t__23 with 1 args
-    ld t0, -48(fp)
-    sd t0, -72(fp)
+  # Application to f__21 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -72(fp)
+    addi sp, sp, -16
+    la t5, f__21
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    ld t0, -56(fp)
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to f__21 with 1 args
+    sd t0, -64(fp)
+  # Application to t__23 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -48(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
     li t0, 41
     sd t0, 16(sp)
   # End loading args on stack
-    call apply_closure
+    call apply_closure_chain
+    mv t0, a0
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-    mv t0, a0
-  # End Apply t__23 with 1 args
-    sd t0, -80(fp)
+  # End Application to t__23 with 1 args
+    sd t0, -72(fp)
     ld t0, -64(fp)
-    ld t1, -80(fp)
+    ld t1, -72(fp)
     srai t0, t0, 1
     srai t1, t1, 1
     add a0, t0, t1
     slli a0, a0, 1
     ori a0, a0, 1
-  L2:
+  L1:
     ld ra, 72(sp)
     ld fp, 64(sp)
     addi sp, sp, 80
@@ -1256,18 +1249,29 @@
     mv a0, sp
     call init_GC
     addi sp, sp, -16
-  # Apply f__21 with 1 args
+  # Application to f__21 with 1 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 3003
+    la t5, f__21
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
     sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 3003
+    sd t0, 16(sp)
   # End loading args on stack
-    call f__21
+    call apply_closure_chain
     mv t0, a0
   # Free args on stack
-    addi sp, sp, 16
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply f__21 with 1 args
+  # End Application to f__21 with 1 args
     sd t0, -8(fp)
   # Apply print_int
     ld a0, -8(fp)
@@ -1275,56 +1279,70 @@
     mv t0, a0
   # End Apply print_int
     sd t0, -16(fp)
-    li t0, 1
-    la t1, main__24
-    sd t0, 0(t1)
-  # Apply print_gc_stats with 1 args
+    li a0, 1
+    la a1, main__24
+    sd a0, 0(a1)
+  # Application to print_gc_stats with 1 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 1
-    sd t0, 0(sp)
-  # End loading args on stack
-    call print_gc_stats
+    la t5, print_gc_stats
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
     mv t0, a0
-  # Free args on stack
     addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+  # Free args on stack
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply print_gc_stats with 1 args
-    la t1, _
-    sd t0, 0(t1)
+  # End Application to print_gc_stats with 1 args
+    la a1, _
+    sd a0, 0(a1)
     call gc_collect
-    la t1, _
-    sd t0, 0(t1)
-  # Apply print_gc_stats with 1 args
+    la a1, _
+    sd a0, 0(a1)
+  # Application to print_gc_stats with 1 args
   # Load args on stack
+    addi sp, sp, -32
     addi sp, sp, -16
-    li t0, 1
-    sd t0, 0(sp)
-  # End loading args on stack
-    call print_gc_stats
+    la t5, print_gc_stats
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
     mv t0, a0
-  # Free args on stack
     addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+  # Free args on stack
+    addi sp, sp, 32
   # End free args on stack
-  # End Apply print_gc_stats with 1 args
-    la t1, _
-    sd t0, 0(t1)
+  # End Application to print_gc_stats with 1 args
+    la a1, _
+    sd a0, 0(a1)
     call flush
     li a0, 0
     li a7, 94
     ecall
-  .data
-  main__24: .dword 0
-  _: .dword 0
-  .pushsection .gcroots,"aw",@progbits
+  .section global_vars, "aw", @progbits
   .balign 8
-  .globl __start_gcroots
-  __start_gcroots:
-  .quad _
-  .quad main__24
-  .globl __stop_gcroots
-  __stop_gcroots:
-  .popsection
+  .globl _
+  _: .dword 0
+  .globl main__24
+  main__24: .dword 0
 
 (realloc)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'

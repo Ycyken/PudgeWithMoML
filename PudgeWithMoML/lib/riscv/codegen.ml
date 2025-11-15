@@ -10,12 +10,26 @@ open Frontend.Ast
 open Machine
 open Middle_end
 open Middle_end.Anf
+module StringSet = Set.Make (String)
+
+let func_arity =
+  let rec helper acc = function
+    | ACExpr (CLambda (_, body)) -> helper (acc + 1) body
+    | _ -> acc
+  in
+  helper 0
+;;
+
+let program_binds (pr : aprogram) =
+  Base.List.concat_map pr ~f:(fun (_, bind, binds) -> bind :: binds)
+;;
 
 type location =
-  | Reg of reg
   | Stack of int (* offset from fp *)
-  | Function of int (* global funciton and it's arity *)
-  | Global (* bss section *)
+  | Global of int
+(* Global and it's arity. Arity includes only the number of explicit arguments. 
+  Arity > 0 <=> It's function. 
+  Arity = 0 <=> it's global variable.*)
 
 let word_size = 8
 
@@ -35,38 +49,30 @@ module M = struct
       type error = string
     end)
 
-  let func_arity =
-    let rec helper acc = function
-      | ACExpr (CLambda (_, body)) -> helper (acc + 1) body
-      | _ -> acc
-    in
-    helper 0
-  ;;
-
-  let program_arities (pr : aprogram) =
+  let init_globals (pr : aprogram) =
     let open Base in
-    let binds = pr |> List.concat_map ~f:(fun (_, bind, binds) -> bind :: binds) in
+    let binds = program_binds pr in
     List.fold
       binds
       ~init:(Map.empty (module String))
       ~f:(fun acc -> function
-        | f, ACExpr (CLambda (_, body)) ->
-          Map.set acc ~key:f ~data:(Function (1 + func_arity body))
-        | _ -> acc)
+        | f, (ACExpr (CLambda _) as body) ->
+          Map.set acc ~key:f ~data:(Global (func_arity body))
+        | f, _ -> Map.set acc ~key:f ~data:(Global 0))
   ;;
 
   let default pr =
     let open Base in
-    let arities = program_arities pr in
+    let arities = init_globals pr in
     let std =
       Map.of_alist_exn
         (module String)
-        [ "print_int", Function 1
-        ; "gc_collect", Function 1
-        ; "get_heap_start", Function 1
-        ; "get_heap_fin", Function 1
-        ; "print_gc_status", Function 1
-        ; "print_gc_stats", Function 1
+        [ "print_int", Global 1
+        ; "gc_collect", Global 1
+        ; "get_heap_start", Global 1
+        ; "get_heap_fin", Global 1
+        ; "print_gc_status", Global 1
+        ; "print_gc_stats", Global 1
         ]
     in
     let env =
@@ -78,12 +84,12 @@ module M = struct
     { env; frame_offset = 0; fresh = 0 }
   ;;
 
-  (* Get arity of global function. If function is not in the global scope, then return 0 *)
-  let get_arity name : int t =
+  let get_global_vars : StringSet.t t =
     let+ st = get in
-    match Map.find st.env name with
-    | Some (Function arity) -> arity
-    | _ -> 0
+    Map.fold st.env ~init:StringSet.empty ~f:(fun ~key ~data acc ->
+      match data with
+      | Global arity when arity = 0 -> StringSet.add key acc
+      | _ -> acc)
   ;;
 
   let fresh : string t =
@@ -116,11 +122,6 @@ module M = struct
     add_binding name (Stack off) >>| fun _ -> off
   ;;
 
-  let save_fun_on_stack name arity : unit t =
-    let+ () = add_binding name (Function arity) in
-    ()
-  ;;
-
   let lookup name : location option t = get >>| fun st -> Map.find st.env name
 end
 
@@ -133,8 +134,9 @@ let imm_of_literal : literal -> int = function
   | Unit_lt -> 1
 ;;
 
-(* Generate code that puts imm value to dst reg *)
-(* Note: gen_imm overwrite **regs t5 and t6** for internal work *)
+(** Generate code that puts imm value to dst reg.
+
+For global functions allocates closure, for global variables load it's value.*)
 let gen_imm dst = function
   | ImmConst (Int_lt _ as lt) ->
     let imm = imm_of_literal lt in
@@ -146,20 +148,18 @@ let gen_imm dst = function
     let* loc = M.lookup x in
     (match loc with
      | Some (Stack off) -> return [ ld dst (-off) fp ]
-     (* if we meet function (it's top level) -- call alloc_closure function *)
-     | Some (Function arity) ->
+     | Some (Global arity) when arity > 0 ->
        return
          [ addi Sp Sp (-16)
          ; la (T 5) x
-         ; li (T 6) arity
+         ; li (T 6) (Int.shift_left arity 1 + 1)
          ; sd (T 5) 0 Sp
          ; sd (T 6) 8 Sp
          ; call "alloc_closure"
          ; mv dst (A 0)
          ; addi Sp Sp 16
          ]
-     | Some Global -> return [ la (T 5) x; ld dst 0 (T 5) ]
-     | Some (Reg reg) -> return [ mv dst reg ]
+     | Some (Global _) -> return [ la (T 5) x; ld dst 0 (T 5) ]
      | _ -> fail ("unbound variable: " ^ x))
 ;;
 
@@ -246,8 +246,6 @@ let%expect_test "not even args" =
 (* argument values keeps on stack *)
 (* use this function before save ra and fp registers *)
 let get_args_from_stack (args : ident list) : unit t =
-  (* let argc = List.length args in *)
-  (* let argc = argc + (argc mod 2) in *)
   let* current_sp = get_frame_offset in
   let* () =
     let rec helper num = function
@@ -360,43 +358,16 @@ let rec gen_cexpr dst = function
   | CApp (ImmVar name, ImmConst Unit_lt, [])
     when Base.List.mem [ "get_heap_start"; "get_heap_fin" ] name ~equal:String.equal ->
     ([ call name ] @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> return
-  | CApp ((ImmVar f as imm), arg, args) ->
+  | CApp (ImmVar f, arg, args) ->
     let argc = List.length (arg :: args) in
-    let* arity = M.get_arity f in
-    (match arity with
-     | _ when argc = arity ->
-       (* it is full application *)
-       let comment = Format.asprintf "Apply %s with %d args" f argc in
-       let+ call_code = call_function f (arg :: args) ~dst in
-       call_code |> comment_wrap comment
-     | _ when argc < arity ->
-       (* it is partial application *)
-       let comment = Format.asprintf "Partial application %s with %d args" f argc in
-       let args = ImmVar f :: ImmConst (Int_lt argc) :: arg :: args in
-       let+ call_code = call_function "apply_closure" args ~dst in
-       call_code |> comment_wrap comment
-     | _ ->
-       (* f is not top level, so apply arguments one by one *)
-       (* TODO: closure keep argc, so we can group them by that number *)
-       let comment = Format.asprintf "Apply %s with %d args" f argc in
-       let rec helper imm acc = function
-         | [] -> return acc
-         | arg :: args ->
-           let* temp = fresh in
-           let* get_closure_code =
-             let* get_f = gen_imm (T 0) imm in
-             let+ off = save_var_on_stack temp in
-             get_f @ [ sd (T 0) (-off) fp ]
-           in
-           let* call_code =
-             call_function "apply_closure" [ ImmVar temp; ImmConst (Int_lt 1); arg ]
-           in
-           let code = get_closure_code @ call_code in
-           let* () = add_binding temp (Reg (A 0)) in
-           helper (ImmVar temp) (acc @ code) args
-       in
-       let+ result = helper imm [] (arg :: args) in
-       (result @ if dst = A 0 then [] else [ mv dst (A 0) ]) |> comment_wrap comment)
+    let comment = Format.asprintf "Application to %s with %d args" f argc in
+    let+ apply_chain =
+      call_function
+        "apply_closure_chain"
+        (ImmVar f :: ImmConst (Int_lt argc) :: arg :: args)
+        ~dst
+    in
+    apply_chain |> comment_wrap comment
   | CLambda (arg, body) ->
     let args, body =
       let rec helper acc = function
@@ -441,105 +412,57 @@ and gen_aexpr dst = function
   | _ -> fail "gen_aexpr case not implemented yet"
 ;;
 
-let gen_astr_item : astr_item -> instr list M.t = function
-  | _, (f, ACExpr (CLambda (_, _) as lam)), [] ->
-    let* arity = get_arity f in
-    let* () = save_fun_on_stack f arity in
-    let+ code = gen_cexpr (T 0) lam in
-    [ directive (Format.asprintf ".globl %s" f); label f ] @ code
-  | Nonrec, (name, e), [] ->
-    let* () = add_binding name Global in
-    let+ code = gen_aexpr (T 0) e in
-    code @ [ la (T 1) name; sd (T 0) 0 (T 1) ]
-  | i ->
-    (* TODO: replace it with Anf.pp_astr_item without \n prints *)
-    fail (Format.asprintf "not implemented codegen for astr item: %a" pp_astr_item i)
-;;
-
-(* get list of global variables that are not functions and generate bss section (local variables) *)
-let get_globals_variables (pr : aprogram) =
-  let module StringSet = Set.Make (String) in
-  let rec helper acc (astrs : astr_item list) =
-    (* After lambda lifting we don't have inner functions that make our life mush easy :) *)
-    match astrs with
-    | [] -> acc |> return
-    | (_, (_, ACExpr (CLambda (_, _))), []) :: tl -> helper acc tl
-    | (_, (name, _), []) :: tl -> helper (StringSet.add name acc) tl
-    | (_, (_, _), _ :: _) :: _ ->
-      fail "Multiple bindings in astr_item not implemented yet"
+(** Generate code for global functions and _start function.
+_start func just calculates values of global variables and stores it's. *)
+let gen_funcs (pr : aprogram) : (instr list * instr list) M.t =
+  let binds = program_binds pr in
+  let rec helper acc (binds : binding list) =
+    let funcs, main = acc in
+    match binds with
+    | [] -> return acc
+    | (f, ACExpr (CLambda _ as lam)) :: tl ->
+      let* code = gen_cexpr (A 0) lam in
+      let func = [ directive (Format.asprintf ".globl %s" f); label f ] @ code in
+      helper (funcs @ func, main) tl
+    | (f, e) :: tl ->
+      let* gen_var = gen_aexpr (A 0) e in
+      let store_var = [ la (A 1) f; sd (A 0) 0 (A 1) ] in
+      helper (funcs, main @ gen_var @ store_var) tl
   in
-  helper StringSet.empty pr
+  let+ funcs, main = helper ([], []) binds in
+  funcs, main
 ;;
 
-let gen_gcroots_section (pr : aprogram) : instr list t =
-  let module S = Set.Make (String) in
-  let* vars = get_globals_variables pr in
-  let quads =
-    S.fold (fun v acc -> Directive (Printf.sprintf ".quad %s" v) :: acc) vars []
+(** Generate global_vars section with global variables. *)
+let gen_vars_section : instr list t =
+  let+ gl_vars = get_global_vars in
+  let gl_vars =
+    List.concat_map
+      (fun v -> [ Directive (Format.sprintf ".globl %s" v); DWord v ])
+      (StringSet.elements gl_vars)
   in
-  return
-    ([ Directive ".pushsection .gcroots,\"aw\",@progbits"
-     ; Directive ".balign 8"
-     ; Directive ".globl __start_gcroots"
-     ; Label "__start_gcroots"
-     ]
-     @ List.rev quads
-     @ [ Directive ".globl __stop_gcroots"
-       ; Label "__stop_gcroots"
-       ; Directive ".popsection"
-       ])
+  [ Directive ".section global_vars, \"aw\", @progbits"; Directive ".balign 8" ] @ gl_vars
 ;;
 
-let gen_bss_section (pr : aprogram) : instr list t =
-  let module StringSet = Set.Make (String) in
-  let+ vars = get_globals_variables pr in
-  StringSet.fold (fun v acc -> DWord v :: acc) vars []
-;;
-
-let is_function = function
-  | _, (_, ACExpr (CLambda (_, _))), [] -> true
-  | _ -> false
-;;
-
-(* Go through list of astr_item, generates three types of code:
-  1) Code for variables initialization of the bss section (exec in _start)
-  2) Code for functions *)
-let gather pr : instr list t =
-  let* main_code, functions_code =
-    let rec helper acc = function
-      | [] -> M.return acc
-      | item :: rest ->
-        let main_code, functions_code = acc in
-        let* code = gen_astr_item item in
-        if is_function item
-        then helper (main_code, functions_code @ code) rest
-        else helper (main_code @ code, functions_code) rest
-    in
-    helper ([], []) pr
-  in
+(* Generate code for the entire program: functions, _start, global_vars section. *)
+let gen_code pr : instr list M.t =
+  let* funcs, main = gen_funcs pr in
+  let* vars_section = gen_vars_section in
   let+ frame = M.get_frame_offset in
   [ directive ".text" ]
-  @ functions_code
+  @ funcs
   @ [ directive ".globl _start"; label "_start" ]
   @ [ mv fp Sp ]
   @ [ mv (A 0) Sp; call "init_GC" ]
   @ [ addi Sp Sp (-frame) ]
-  @ main_code
+  @ main
   @ [ call "flush"; li (A 0) 0; li (A 7) 94; ecall ]
+  @ vars_section
 ;;
 
 let gen_aprogram fmt (pr : aprogram) =
-  let code =
-    let* bss_section = gen_bss_section pr in
-    let* gcroots = gen_gcroots_section pr in
-    let+ main_code = gather pr in
-    main_code, bss_section, gcroots
-  in
+  let code = gen_code pr in
   match M.run code (M.default pr) |> snd with
   | Error msg -> Error msg
-  | Ok (main_code, bss_section, gcroots) ->
-    pp_instrs main_code fmt;
-    if Base.List.is_empty bss_section
-    then Ok ()
-    else Ok (pp_instrs ((Directive ".data" :: bss_section) @ gcroots) fmt)
+  | Ok res -> Ok (pp_instrs res fmt)
 ;;

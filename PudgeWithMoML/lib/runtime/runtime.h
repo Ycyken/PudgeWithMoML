@@ -22,6 +22,6 @@ void **get_heap_start();
 void **get_heap_fin();
 
 void *alloc_closure(INT8, void *f, uint8_t argc);
-void *apply_closure(INT8, closure *old_clos, uint8_t argc, ...);
+void *apply_closure_chain(INT8, closure *old_clos, uint8_t argc, ...);
 
 #endif
