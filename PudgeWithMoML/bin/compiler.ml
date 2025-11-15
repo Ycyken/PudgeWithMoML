@@ -27,6 +27,10 @@ type opts =
   ; mutable gen_middleend : bool
   }
 
+let file name f =
+  Out_channel.with_file name ~f:(fun oc -> f (Format.formatter_of_out_channel oc))
+;;
+
 let compiler opts =
   let input =
     if opts.input_file <> ""
@@ -52,14 +56,12 @@ let compiler opts =
             | Ok cc when opts.dump_cc -> fprintf std_formatter "%a\n" pp_aprogram cc
             | Ok cc ->
               let ll = convert_ll_pr cc in
-              if opts.gen_middleend
-              then
-                Out_channel.with_file "main.anf" ~f:(fun oc ->
-                  pp_aprogram (Format.formatter_of_out_channel oc) ll);
-              Out_channel.with_file opts.output_file ~f:(fun oc ->
-                match gen_aprogram (Format.formatter_of_out_channel oc) ll with
-                | Error e -> eprintf "Codegen error: %s\n" e
-                | Ok () -> ()))))
+              if opts.gen_middleend then file "main.anf" (fun fmt -> pp_aprogram fmt ll);
+              (match gen_aprogram ll with
+               | Error e -> eprintf "Codegen error: %s\n" e
+               | Ok out ->
+                 file opts.output_file out.main;
+                 file "init_closures.s" out.init_closures))))
 ;;
 
 let () =
