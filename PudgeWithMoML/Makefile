@@ -28,6 +28,7 @@ CFLAGS = -Wall -Wextra \
 ASFLAGS = -march=rv64gc
 
 ifeq ($(FIXADDR),1)
+  CFLAGS += -fno-PIE
   LDFLAGS += -no-pie -Wl,-Ttext=0x400000
 endif
 
