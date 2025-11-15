@@ -122,7 +122,7 @@ static void _print_gc_stats() {
 
   printf("\nStatistics:\n");
   printf("  Total allocations: %ld\n", gc.alloc_count);
-  printf("  Total allocated words: %ld\n", gc.alloc_bytes_count / WORD_SIZE);
+  printf("  Total allocated: %ld words\n", gc.alloc_bytes_count / WORD_SIZE);
   printf("  Collections performed: %ld\n", gc.collect_count);
 }
 
