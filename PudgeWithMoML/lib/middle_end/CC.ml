@@ -161,7 +161,8 @@ let convert_cc_pr (pr : aprogram) =
       let rec helper (astr : astr_item list) =
         match astr with
         | (_, (f, ACExpr (CLambda _)), []) :: tl -> f = name || helper tl
-        | _ -> false
+        | _ :: tl -> helper tl
+        | [] -> false
       in
       helper pr
   in
