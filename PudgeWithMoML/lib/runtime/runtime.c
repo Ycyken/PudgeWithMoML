@@ -381,7 +381,7 @@ static void *my_malloc(size_t size) {
   // no free space left after alloc size bytes + header
   if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
     LOG("no free space\n");
-    _gc_collect(current_sp);
+    _gc_collect(current_sp); // TODO: THINK ABOUT SAFETY of this collect call: it can corrupt runtime variables!
 
     // after collecting we still don't have space, so we are increasing heap size
     if (gc.alloc_offset + (words + 1) >= gc.space_capacity) {
@@ -459,11 +459,10 @@ static void merge_closure_args(void **dest, closure *clos, void **new_args, uint
 
 void *apply_closure_chain(INT8, closure *old_clos, uint8_t argc, ...) {
   argc = argc >> 1;
-  void **new_args = malloc(sizeof(void *) * argc);
+  void *new_args[argc]; // IT IS MATTER THAT WE ALLOCATE ON STACK FOR POSSIBLE GC
   LOAD_VARARGS(new_args, argc);
 
   void *result = _apply_closure_chain(old_clos, argc, new_args);
-  free(new_args);
   return result;
 }
 
@@ -510,12 +509,11 @@ static void *_apply_closure(closure *old_clos, uint8_t argc, void **new_args) {
 
   // it is full application, we need to exec function and return result, not producing any garbage
   if (old_clos->argc_recived + argc == old_clos->argc) {
-    void **args = malloc(sizeof(void *) * old_clos->argc);
+    void *args[old_clos->argc]; // IT IS MATTER THAT WE ALLOCATE ON STACK FOR POSSIBLE GC
     merge_closure_args(args, old_clos, new_args, argc);
 
     LOG(" -> *exec 0x%x*\n", old_clos->code);
     void *result = call_closure(old_clos->code, old_clos->argc, args);
-    free(args);
     return result;
   }
 
