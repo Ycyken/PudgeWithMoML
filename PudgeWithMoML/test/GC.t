@@ -1,14 +1,16 @@
 ( simple example )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let add a b = a + b
-  > let main = 
-  >   let homka1 = add 5 in
-  >   let homka2 = print_gc_status () in
-  >   let homka3 = gc_collect () in
-  >   let homka4 = print_gc_status () in
-  >   let lol = (homka1 2) in
-  >   let homka5 = print_gc_status () in
-  >   print_int lol
+  > let _ = print_gc_status ()
+  > let f useless = 
+  >   let homka1 = add 1 in
+  >   let homka2 = homka1 2 in
+  >   let homka3 = homka1 3 in
+  >   ()
+  > let _ = f ()
+  > let _ = print_gc_status ()
+  > let _ = gc_collect ()
+  > let _ = print_gc_status ()
   > EOF
   $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
   ============ GC STATUS ============
@@ -16,27 +18,48 @@
     Heap base address: 0x100000000
     New space address: 0x100000000
     Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
+    Currently used: 0 words
+    Live objects: 0
   
   Statistics:
-    Total allocations: 2
-    Total allocated words: 12
+    Total allocations: 0
+    Total allocated words: 0
     Collections performed: 0
   
   New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 17 words
+    Live objects: 3
+  
+  Statistics:
+    Total allocations: 3
+    Total allocated words: 17
+    Collections performed: 0
+  
+  New space layout:
+  	(0x0) 0x0: [size: 4]
+  	(0x8) 0x1: [data: 0x40002a]
+  	(0x10) 0x2: [data: 0x1]
   	(0x18) 0x3: [data: 0x0]
   	(0x20) 0x4: [data: 0x0]
-  	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 5]
-  	(0x38) 0x7: [data: 0x400000]
-  	(0x40) 0x8: [data: 0x2]
-  	(0x48) 0x9: [data: 0x1]
-  	(0x50) 0xa: [data: 0xb]
-  	(0x58) 0xb: [data: 0x0]
+  	(0x28) 0x5: [size: 5]
+  	(0x30) 0x6: [data: 0x400000]
+  	(0x38) 0x7: [data: 0x2]
+  	(0x40) 0x8: [data: 0x0]
+  	(0x48) 0x9: [data: 0x0]
+  	(0x50) 0xa: [data: 0x0]
+  	(0x58) 0xb: [size: 5]
+  	(0x60) 0xc: [data: 0x400000]
+  	(0x68) 0xd: [data: 0x2]
+  	(0x70) 0xe: [data: 0x1]
+  	(0x78) 0xf: [data: 0x3]
+  	(0x80) 0x10: [data: 0x0]
   ============ GC STATUS ============
   
   ============ GC STATUS ============
@@ -44,65 +67,46 @@
     Heap base address: 0x100000000
     New space address: 0x100010000
     Space capacity: 8192 words
-    Currently used: 6 words
-    Live objects: 1
+    Currently used: 0 words
+    Live objects: 0
   
   Statistics:
-    Total allocations: 2
-    Total allocated words: 12
+    Total allocations: 3
+    Total allocated words: 17
     Collections performed: 1
   
   New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xb]
-  	(0x10028) 0x5: [data: 0x0]
   ============ GC STATUS ============
   
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 6 words
-    Live objects: 1
-  
-  Statistics:
-    Total allocations: 2
-    Total allocated words: 12
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xb]
-  	(0x10028) 0x5: [data: 0x0]
-  ============ GC STATUS ============
-  
-  7
   $ cat ../main.anf
   let add__0 = fun a__1 ->
     fun b__2 ->
     a__1 + b__2 
   
   
-  let main__3 = let anf_t6 = add__0 5 in
-    let homka1__4 = anf_t6 in
-    let anf_t5 = print_gc_status () in
-    let homka2__5 = anf_t5 in
-    let anf_t4 = gc_collect () in
-    let homka3__6 = anf_t4 in
-    let anf_t3 = print_gc_status () in
-    let homka4__7 = anf_t3 in
-    let anf_t2 = homka1__4 2 in
-    let lol__8 = anf_t2 in
-    let anf_t1 = print_gc_status () in
-    let homka5__9 = anf_t1 in
-    print_int lol__8 
+  let _ = print_gc_status () 
+  
+  
+  let f__3 = fun useless__4 ->
+    let anf_t6 = add__0 1 in
+    let homka1__5 = anf_t6 in
+    let anf_t5 = homka1__5 2 in
+    let homka2__6 = anf_t5 in
+    let anf_t4 = homka1__5 3 in
+    let homka3__7 = anf_t4 in
+    () 
+  
+  
+  let _ = f__3 () 
+  
+  
+  let _ = print_gc_status () 
+  
+  
+  let _ = gc_collect () 
+  
+  
+  let _ = print_gc_status () 
   $ cat ../main.s
   .text
   .globl add__0
@@ -122,12 +126,12 @@
     ld fp, 0(sp)
     addi sp, sp, 16
     ret
-  .globl _start
-  _start:
-    mv fp, sp
-    mv a0, sp
-    call init_GC
-    addi sp, sp, -96
+  .globl f__3
+  f__3:
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd fp, 48(sp)
+    addi fp, sp, 64
   # Application to add__0 with 1 args
   # Load args on stack
     addi sp, sp, -32
@@ -142,7 +146,7 @@
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
-    li t0, 11
+    li t0, 3
     sd t0, 16(sp)
   # End loading args on stack
     call apply_closure_chain
@@ -151,25 +155,13 @@
     addi sp, sp, 32
   # End free args on stack
   # End Application to add__0 with 1 args
-    sd t0, -8(fp)
-    ld t0, -8(fp)
-    sd t0, -16(fp)
-    call print_gc_status
     sd t0, -24(fp)
     ld t0, -24(fp)
     sd t0, -32(fp)
-    call gc_collect
-    sd t0, -40(fp)
-    ld t0, -40(fp)
-    sd t0, -48(fp)
-    call print_gc_status
-    sd t0, -56(fp)
-    ld t0, -56(fp)
-    sd t0, -64(fp)
-  # Application to homka1__4 with 1 args
+  # Application to homka1__5 with 1 args
   # Load args on stack
     addi sp, sp, -32
-    ld t0, -16(fp)
+    ld t0, -32(fp)
     sd t0, 0(sp)
     li t0, 3
     sd t0, 8(sp)
@@ -181,19 +173,75 @@
   # Free args on stack
     addi sp, sp, 32
   # End free args on stack
-  # End Application to homka1__4 with 1 args
-    sd t0, -72(fp)
-    ld t0, -72(fp)
-    sd t0, -80(fp)
+  # End Application to homka1__5 with 1 args
+    sd t0, -40(fp)
+    ld t0, -40(fp)
+    sd t0, -48(fp)
+  # Application to homka1__5 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -32(fp)
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 7
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to homka1__5 with 1 args
+    sd t0, -56(fp)
+    ld t0, -56(fp)
+    sd t0, -64(fp)
+    li a0, 1
+    ld ra, 56(sp)
+    ld fp, 48(sp)
+    addi sp, sp, 64
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    mv a0, sp
+    call init_GC
+    addi sp, sp, 0
     call print_gc_status
-    sd t0, -88(fp)
-    ld t0, -88(fp)
-    sd t0, -96(fp)
-  # Apply print_int
-    ld a0, -80(fp)
-    call print_int
-  # End Apply print_int
-    la a1, main__3
+    la a1, _
+    sd a0, 0(a1)
+  # Application to f__3 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, f__3
+    li t6, 3
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 1
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to f__3 with 1 args
+    la a1, _
+    sd a0, 0(a1)
+    call print_gc_status
+    la a1, _
+    sd a0, 0(a1)
+    call gc_collect
+    la a1, _
+    sd a0, 0(a1)
+    call print_gc_status
+    la a1, _
     sd a0, 0(a1)
     call flush
     li a0, 0
@@ -201,8 +249,8 @@
     ecall
   .section global_vars, "aw", @progbits
   .balign 8
-  .globl main__3
-  main__3: .dword 0
+  .globl _
+  _: .dword 0
 
 ( alloc inner closure )
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
@@ -462,507 +510,6 @@
   .globl main__11
   main__11: .dword 0
 
-( a lot of collector )
-  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
-  > let gleb a b = a + b
-  > let homs = gleb 7
-  > let _1 = print_gc_status ()
-  > let _2 = gc_collect ()
-  > let _3 = print_gc_status ()
-  > let _4 = gleb 6
-  > let _5  = print_gc_status ()
-  > let _6 = gc_collect ()
-  > let _7 = print_gc_status ()
-  > let _8 = gc_collect ()
-  > let _9 = print_gc_status ()
-  > let main = print_int 5
-  > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100000000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 2
-    Total allocated words: 12
-    Collections performed: 0
-  
-  New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
-  	(0x18) 0x3: [data: 0x0]
-  	(0x20) 0x4: [data: 0x0]
-  	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 5]
-  	(0x38) 0x7: [data: 0x400000]
-  	(0x40) 0x8: [data: 0x2]
-  	(0x48) 0x9: [data: 0x1]
-  	(0x50) 0xa: [data: 0xf]
-  	(0x58) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 6 words
-    Live objects: 1
-  
-  Statistics:
-    Total allocations: 2
-    Total allocated words: 12
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xf]
-  	(0x10028) 0x5: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 18 words
-    Live objects: 3
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xf]
-  	(0x10028) 0x5: [data: 0x0]
-  	(0x10030) 0x6: [size: 5]
-  	(0x10038) 0x7: [data: 0x400000]
-  	(0x10040) 0x8: [data: 0x2]
-  	(0x10048) 0x9: [data: 0x0]
-  	(0x10050) 0xa: [data: 0x0]
-  	(0x10058) 0xb: [data: 0x0]
-  	(0x10060) 0xc: [size: 5]
-  	(0x10068) 0xd: [data: 0x400000]
-  	(0x10070) 0xe: [data: 0x2]
-  	(0x10078) 0xf: [data: 0x1]
-  	(0x10080) 0x10: [data: 0xd]
-  	(0x10088) 0x11: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100000000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 2
-  
-  New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
-  	(0x18) 0x3: [data: 0x1]
-  	(0x20) 0x4: [data: 0xf]
-  	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 5]
-  	(0x38) 0x7: [data: 0x400000]
-  	(0x40) 0x8: [data: 0x2]
-  	(0x48) 0x9: [data: 0x1]
-  	(0x50) 0xa: [data: 0xd]
-  	(0x58) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 3
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xf]
-  	(0x10028) 0x5: [data: 0x0]
-  	(0x10030) 0x6: [size: 5]
-  	(0x10038) 0x7: [data: 0x400000]
-  	(0x10040) 0x8: [data: 0x2]
-  	(0x10048) 0x9: [data: 0x1]
-  	(0x10050) 0xa: [data: 0xd]
-  	(0x10058) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  5
-
-( move multiple objects to old_space )
-  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
-  > let add a b = a + b
-  > let main = 
-  >   let homka1 = add 5 in
-  >   let homka2 = add 3 in
-  >   let homka2 = print_gc_status () in
-  >   let homka3 = gc_collect () in
-  >   let homka4 = print_gc_status () in
-  >   let lol = (homka1 2) in
-  >   let homka5 = print_gc_status () in
-  >   print_int lol
-  > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100000000
-    Space capacity: 8192 words
-    Currently used: 24 words
-    Live objects: 4
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 0
-  
-  New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
-  	(0x18) 0x3: [data: 0x0]
-  	(0x20) 0x4: [data: 0x0]
-  	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 5]
-  	(0x38) 0x7: [data: 0x400000]
-  	(0x40) 0x8: [data: 0x2]
-  	(0x48) 0x9: [data: 0x1]
-  	(0x50) 0xa: [data: 0xb]
-  	(0x58) 0xb: [data: 0x0]
-  	(0x60) 0xc: [size: 5]
-  	(0x68) 0xd: [data: 0x400000]
-  	(0x70) 0xe: [data: 0x2]
-  	(0x78) 0xf: [data: 0x0]
-  	(0x80) 0x10: [data: 0x0]
-  	(0x88) 0x11: [data: 0x0]
-  	(0x90) 0x12: [size: 5]
-  	(0x98) 0x13: [data: 0x400000]
-  	(0xa0) 0x14: [data: 0x2]
-  	(0xa8) 0x15: [data: 0x1]
-  	(0xb0) 0x16: [data: 0x7]
-  	(0xb8) 0x17: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xb]
-  	(0x10028) 0x5: [data: 0x0]
-  	(0x10030) 0x6: [size: 5]
-  	(0x10038) 0x7: [data: 0x400000]
-  	(0x10040) 0x8: [data: 0x2]
-  	(0x10048) 0x9: [data: 0x1]
-  	(0x10050) 0xa: [data: 0x7]
-  	(0x10058) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 4
-    Total allocated words: 24
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xb]
-  	(0x10028) 0x5: [data: 0x0]
-  	(0x10030) 0x6: [size: 5]
-  	(0x10038) 0x7: [data: 0x400000]
-  	(0x10040) 0x8: [data: 0x2]
-  	(0x10048) 0x9: [data: 0x1]
-  	(0x10050) 0xa: [data: 0x7]
-  	(0x10058) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  7
-  $ cat ../main.anf
-  let add__0 = fun a__1 ->
-    fun b__2 ->
-    a__1 + b__2 
-  
-  
-  let main__3 = let anf_t7 = add__0 5 in
-    let homka1__4 = anf_t7 in
-    let anf_t6 = add__0 3 in
-    let homka2__5 = anf_t6 in
-    let anf_t5 = print_gc_status () in
-    let homka2__6 = anf_t5 in
-    let anf_t4 = gc_collect () in
-    let homka3__7 = anf_t4 in
-    let anf_t3 = print_gc_status () in
-    let homka4__8 = anf_t3 in
-    let anf_t2 = homka1__4 2 in
-    let lol__9 = anf_t2 in
-    let anf_t1 = print_gc_status () in
-    let homka5__10 = anf_t1 in
-    print_int lol__9 
-  $ cat ../main.s
-  .text
-  .globl add__0
-  add__0:
-    addi sp, sp, -16
-    sd ra, 8(sp)
-    sd fp, 0(sp)
-    addi fp, sp, 16
-    ld t0, 0(fp)
-    ld t1, 8(fp)
-    srai t0, t0, 1
-    srai t1, t1, 1
-    add a0, t0, t1
-    slli a0, a0, 1
-    ori a0, a0, 1
-    ld ra, 8(sp)
-    ld fp, 0(sp)
-    addi sp, sp, 16
-    ret
-  .globl _start
-  _start:
-    mv fp, sp
-    mv a0, sp
-    call init_GC
-    addi sp, sp, -112
-  # Application to add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 5
-    sd t5, 0(sp)
-    sd t6, 8(sp)
-    call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 11
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure_chain
-    mv t0, a0
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-  # End Application to add__0 with 1 args
-    sd t0, -8(fp)
-    ld t0, -8(fp)
-    sd t0, -16(fp)
-  # Application to add__0 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    addi sp, sp, -16
-    la t5, add__0
-    li t6, 5
-    sd t5, 0(sp)
-    sd t6, 8(sp)
-    call alloc_closure
-    mv t0, a0
-    addi sp, sp, 16
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 7
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure_chain
-    mv t0, a0
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-  # End Application to add__0 with 1 args
-    sd t0, -24(fp)
-    ld t0, -24(fp)
-    sd t0, -32(fp)
-    call print_gc_status
-    sd t0, -40(fp)
-    ld t0, -40(fp)
-    sd t0, -48(fp)
-    call gc_collect
-    sd t0, -56(fp)
-    ld t0, -56(fp)
-    sd t0, -64(fp)
-    call print_gc_status
-    sd t0, -72(fp)
-    ld t0, -72(fp)
-    sd t0, -80(fp)
-  # Application to homka1__4 with 1 args
-  # Load args on stack
-    addi sp, sp, -32
-    ld t0, -16(fp)
-    sd t0, 0(sp)
-    li t0, 3
-    sd t0, 8(sp)
-    li t0, 5
-    sd t0, 16(sp)
-  # End loading args on stack
-    call apply_closure_chain
-    mv t0, a0
-  # Free args on stack
-    addi sp, sp, 32
-  # End free args on stack
-  # End Application to homka1__4 with 1 args
-    sd t0, -88(fp)
-    ld t0, -88(fp)
-    sd t0, -96(fp)
-    call print_gc_status
-    sd t0, -104(fp)
-    ld t0, -104(fp)
-    sd t0, -112(fp)
-  # Apply print_int
-    ld a0, -96(fp)
-    call print_int
-  # End Apply print_int
-    la a1, main__3
-    sd a0, 0(a1)
-    call flush
-    li a0, 0
-    li a7, 94
-    ecall
-  .section global_vars, "aw", @progbits
-  .balign 8
-  .globl main__3
-  main__3: .dword 0
-
-
-( many closures, heap is dynamicly resized )
-  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
-  > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
-  > let main = print_int (fib 15 (fun x -> x))
-  > let _ = gc_collect ()
-  > let _ = print_gc_stats ()
-  > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  Segmentation fault
-  [139]
-
-( get current capacity of heap )
-  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
-  > let start = get_heap_start ()
-  > let end = get_heap_fin ()
-  > let main = print_int ((end - start) / 8)
-  > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  8192
-
-( numbers can't be equal existings addresses on heap )
-  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
-  > let add x y = x + y
-  > let homka = add 122
-  > let _ = print_gc_status ()
-  > let start1 = get_heap_start ()
-  > let _ = gc_collect ()
-  > let start2 = get_heap_start ()
-  > let _ = print_int (start2 - start1)
-  > let _ = print_gc_status ()
-  > EOF
-  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100000000
-    Space capacity: 8192 words
-    Currently used: 12 words
-    Live objects: 2
-  
-  Statistics:
-    Total allocations: 2
-    Total allocated words: 12
-    Collections performed: 0
-  
-  New space layout:
-  	(0x0) 0x0: [size: 5]
-  	(0x8) 0x1: [data: 0x400000]
-  	(0x10) 0x2: [data: 0x2]
-  	(0x18) 0x3: [data: 0x0]
-  	(0x20) 0x4: [data: 0x0]
-  	(0x28) 0x5: [data: 0x0]
-  	(0x30) 0x6: [size: 5]
-  	(0x38) 0x7: [data: 0x400000]
-  	(0x40) 0x8: [data: 0x2]
-  	(0x48) 0x9: [data: 0x1]
-  	(0x50) 0xa: [data: 0xf5]
-  	(0x58) 0xb: [data: 0x0]
-  ============ GC STATUS ============
-  
-  65536
-  ============ GC STATUS ============
-  Heap Info:
-    Heap base address: 0x100000000
-    New space address: 0x100010000
-    Space capacity: 8192 words
-    Currently used: 6 words
-    Live objects: 1
-  
-  Statistics:
-    Total allocations: 2
-    Total allocated words: 12
-    Collections performed: 1
-  
-  New space layout:
-  	(0x10000) 0x0: [size: 5]
-  	(0x10008) 0x1: [data: 0x400000]
-  	(0x10010) 0x2: [data: 0x2]
-  	(0x10018) 0x3: [data: 0x1]
-  	(0x10020) 0x4: [data: 0xf5]
-  	(0x10028) 0x5: [data: 0x0]
-  ============ GC STATUS ============
-  
 (many closures, realloc heap)
   $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
   > let sum x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 = x20
@@ -1344,7 +891,434 @@
   .globl main__24
   main__24: .dword 0
 
-(realloc)
+( a lot of collector )
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  > let gleb a b = a + b
+  > let _ = print_gc_stats ()
+  > let rec homs x = if x = 0 then 0 else let t = gleb 2 in homs (x - 1)
+  > let _ = print_int (homs 15)
+  > let _ = print_gc_stats ()
+  > let _ = gc_collect ()
+  > let _ = print_gc_stats ()
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 5 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 1
+    Total allocated words: 5
+    Collections performed: 0
+  ============ GC STATUS ============
+  
+  0
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 270 words
+    Live objects: 48
+  
+  Statistics:
+    Total allocations: 48
+    Total allocated words: 270
+    Collections performed: 0
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 5 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 49
+    Total allocated words: 275
+    Collections performed: 1
+  ============ GC STATUS ============
+  
+
+( move multiple objects to old_space )
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  > let add a b = a + b
+  > let main = 
+  >   let homka1 = add 5 in
+  >   let homka2 = add 3 in
+  >   let homka2 = print_gc_status () in
+  >   let homka3 = gc_collect () in
+  >   let homka4 = print_gc_status () in
+  >   let lol = (homka1 2) in
+  >   let homka5 = print_gc_status () in
+  >   print_int lol
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 24 words
+    Live objects: 4
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 0
+  
+  New space layout:
+  	(0x0) 0x0: [size: 5]
+  	(0x8) 0x1: [data: 0x400000]
+  	(0x10) 0x2: [data: 0x2]
+  	(0x18) 0x3: [data: 0x0]
+  	(0x20) 0x4: [data: 0x0]
+  	(0x28) 0x5: [data: 0x0]
+  	(0x30) 0x6: [size: 5]
+  	(0x38) 0x7: [data: 0x400000]
+  	(0x40) 0x8: [data: 0x2]
+  	(0x48) 0x9: [data: 0x1]
+  	(0x50) 0xa: [data: 0xb]
+  	(0x58) 0xb: [data: 0x0]
+  	(0x60) 0xc: [size: 5]
+  	(0x68) 0xd: [data: 0x400000]
+  	(0x70) 0xe: [data: 0x2]
+  	(0x78) 0xf: [data: 0x0]
+  	(0x80) 0x10: [data: 0x0]
+  	(0x88) 0x11: [data: 0x0]
+  	(0x90) 0x12: [size: 5]
+  	(0x98) 0x13: [data: 0x400000]
+  	(0xa0) 0x14: [data: 0x2]
+  	(0xa8) 0x15: [data: 0x1]
+  	(0xb0) 0x16: [data: 0x7]
+  	(0xb8) 0x17: [data: 0x0]
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 1
+  
+  New space layout:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xb]
+  	(0x10028) 0x5: [data: 0x0]
+  	(0x10030) 0x6: [size: 5]
+  	(0x10038) 0x7: [data: 0x400000]
+  	(0x10040) 0x8: [data: 0x2]
+  	(0x10048) 0x9: [data: 0x1]
+  	(0x10050) 0xa: [data: 0x7]
+  	(0x10058) 0xb: [data: 0x0]
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 4
+    Total allocated words: 24
+    Collections performed: 1
+  
+  New space layout:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xb]
+  	(0x10028) 0x5: [data: 0x0]
+  	(0x10030) 0x6: [size: 5]
+  	(0x10038) 0x7: [data: 0x400000]
+  	(0x10040) 0x8: [data: 0x2]
+  	(0x10048) 0x9: [data: 0x1]
+  	(0x10050) 0xa: [data: 0x7]
+  	(0x10058) 0xb: [data: 0x0]
+  ============ GC STATUS ============
+  
+  7
+  $ cat ../main.anf
+  let add__0 = fun a__1 ->
+    fun b__2 ->
+    a__1 + b__2 
+  
+  
+  let main__3 = let anf_t7 = add__0 5 in
+    let homka1__4 = anf_t7 in
+    let anf_t6 = add__0 3 in
+    let homka2__5 = anf_t6 in
+    let anf_t5 = print_gc_status () in
+    let homka2__6 = anf_t5 in
+    let anf_t4 = gc_collect () in
+    let homka3__7 = anf_t4 in
+    let anf_t3 = print_gc_status () in
+    let homka4__8 = anf_t3 in
+    let anf_t2 = homka1__4 2 in
+    let lol__9 = anf_t2 in
+    let anf_t1 = print_gc_status () in
+    let homka5__10 = anf_t1 in
+    print_int lol__9 
+  $ cat ../main.s
+  .text
+  .globl add__0
+  add__0:
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    sd fp, 0(sp)
+    addi fp, sp, 16
+    ld t0, 0(fp)
+    ld t1, 8(fp)
+    srai t0, t0, 1
+    srai t1, t1, 1
+    add a0, t0, t1
+    slli a0, a0, 1
+    ori a0, a0, 1
+    ld ra, 8(sp)
+    ld fp, 0(sp)
+    addi sp, sp, 16
+    ret
+  .globl _start
+  _start:
+    mv fp, sp
+    mv a0, sp
+    call init_GC
+    addi sp, sp, -112
+  # Application to add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, add__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 11
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to add__0 with 1 args
+    sd t0, -8(fp)
+    ld t0, -8(fp)
+    sd t0, -16(fp)
+  # Application to add__0 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    addi sp, sp, -16
+    la t5, add__0
+    li t6, 5
+    sd t5, 0(sp)
+    sd t6, 8(sp)
+    call alloc_closure
+    mv t0, a0
+    addi sp, sp, 16
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 7
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to add__0 with 1 args
+    sd t0, -24(fp)
+    ld t0, -24(fp)
+    sd t0, -32(fp)
+    call print_gc_status
+    sd t0, -40(fp)
+    ld t0, -40(fp)
+    sd t0, -48(fp)
+    call gc_collect
+    sd t0, -56(fp)
+    ld t0, -56(fp)
+    sd t0, -64(fp)
+    call print_gc_status
+    sd t0, -72(fp)
+    ld t0, -72(fp)
+    sd t0, -80(fp)
+  # Application to homka1__4 with 1 args
+  # Load args on stack
+    addi sp, sp, -32
+    ld t0, -16(fp)
+    sd t0, 0(sp)
+    li t0, 3
+    sd t0, 8(sp)
+    li t0, 5
+    sd t0, 16(sp)
+  # End loading args on stack
+    call apply_closure_chain
+    mv t0, a0
+  # Free args on stack
+    addi sp, sp, 32
+  # End free args on stack
+  # End Application to homka1__4 with 1 args
+    sd t0, -88(fp)
+    ld t0, -88(fp)
+    sd t0, -96(fp)
+    call print_gc_status
+    sd t0, -104(fp)
+    ld t0, -104(fp)
+    sd t0, -112(fp)
+  # Apply print_int
+    ld a0, -96(fp)
+    call print_int
+  # End Apply print_int
+    la a1, main__3
+    sd a0, 0(a1)
+    call flush
+    li a0, 0
+    li a7, 94
+    ecall
+  .section global_vars, "aw", @progbits
+  .balign 8
+  .globl main__3
+  main__3: .dword 0
+
+
+( many closures, heap is dynamicly resized )
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
+  > let rec fib n k = if n < 2 then k n else fib (n - 1) (fun a -> fib (n - 2) (fun b -> k (a + b)))
+  > let main = print_int (fib 15 (fun x -> x))
+  > let _ = print_gc_stats ()
+  > let _ = gc_collect ()
+  > let _ = print_gc_stats ()
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  610
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 65536 words
+    Currently used: 39456 words
+    Live objects: 5919
+  
+  Statistics:
+    Total allocations: 5919
+    Total allocated words: 39456
+    Collections performed: 3
+  ============ GC STATUS ============
+  
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100080000
+    Space capacity: 65536 words
+    Currently used: 10 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 5920
+    Total allocated words: 39461
+    Collections performed: 4
+  ============ GC STATUS ============
+  
+
+( get current capacity of heap )
+  $ make compile FIXADDR=1 opts=-gen_mid --no-print-directory -C .. << 'EOF'
+  > let start = get_heap_start ()
+  > let end = get_heap_fin ()
+  > let main = print_int ((end - start) / 8)
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  8192
+
+( numbers can't be equal existings addresses on heap )
+  $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
+  > let add x y = x + y
+  > let homka = add 122
+  > let _ = print_gc_status ()
+  > let start1 = get_heap_start ()
+  > let _ = gc_collect ()
+  > let start2 = get_heap_start ()
+  > let _ = print_int (start2 - start1)
+  > let _ = print_gc_status ()
+  > EOF
+  $ qemu-riscv64 -L /usr/riscv64-linux-gnu -cpu rv64 ../main.exe 
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100000000
+    Space capacity: 8192 words
+    Currently used: 12 words
+    Live objects: 2
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 0
+  
+  New space layout:
+  	(0x0) 0x0: [size: 5]
+  	(0x8) 0x1: [data: 0x400000]
+  	(0x10) 0x2: [data: 0x2]
+  	(0x18) 0x3: [data: 0x0]
+  	(0x20) 0x4: [data: 0x0]
+  	(0x28) 0x5: [data: 0x0]
+  	(0x30) 0x6: [size: 5]
+  	(0x38) 0x7: [data: 0x400000]
+  	(0x40) 0x8: [data: 0x2]
+  	(0x48) 0x9: [data: 0x1]
+  	(0x50) 0xa: [data: 0xf5]
+  	(0x58) 0xb: [data: 0x0]
+  ============ GC STATUS ============
+  
+  65536
+  ============ GC STATUS ============
+  Heap Info:
+    Heap base address: 0x100000000
+    New space address: 0x100010000
+    Space capacity: 8192 words
+    Currently used: 6 words
+    Live objects: 1
+  
+  Statistics:
+    Total allocations: 2
+    Total allocated words: 12
+    Collections performed: 1
+  
+  New space layout:
+  	(0x10000) 0x0: [size: 5]
+  	(0x10008) 0x1: [data: 0x400000]
+  	(0x10010) 0x2: [data: 0x2]
+  	(0x10018) 0x3: [data: 0x1]
+  	(0x10020) 0x4: [data: 0xf5]
+  	(0x10028) 0x5: [data: 0x0]
+  ============ GC STATUS ============
+  
+
+(swap spaces twice)
   $ make compile FIXADDR=1 --no-print-directory -C .. << 'EOF'
   > let f x y = x + y
   > let g a b c = a + (b c)
