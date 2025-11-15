@@ -459,7 +459,7 @@ static void merge_closure_args(void **dest, closure *clos, void **new_args, uint
 
 void *apply_closure_chain(INT8, closure *old_clos, uint8_t argc, ...) {
   argc = argc >> 1;
-  void *new_args[argc]; // IT IS MATTER THAT WE ALLOCATE ON STACK FOR POSSIBLE GC
+  void *new_args[argc]; // IT IS MATTER THAT WE ALLOCATE ON STACK FOR POSSIBLE GC COLLECT
   LOAD_VARARGS(new_args, argc);
 
   void *result = _apply_closure_chain(old_clos, argc, new_args);

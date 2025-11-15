@@ -242,9 +242,9 @@ let%expect_test "not even args" =
      |}]
 ;;
 
-(* add binding in env with arguments of functions and their values *)
-(* argument values keeps on stack *)
-(* use this function before save ra and fp registers *)
+(** Add binding in env with arguments of functions and their values
+argument values keeps on stack
+use this function before save ra and fp registers *)
 let get_args_from_stack (args : ident list) : unit t =
   let* current_sp = get_frame_offset in
   let* () =
@@ -272,7 +272,7 @@ let free_args_on_stack (args : imm list) : instr list t =
     ]
 ;;
 
-(* Call function with arguments on stack and move result to destination register *)
+(* Call function with arguments on stack and move result to the destination register *)
 let call_function ?(dst = A 0) f args =
   let* load = load_args_on_stack args in
   let+ free = free_args_on_stack args in
@@ -412,8 +412,8 @@ and gen_aexpr dst = function
   | _ -> fail "gen_aexpr case not implemented yet"
 ;;
 
-(** Generate code for global functions and _start function.
-_start func just calculates values of global variables and stores it's. *)
+(* Generate code for all global functions and for the _start entry point.
+   The _start function computes the initial values of global variables and stores them. *)
 let gen_funcs (pr : aprogram) : (instr list * instr list) M.t =
   let binds = program_binds pr in
   let rec helper acc (binds : binding list) =
